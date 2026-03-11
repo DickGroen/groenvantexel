@@ -1947,13 +1947,11 @@ async function slaAnalyseOp() {
   const tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
   if (!tekst || !huidigePDFKlant || !huidigePDFPeriode) return;
   
-  const { error } = await supabaseClient.from('maandcijfers').insert([{
-    bedrijf: huidigePDFKlant,
-    periode: huidigePDFPeriode + '-analyse',
-    sector: document.getElementById('ai-sector').value,
-    signaal: 'analyse',
-    email: null
-  }]);
+  const { error } = await supabaseClient
+    .from('maandcijfers')
+    .update({ notities: tekst })
+    .eq('bedrijf', huidigePDFKlant)
+    .eq('periode', huidigePDFPeriode);
   
   if (!error) showToast('✔ Analyse opgeslagen');
 }
