@@ -2045,13 +2045,25 @@ MKB Stresstest Methode™ | Vertrouwelijk — intern gebruik`;
       })
     });
 
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-    const tekst = data.content?.find(b => b.type === 'text')?.text || 'Geen resultaat ontvangen.';
+    let tekst;
+    if (response.ok) {
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      tekst = data.content?.find(b => b.type === 'text')?.text || 'Geen resultaat ontvangen.';
+    } else {
+      // CORS of andere fout — gebruik bestaande analysetekst als die er is
+      const bestaand = resultaat.textContent;
+      if (bestaand && bestaand.length > 100) {
+        tekst = bestaand;
+      } else {
+        throw new Error('API niet bereikbaar (status ' + response.status + ')');
+      }
+    }
 
     resultaat.textContent = tekst;
     resultaat.style.display = 'block';
     acties.style.display = 'flex';
+    acties.style.visibility = 'visible';
     status.textContent = '✔ Analyse gereed';
     
     // Sla op in sessionStorage voor kopiëren
@@ -2061,9 +2073,31 @@ MKB Stresstest Methode™ | Vertrouwelijk — intern gebruik`;
     toonVisualisatie(tekst);
 
   } catch(e) {
-    status.textContent = '⚠ Fout bij AI-analyse: ' + e.message;
+    // Toon knoppen alsnog als er analysetekst in het veld staat
+    const bestaandeTekst = document.getElementById('ai-analyse-resultaat').textContent;
+    if (bestaandeTekst && bestaandeTekst.length > 100) {
+      acties.style.display = 'flex';
+      sessionStorage.setItem('ai-analyse-tekst', bestaandeTekst);
+    }
+    status.textContent = '⚠ Directe verbinding mislukt — probeer opnieuw of gebruik Kopieer analyse';
   }
 }
+
+// Toon actie-knoppen zodra analysetekst verschijnt
+(function() {
+  const observer = new MutationObserver(() => {
+    const resultaat = document.getElementById('ai-analyse-resultaat');
+    const acties = document.getElementById('ai-analyse-acties');
+    if (resultaat && acties && resultaat.textContent.length > 100) {
+      acties.style.display = 'flex';
+      sessionStorage.setItem('ai-analyse-tekst', resultaat.textContent);
+    }
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    const resultaat = document.getElementById('ai-analyse-resultaat');
+    if (resultaat) observer.observe(resultaat, { childList: true, subtree: true, characterData: true });
+  });
+})();
 
 function kopieerAnalyse() {
   const tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
