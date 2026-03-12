@@ -1208,12 +1208,14 @@ async function bestelBasiscan() {
   btn.disabled = true;
   btn.textContent = 'Versturen...';
   try {
+    const tijdstip = new Date().toLocaleString('nl-NL');
     await emailjs.send('service_oqgsajg', 'template_q3aea4c', {
-      to_email: 'dickgroen2@gmail.com',
-      subject: 'Basiscan aangevraagd',
-      message: 'Klant ' + currentUser + ' heeft akkoord gegeven voor de Financiele Basiscan (397 euro excl. BTW). U kunt direct starten.',
       bedrijf: currentUser,
       periode: 'Basiscan aanvraag',
+      bestandsnaam: 'Basiscan aanvraag',
+      name: currentUser,
+      time: tijdstip,
+      message: 'Klant ' + currentUser + ' heeft akkoord gegeven voor de Financiele Basiscan (\u20ac397 excl. BTW). U kunt direct starten.',
     });
     btn.style.display = 'none';
     bevestiging.style.display = 'block';
