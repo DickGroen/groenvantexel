@@ -454,7 +454,7 @@
     <div class="form-card">
       <div class="form-header">
         <h2>Gratis financiële scan — uw 1-pager</h2>
-        <p>Stuur uw jaarcijfers op. U ontvangt binnen 2 werkdagen een persoonlijke 1-pager met uw financiële positie en de belangrijkste verbeterpunten.</p>
+        <p>Stuur uw jaarcijfers op. U ontvangt binnen 3 werkdagen een persoonlijke 1-pager met uw financiële positie en de belangrijkste verbeterpunten.</p>
         <p class="form-intro">De scan is volledig gratis en vrijblijvend. Uw gegevens worden vertrouwelijk behandeld en niet gedeeld met derden.</p>
       </div>
       <div class="form-body">
@@ -531,7 +531,7 @@
         </div>
 
         <button class="submit-btn" id="lead-submit-btn" onclick="submitLead()">
-          ▶ Versturen — uw gratis 1-pager volgt binnen 2 werkdagen
+          ▶ Versturen — uw gratis 1-pager volgt binnen 3 werkdagen
         </button>
       </div>
     </div>
@@ -1104,7 +1104,7 @@ async function loadRapportVoorKlant(bedrijf) {
     const klantType = sessionStorage.getItem('gvt-type') || 'doorlichting';
     if (leegTekst) {
       if (klantType === 'lead') {
-        leegTekst.textContent = 'Uw gratis 1-pager is nog niet klaar. U ontvangt een bericht zodra deze beschikbaar is — doorgaans binnen 2 werkdagen.';
+        leegTekst.textContent = 'Uw gratis 1-pager is nog niet klaar. U ontvangt een bericht zodra deze beschikbaar is — doorgaans binnen 3 werkdagen.';
       } else {
         leegTekst.textContent = 'Uw rapport is nog niet beschikbaar. U ontvangt een bericht zodra het klaarstaat.';
       }
@@ -1479,12 +1479,12 @@ async function submitLead() {
       (geupload.join(', ') || 'geen bestanden') + ' | Sector: ' + sector + linksText
     );
 
-    btn.textContent = '✔ Ontvangen — uw 1-pager is binnen 2 werkdagen klaar in uw portaal';
+    btn.textContent = '✔ Ontvangen — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
     btn.style.background = 'var(--green)';
-    showToast('✔ Cijfers ontvangen — 1-pager volgt binnen 2 werkdagen');
+    showToast('✔ Cijfers ontvangen — 1-pager volgt binnen 3 werkdagen');
   } catch(e) {
     btn.disabled = false;
-    btn.textContent = '▶ Versturen — uw gratis 1-pager volgt binnen 2 werkdagen';
+    btn.textContent = '▶ Versturen — uw gratis 1-pager volgt binnen 3 werkdagen';
     alert('Er ging iets mis. Probeer opnieuw of neem contact op.');
   }
 }
@@ -1562,7 +1562,7 @@ async function submitDoorlichting() {
     await verstuurEmailNotificatie(bedrijf, 'doorlichting ' + new Date().getFullYear(), (geupload.join(', ') || 'geen bestanden') + linksText);
   } catch(e) {
     btn.disabled = false;
-    btn.textContent = '▶ Jaarcijfers verzenden — doorlichting volgt binnen 5 werkdagen';
+    btn.textContent = '▶ Jaarcijfers verzenden — doorlichting volgt binnen 3 werkdagen';
     alert('Er ging iets mis. Probeer opnieuw of neem contact op.');
   }
 }
@@ -1794,8 +1794,8 @@ function showView(name, btn) {
   if (name === 'lead' && currentUser && currentUser !== 'admin') {
     // Prefill bedrijfsnaam als die al bekend is
     const leadBedrijf = document.getElementById('lead-bedrijf');
-    if (leadBedrijf && !leadBedrijf.readOnly && currentUser !== 'Gratis Scan') {
-      leadBedrijf.placeholder = currentUser;
+    if (leadBedrijf && currentUser !== 'Gratis Scan') {
+      leadBedrijf.value = currentUser;
     }
   }
   if (currentUser && currentUser !== 'admin') {
