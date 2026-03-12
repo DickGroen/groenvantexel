@@ -662,10 +662,26 @@
         </div>
       </div>
 
-      <div id="ai-analyse-acties" style="display:none; margin-top:12px; display:none; gap:12px; flex-wrap:wrap;">
-        <button class="action-btn primary" onclick="kopieerAnalyse()" style="padding:8px 18px; font-size:13px;">📋 Kopieer analyse</button>
-        <button class="action-btn" onclick="slaAnalyseOp()" style="padding:8px 18px; font-size:13px; background:#f5f5f5; color:var(--blue); border:1.5px solid var(--blue);">💾 Sla op als rapport</button>
+      <div id="ai-analyse-acties" style="display:none; margin-top:12px; gap:12px; flex-wrap:wrap;">
+        <button class="action-btn primary" onclick="genereer1Pager()" style="padding:10px 24px; font-size:13px; background:var(--green);">📄 Genereer 1-pager preview</button>
+        <button class="action-btn" onclick="slaAnalyseOp()" style="padding:8px 18px; font-size:13px; background:#f5f5f5; color:var(--blue); border:1.5px solid var(--blue);">💾 Sla analyse op</button>
       </div>
+    </div>
+
+    <!-- ADMIN: 1-pager preview + publiceer -->
+    <div id="eenpager-preview-sectie" style="display:none; background:#fff; border:2px solid var(--green); border-radius:12px; padding:0; margin-bottom:20px; overflow:hidden;">
+      <div style="background:var(--green); padding:14px 24px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:700; color:#fff; font-size:15px;">📄 1-pager preview — controleer vóór publicatie</div>
+        <div style="display:flex; gap:10px;">
+          <button onclick="publiceer1Pager()" style="background:#fff; color:var(--green); border:none; border-radius:7px; padding:9px 22px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">✅ Publiceer naar klant</button>
+        </div>
+      </div>
+      <div id="eenpager-preview-inhoud" style="padding:24px;"></div>
+    </div>
+
+    <!-- KLANT: Opgemaakte 1-pager -->
+    <div id="eenpager-klant-sectie" style="display:none; background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:20px;">
+      <div id="eenpager-klant-inhoud" style="padding:0;"></div>
     </div>
 
     <!-- ADMIN: PDF upload sectie -->
@@ -754,10 +770,19 @@ CREATE TABLE maandcijfers (<br>
 &nbsp;&nbsp;solvabiliteit numeric,<br>
 &nbsp;&nbsp;personeelskosten numeric,<br>
 &nbsp;&nbsp;signaal text,<br>
+&nbsp;&nbsp;notities text,<br>
+&nbsp;&nbsp;eenpager_html text,<br>
+&nbsp;&nbsp;eenpager_gepubliceerd boolean DEFAULT false,<br>
 &nbsp;&nbsp;created_at timestamptz DEFAULT now()<br>
 );<br><br>
 ALTER TABLE maandcijfers ENABLE ROW LEVEL SECURITY;<br>
 CREATE POLICY "Publiek lezen en schrijven" ON maandcijfers FOR ALL USING (true) WITH CHECK (true);
+            </div>
+            <p style="font-size:12px;color:var(--mid);margin-top:10px;">⚠ <strong>Bestaande database?</strong> Voeg de nieuwe kolommen toe via SQL Editor:</p>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;font-family:monospace;color:var(--dark);line-height:1.6;">
+ALTER TABLE maandcijfers ADD COLUMN IF NOT EXISTS notities text;<br>
+ALTER TABLE maandcijfers ADD COLUMN IF NOT EXISTS eenpager_html text;<br>
+ALTER TABLE maandcijfers ADD COLUMN IF NOT EXISTS eenpager_gepubliceerd boolean DEFAULT false;
             </div>
           </div>
         </div>
@@ -1121,7 +1146,11 @@ function updatePDFSectie(bedrijf, periode) {
   huidigePDFPeriode = periode;
   
   const isLead = periode && periode.startsWith('lead-');
-  
+
+  // Reset 1-pager secties
+  document.getElementById('eenpager-preview-sectie').style.display = 'none';
+  document.getElementById('eenpager-klant-sectie').style.display = 'none';
+
   // Toon AI-analyse sectie voor leads (admin only)
   const aiSectie = document.getElementById('ai-analyse-sectie');
   if (aiSectie && currentUser === 'admin' && isLead && bedrijf) {
@@ -1137,6 +1166,12 @@ function updatePDFSectie(bedrijf, periode) {
   if (currentUser === 'admin' && bedrijf && periode) {
     document.getElementById('pdf-upload-sectie').style.display = 'block';
   }
+
+  // Klant: laad gepubliceerde 1-pager
+  if (currentUser !== 'admin' && bedrijf && periode) {
+    laadEenpagerKlant();
+  }
+
   checkPDFBeschikbaar(bedrijf, periode);
 }
 
@@ -2181,6 +2216,183 @@ async function slaAnalyseOp() {
     .eq('periode', huidigePDFPeriode);
   
   if (!error) showToast('✔ Analyse opgeslagen');
+}
+
+// ── 1-PAGER GENEREREN (admin preview) ────────────────────────────────────────
+
+function genereer1Pager() {
+  const tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
+  if (!tekst) { showToast('⚠ Voer eerst een AI-analyse uit', '#E67E22'); return; }
+
+  const parsed = parseAnalyseData(tekst);
+  const bedrijf = huidigePDFKlant || '[BEDRIJF]';
+  const periode = huidigePDFPeriode || '2024';
+  const sector = document.getElementById('ai-sector')?.value || '—';
+
+  const html = bouw1PagerHTML(bedrijf, periode, sector, parsed, tekst);
+
+  const preview = document.getElementById('eenpager-preview-sectie');
+  document.getElementById('eenpager-preview-inhoud').innerHTML = html;
+  preview.style.display = 'block';
+  preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  sessionStorage.setItem('eenpager-html', html);
+  sessionStorage.setItem('eenpager-bedrijf', bedrijf);
+  sessionStorage.setItem('eenpager-periode', periode);
+}
+
+async function publiceer1Pager() {
+  const html = sessionStorage.getItem('eenpager-html');
+  const bedrijf = sessionStorage.getItem('eenpager-bedrijf');
+  const periode = sessionStorage.getItem('eenpager-periode');
+  if (!html || !bedrijf) { showToast('⚠ Genereer eerst de 1-pager', '#E67E22'); return;  }
+
+  const btn = document.querySelector('#eenpager-preview-sectie button');
+  btn.textContent = '⏳ Publiceren...';
+  btn.disabled = true;
+
+  try {
+    const { error } = await supabaseClient
+      .from('maandcijfers')
+      .update({ eenpager_html: html, eenpager_gepubliceerd: true })
+      .eq('bedrijf', bedrijf)
+      .eq('periode', periode);
+
+    if (error) throw error;
+    showToast('✅ 1-pager gepubliceerd — klant ziet hem nu in zijn portaal');
+    btn.textContent = '✅ Gepubliceerd';
+  } catch(e) {
+    showToast('⚠ Fout bij publiceren: ' + e.message, '#E67E22');
+    btn.textContent = '✅ Publiceer naar klant';
+    btn.disabled = false;
+  }
+}
+
+function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
+  // Extraheer bevindingen uit analysetekst
+  const regels = analyseTekst.split('\n');
+  const bevindingen = [];
+  let inBevindingen = false;
+  for (const regel of regels) {
+    if (regel.toLowerCase().includes('afwijking') || regel.toLowerCase().includes('bevinding')) inBevindingen = true;
+    if (inBevindingen && regel.match(/^\d[\.\)]/)) {
+      bevindingen.push(regel.replace(/^\d[\.\)]\s*/, '').trim());
+    }
+    if (bevindingen.length >= 3) break;
+  }
+
+  const fmt = (v, e='%') => v !== null ? `${v}${e}` : '—';
+  const signaalKleur = (s) => s === '✅' ? '#1E8449' : s === '⚠' ? '#E67E22' : '#DC2626';
+  const scores = ['brutomarge','ebitda','personeelskosten','debiteurendagen','solvabiliteit','currentratio'].map(k => scoreRatio(k, parsed[k]));
+
+  return `
+  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+    <!-- Header -->
+    <div style="background:#1F4E79;padding:20px 24px;display:flex;align-items:center;gap:16px;">
+      <div>
+        <div style="color:#9dc3e6;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">Groen van Texel — Financiële Doorlichting</div>
+        <div style="color:#fff;font-size:20px;font-weight:700;margin-top:2px;">${bedrijf}</div>
+        <div style="color:#9dc3e6;font-size:12px;margin-top:2px;">Sector: ${sector} &nbsp;•&nbsp; Boekjaar ${periode}</div>
+      </div>
+    </div>
+
+    <!-- Kerncijfers -->
+    <div style="padding:20px 24px 0;">
+      <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#1F4E79;">
+          <td style="padding:7px 10px;color:#fff;font-weight:700;">Cijfer</td>
+          <td style="padding:7px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td>
+          <td style="padding:7px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td>
+          <td style="padding:7px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td>
+        </tr>
+        <tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Brutomarge %</td><td style="padding:8px 10px;font-weight:700;color:${scores[0].kleur};text-align:right;border-bottom:1px solid #eef1ee;">${fmt(parsed.brutomarge)}</td><td style="padding:8px 10px;color:#888;text-align:right;border-bottom:1px solid #eef1ee;">30–40%</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${scores[0].signaal}</td></tr>
+        <tr><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Debiteurendagen</td><td style="padding:8px 10px;font-weight:700;color:${scores[3].kleur};text-align:right;border-bottom:1px solid #eef1ee;">${fmt(parsed.debiteurendagen,' dgn')}</td><td style="padding:8px 10px;color:#888;text-align:right;border-bottom:1px solid #eef1ee;">30–45 dgn</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${scores[3].signaal}</td></tr>
+        <tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Solvabiliteit %</td><td style="padding:8px 10px;font-weight:700;color:${scores[4].kleur};text-align:right;border-bottom:1px solid #eef1ee;">${fmt(parsed.solvabiliteit)}</td><td style="padding:8px 10px;color:#888;text-align:right;border-bottom:1px solid #eef1ee;">25–40%</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${scores[4].signaal}</td></tr>
+        <tr><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;font-weight:700;color:${scores[1].kleur};text-align:right;">${fmt(parsed.ebitda)}</td><td style="padding:8px 10px;color:#888;text-align:right;">6–12%</td><td style="padding:8px 10px;text-align:center;">${scores[1].signaal}</td></tr>
+      </table>
+    </div>
+
+    <!-- Bevindingen -->
+    <div style="padding:16px 24px 0;">
+      <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>
+      ${[0,1,2].map(i => `
+      <div style="display:flex;border-left:4px solid #E67E22;background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:2px;">
+        <div style="flex:1;padding:10px 14px;">
+          <div style="font-weight:700;color:#1F4E79;font-size:13px;">€ Bevinding ${i+1}</div>
+          <div style="color:#555;font-size:13px;margin-top:3px;">${bevindingen[i] || 'Zie analyseresultaat voor toelichting.'}</div>
+        </div>
+        <div style="padding:10px 14px;text-align:right;min-width:90px;">
+          <div style="font-size:11px;color:#888;">Impact</div>
+          <div style="font-size:16px;font-weight:700;color:#E67E22;">€ —</div>
+        </div>
+      </div>`).join('')}
+      <!-- Totaal -->
+      <div style="background:#D5F5E3;border-radius:6px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;">Totaal verbeterpotentieel</div>
+          <div style="font-size:11px;color:#555;margin-top:1px;">MKB Stresstest Methode™ — ${periode}</div>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:#1E8449;">€ ${parsed.totaal1pager || '—'}</div>
+      </div>
+    </div>
+
+    <!-- Prioriteiten -->
+    <div style="padding:16px 24px 0;">
+      <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">3 &nbsp; De drie prioriteiten</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="background:#1F4E79;"><td style="padding:7px 10px;color:#fff;font-weight:700;">#</td><td style="padding:7px 10px;color:#fff;font-weight:700;">Termijn</td><td style="padding:7px 10px;color:#fff;font-weight:700;">Actie</td><td style="padding:7px 10px;color:#fff;font-weight:700;text-align:right;">Resultaat</td></tr>
+        <tr style="background:#f9fbfa;"><td style="padding:8px 10px;font-weight:700;border-bottom:1px solid #eef1ee;">1</td><td style="padding:8px 10px;color:#888;font-size:12px;border-bottom:1px solid #eef1ee;">Deze week</td><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${bevindingen[1] || '—'}</td><td style="padding:8px 10px;color:#1E8449;font-weight:700;text-align:right;border-bottom:1px solid #eef1ee;">€ —</td></tr>
+        <tr><td style="padding:8px 10px;font-weight:700;border-bottom:1px solid #eef1ee;">2</td><td style="padding:8px 10px;color:#888;font-size:12px;border-bottom:1px solid #eef1ee;">Deze maand</td><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${bevindingen[2] || '—'}</td><td style="padding:8px 10px;color:#1E8449;font-weight:700;text-align:right;border-bottom:1px solid #eef1ee;">€ —</td></tr>
+        <tr style="background:#f9fbfa;"><td style="padding:8px 10px;font-weight:700;">3</td><td style="padding:8px 10px;color:#888;font-size:12px;">Dit kwartaal</td><td style="padding:8px 10px;">${bevindingen[0] || '—'}</td><td style="padding:8px 10px;color:#1E8449;font-weight:700;text-align:right;">€ —</td></tr>
+      </table>
+    </div>
+
+    <!-- Akkoordknop klant -->
+    <div style="padding:16px 24px 24px;">
+      <div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:18px 20px;">
+        <div style="font-size:14px;font-weight:700;color:#1F4E79;margin-bottom:6px;">Wilt u verder?</div>
+        <p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 14px;">De Financiële Basisscan (€397 excl. BTW) geeft de volledige uitwerking: alle ratio's volledig onderbouwd, sectorvergelijking en een concreet actieplan.</p>
+        <div style="text-align:center;">
+          <button onclick="bestelBasiscan()" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Ja, ik wil de Basisscan — €397</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#f4f6f8;padding:14px 24px;border-top:1px solid #e2e8e4;">
+      <div style="font-size:11px;color:#888;line-height:1.7;">
+        <strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>
+        Financiële Doorlichting (MKB Stresstest Methode™) — Op basis van aangeleverde jaarcijfers — vertrouwelijk
+      </div>
+    </div>
+  </div>`;
+}
+
+async function laadEenpagerKlant() {
+  if (!huidigePDFKlant || !huidigePDFPeriode) return;
+  try {
+    const { data } = await supabaseClient
+      .from('maandcijfers')
+      .select('eenpager_html, eenpager_gepubliceerd')
+      .eq('bedrijf', huidigePDFKlant)
+      .eq('periode', huidigePDFPeriode)
+      .single();
+
+    const sectie = document.getElementById('eenpager-klant-sectie');
+    const leegTekst = document.getElementById('rapport-leeg-tekst');
+
+    if (data?.eenpager_gepubliceerd && data?.eenpager_html) {
+      document.getElementById('eenpager-klant-inhoud').innerHTML = data.eenpager_html;
+      sectie.style.display = 'block';
+      if (leegTekst) leegTekst.parentElement.style.display = 'none';
+    } else {
+      sectie.style.display = 'none';
+      if (leegTekst) {
+        leegTekst.parentElement.style.display = 'block';
+        leegTekst.textContent = 'Uw gratis 1-pager is nog niet klaar. U ontvangt een bericht zodra deze beschikbaar is — doorgaans binnen 3 werkdagen.';
+      }
+    }
+  } catch(e) {}
 }
 
 function uitloggen() {
