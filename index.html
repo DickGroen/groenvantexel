@@ -1960,6 +1960,10 @@ async function startAIAnalyse() {
     if (cijferData?.notities) {
       bestandenTekst = cijferData.notities;
       status.textContent = '✅ Jaarcijfers gevonden — analyse starten...';
+      // Toon knoppen direct als er al een opgeslagen analyse is
+      resultaat.textContent = bestandenTekst;
+      resultaat.style.display = 'block';
+      acties.style.display = 'flex';
     } else {
       // Fallback: bestandsnamen uit Storage
       const { data: files } = await supabaseClient.storage
