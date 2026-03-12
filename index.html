@@ -2035,20 +2035,19 @@ Geef output in deze volgorde:
 MKB Stresstest Methode™ | Vertrouwelijk — intern gebruik`;
 
   try {
-    const response = await fetch('/api/analyse', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        bedrijf: huidigePDFKlant,
-        sector,
-        periode: huidigePDFPeriode,
-        bestanden: bestandenTekst
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: ANALYSE_PROMPT + '\n\nJAARCIJFERS:\n' + bestandenTekst }]
       })
     });
 
     const data = await response.json();
-    if (data.error) throw new Error(data.error);
-    const tekst = data.resultaat || 'Geen resultaat ontvangen.';
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    const tekst = data.content?.find(b => b.type === 'text')?.text || 'Geen resultaat ontvangen.';
 
     resultaat.textContent = tekst;
     resultaat.style.display = 'block';
@@ -2634,26 +2633,41 @@ function closeModal() { document.getElementById('modal').classList.remove('open'
 document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
 
 // ── INIT ─────────────────────────────────────────────────────────────────
-document.getElementById('f-periode').value = new Date().toISOString().slice(0, 7);
+function appInit() {
+  document.getElementById('f-periode').value = new Date().toISOString().slice(0, 7);
 
-const { url, key } = getConfig();
-if (url) document.getElementById('cfg-url').value = url;
-if (key) document.getElementById('cfg-key').value = key;
+  const { url, key } = getConfig();
+  if (url) document.getElementById('cfg-url').value = url;
+  if (key) document.getElementById('cfg-key').value = key;
 
-if (savedUser) {
-  initSupabase();
-  if (savedUser === 'admin') {
-    loadDashboard();
-    const nkBtn = document.getElementById('nav-klanten-formulier');
-    if (nkBtn) nkBtn.textContent = 'Klanten';
-  } else {
-    const klantType = sessionStorage.getItem('gvt-type') || 'doorlichting';
-    if (klantType === 'lead') {
-      // lead: geen extra actie, view-lead is al gezet
+  if (savedUser) {
+    initSupabase();
+    if (savedUser === 'admin') {
+      // Poll tot Supabase client beschikbaar is, max 3 seconden
+      let pogingen = 0;
+      const wacht = setInterval(() => {
+        pogingen++;
+        if (supabaseClient || pogingen > 30) {
+          clearInterval(wacht);
+          showView('dashboard', document.querySelector('.nav-btn[onclick*="dashboard"]'));
+          loadDashboard();
+          const nkBtn = document.getElementById('nav-klanten-formulier');
+          if (nkBtn) nkBtn.textContent = 'Klanten';
+        }
+      }, 100);
     } else {
-      loadRapportVoorKlant(savedUser);
+      const klantType = sessionStorage.getItem('gvt-type') || 'doorlichting';
+      if (klantType !== 'lead') {
+        loadRapportVoorKlant(savedUser);
+      }
     }
   }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', appInit);
+} else {
+  appInit();
 }
 
 // ── PWA INSTALL ───────────────────────────────────────────────────────────
