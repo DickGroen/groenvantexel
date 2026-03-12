@@ -1,1 +1,2261 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groen van Texel — Monitoring Platform</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F4E79">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GvT Finance">
+<link rel="apple-touch-icon" href="https://via.placeholder.com/192x192/1F4E79/ffffff?text=GvT">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --green: #1E8449; --green-light: #27AE60; --green-pale: #D5F5E3;
+    --blue: #1F4E79; --blue-mid: #2E75B6; --blue-pale: #D6E4F0;
+    --red: #C0392B; --red-pale: #FDECEA;
+    --orange: #E67E22; --orange-pale: #FDEBD0;
+    --dark: #1A1A1A; --mid: #555; --light: #888;
+    --bg: #F7F9F8; --white: #fff; --border: #E2E8E4;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--dark); min-height:100vh; }
 
+  /* TOPBAR */
+  .topbar { background:var(--blue); padding:0 32px; display:flex; align-items:center; justify-content:space-between; height:64px; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(31,78,121,.25); }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo-icon { width:38px; height:38px; background:var(--green); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .logo-text strong { display:block; font-family:'DM Serif Display',serif; font-size:16px; color:#fff; }
+  .logo-text span { font-size:11px; color:var(--blue-pale); font-weight:300; }
+  .topbar-nav { display:flex; gap:4px; }
+  .nav-btn { padding:8px 16px; border:none; background:transparent; color:var(--blue-pale); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; border-radius:6px; cursor:pointer; transition:all .15s; }
+  .nav-btn:hover { background:rgba(255,255,255,.1); color:#fff; }
+  .nav-btn.active { background:rgba(255,255,255,.15); color:#fff; }
+
+  /* VIEWS */
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* SETUP BANNER */
+  .setup-banner { background:var(--orange); color:#fff; padding:12px 24px; font-size:13px; font-weight:500; text-align:center; }
+  .setup-banner a { color:#fff; text-decoration:underline; cursor:pointer; }
+
+  /* DASHBOARD */
+  .dashboard { max-width:1100px; margin:0 auto; padding:32px 24px; }
+  .page-header { margin-bottom:28px; }
+  .page-header h1 { font-family:'DM Serif Display',serif; font-size:28px; color:var(--blue); margin-bottom:4px; }
+  .page-header p { color:var(--mid); font-size:14px; }
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+  .stat-card { background:#fff; border-radius:12px; padding:20px; border:1px solid var(--border); position:relative; overflow:hidden; }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .stat-card.green::before { background:var(--green); }
+  .stat-card.blue::before { background:var(--blue-mid); }
+  .stat-card.orange::before { background:var(--orange); }
+  .stat-card.red::before { background:var(--red); }
+  .stat-label { font-size:11px; font-weight:600; color:var(--light); text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
+  .stat-value { font-family:'DM Serif Display',serif; font-size:32px; color:var(--blue); line-height:1; margin-bottom:4px; }
+  .stat-sub { font-size:12px; color:var(--mid); }
+  .section-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--blue); margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid var(--green); display:inline-block; }
+  .client-table { background:#fff; border-radius:12px; border:1px solid var(--border); overflow:hidden; margin-bottom:28px; }
+  .client-table table { width:100%; border-collapse:collapse; }
+  .client-table th { background:var(--blue); color:#fff; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; padding:12px 16px; text-align:left; }
+  .client-table td { padding:14px 16px; font-size:14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .client-table tr:last-child td { border-bottom:none; }
+  .client-table tr:hover td { background:#FAFCFB; }
+  .client-name { font-weight:600; color:var(--blue); }
+  .client-sector { font-size:12px; color:var(--light); }
+  .empty-state { text-align:center; padding:60px 20px; color:var(--mid); }
+  .empty-state p { font-size:14px; margin-bottom:16px; }
+
+  /* SIGNALS */
+  .signal { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+  .signal.goed { background:var(--green-pale); color:var(--green); }
+  .signal.aandacht { background:var(--orange-pale); color:var(--orange); }
+  .signal.kritiek { background:var(--red-pale); color:var(--red); }
+  .signal.wacht { background:var(--blue-pale); color:var(--blue-mid); }
+
+  /* BUTTONS */
+  .action-btn { padding:6px 14px; border-radius:6px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; transition:all .15s; }
+  .action-btn.primary { background:var(--green); color:#fff; }
+  .action-btn.primary:hover { background:var(--green-light); }
+  .action-btn.secondary { background:var(--blue-pale); color:var(--blue); }
+  .action-btn.secondary:hover { background:#C5D8EC; }
+  .action-btn.danger { background:var(--red-pale); color:var(--red); }
+
+  /* FORM */
+  .form-container { max-width:720px; margin:0 auto; padding:32px 24px; }
+  .form-card { background:#fff; border-radius:16px; border:1px solid var(--border); overflow:hidden; }
+  .form-header { background:var(--blue); padding:28px 32px; color:#fff; }
+  .form-header h2 { font-family:'DM Serif Display',serif; font-size:22px; margin-bottom:4px; }
+  .form-header p { font-size:13px; color:var(--blue-pale); }
+  .form-header .form-intro { font-size:13px; color:var(--blue-pale); margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.2); line-height:1.6; }
+  .form-body { padding:32px; }
+  .form-section { margin-bottom:28px; }
+  .form-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--green); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--green-pale); }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group label { font-size:12px; font-weight:600; color:var(--mid); }
+  .form-group input, .form-group select { padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--dark); transition:border-color .15s; background:var(--bg); }
+  .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--green); background:#fff; }
+  .form-hint { font-size:11px; color:var(--light); line-height:1.5; }
+  .form-hint strong { color:var(--mid); }
+  .submit-btn { width:100%; padding:14px; background:var(--green); color:#fff; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:all .2s; margin-top:8px; }
+  .submit-btn:hover { background:var(--green-light); transform:translateY(-1px); box-shadow:0 4px 12px rgba(30,132,73,.3); }
+  .submit-btn:disabled { background:#ccc; cursor:not-allowed; transform:none; }
+
+  /* RAPPORT */
+  .rapport-container { max-width:900px; margin:0 auto; padding:32px 24px; }
+  .rapport-select-bar { background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px 20px; margin-bottom:20px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .rapport-select-bar label { font-size:12px; font-weight:600; color:var(--mid); }
+  .rapport-select-bar select { padding:8px 12px; border:1.5px solid var(--border); border-radius:6px; font-family:'DM Sans',sans-serif; font-size:14px; }
+  .rapport-header { background:#fff; border-radius:16px; border:1px solid var(--border); overflow:hidden; margin-bottom:20px; }
+  .rapport-title-bar { background:var(--blue); padding:24px 32px; display:flex; justify-content:space-between; align-items:center; }
+  .rapport-title-bar h2 { font-family:'DM Serif Display',serif; font-size:22px; color:#fff; }
+  .rapport-title-bar span { font-size:13px; color:var(--blue-pale); }
+  .rapport-meta { padding:20px 32px; display:flex; gap:32px; flex-wrap:wrap; }
+  .meta-label { font-size:11px; color:var(--light); text-transform:uppercase; letter-spacing:.5px; }
+  .meta-value { font-size:15px; font-weight:600; color:var(--blue); }
+  .rapport-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .rapport-card { background:#fff; border-radius:12px; border:1px solid var(--border); padding:20px 24px; }
+  .rapport-card h3 { font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:var(--light); margin-bottom:16px; font-weight:700; }
+  .metric-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .metric-row:last-child { border-bottom:none; }
+  .metric-name { color:var(--mid); }
+  .metric-value { font-weight:600; }
+  .actie-card { background:#fff; border-radius:12px; border:1px solid var(--border); border-left:4px solid var(--orange); padding:20px 24px; margin-bottom:16px; }
+  .actie-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+  .actie-title { font-weight:700; color:var(--blue); font-size:15px; }
+  .actie-effect { font-size:13px; font-weight:700; color:var(--green); background:var(--green-pale); padding:4px 10px; border-radius:20px; white-space:nowrap; }
+  .actie-desc { font-size:13px; color:var(--mid); line-height:1.6; }
+  .pdf-btn { display:inline-flex; align-items:center; gap:8px; padding:12px 24px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; margin-bottom:20px; }
+  .pdf-btn:hover { background:var(--blue-mid); }
+
+  /* SETUP */
+  .setup-container { max-width:680px; margin:0 auto; padding:32px 24px; }
+  .setup-card { background:#fff; border-radius:16px; border:1px solid var(--border); overflow:hidden; }
+  .setup-card-header { background:var(--blue); padding:24px 32px; }
+  .setup-card-header h2 { font-family:'DM Serif Display',serif; color:#fff; font-size:22px; margin-bottom:4px; }
+  .setup-card-header p { color:var(--blue-pale); font-size:13px; }
+  .setup-body { padding:32px; }
+  .step { display:flex; gap:16px; margin-bottom:24px; }
+  .step-num { width:32px; height:32px; min-width:32px; background:var(--blue); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+  .step-content h3 { font-size:15px; font-weight:600; color:var(--blue); margin-bottom:4px; }
+  .step-content p { font-size:13px; color:var(--mid); line-height:1.6; }
+  .step-content code { background:var(--bg); padding:2px 6px; border-radius:4px; font-size:12px; color:var(--dark); border:1px solid var(--border); }
+  .config-form { margin-top:28px; display:flex; flex-direction:column; gap:14px; }
+  .save-config-btn { padding:12px 24px; background:var(--green); color:#fff; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-weight:600; font-size:14px; cursor:pointer; align-self:flex-start; }
+  .save-config-btn:hover { background:var(--green-light); }
+
+  /* UPLOAD VELD */
+  .upload-veld { padding:16px; border:1.5px solid var(--border); border-radius:8px; background:var(--bg); margin-bottom:4px; }
+  .upload-veld input[type="file"] { width:100%; font-family:'DM Sans',sans-serif; font-size:13px; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--green); color:#fff; padding:14px 20px; border-radius:10px; font-size:14px; font-weight:500; box-shadow:0 4px 20px rgba(30,132,73,.4); transform:translateY(80px); opacity:0; transition:all .3s cubic-bezier(.34,1.56,.64,1); z-index:999; max-width:360px; }
+  .toast.show { transform:translateY(0); opacity:1; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(31,78,121,.5); backdrop-filter:blur(4px); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:#fff; border-radius:16px; width:90%; max-width:520px; overflow:hidden; animation:modalIn .25s ease; }
+  @keyframes modalIn { from { transform:scale(.95); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .modal-header { background:var(--blue); padding:20px 24px; display:flex; justify-content:space-between; align-items:center; }
+  .modal-header h3 { font-family:'DM Serif Display',serif; color:#fff; font-size:18px; }
+  .modal-close { background:none; border:none; color:var(--blue-pale); font-size:20px; cursor:pointer; }
+  .modal-body { padding:24px; }
+
+  /* LOGIN SCREEN */
+  .login-screen { display:none; position:fixed; inset:0; background:var(--blue); z-index:500; align-items:center; justify-content:center; flex-direction:column; }
+  .login-screen.active { display:flex; }
+  .login-box { background:#fff; border-radius:20px; padding:40px; width:90%; max-width:380px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+  .login-logo { width:60px; height:60px; background:var(--green); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 20px; }
+  .login-box h2 { font-family:'DM Serif Display',serif; font-size:22px; color:var(--blue); margin-bottom:6px; }
+  .login-box p { font-size:13px; color:var(--mid); margin-bottom:28px; }
+  .login-input { width:100%; padding:14px 16px; border:2px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:16px; color:var(--dark); margin-bottom:12px; text-align:center; letter-spacing:3px; }
+  .login-input:focus { outline:none; border-color:var(--green); }
+  .login-btn { width:100%; padding:14px; background:var(--green); color:#fff; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:all .2s; }
+  .login-btn:hover { background:var(--green-light); }
+  .login-error { color:var(--red); font-size:13px; margin-top:10px; display:none; }
+  .login-hint { font-size:11px; color:var(--light); margin-top:16px; }
+
+  @media print {
+    .topbar, .pdf-btn, .rapport-select-bar, .setup-banner { display:none!important; }
+    .rapport-card, .actie-card { break-inside:avoid; }
+  }
+  @media (max-width:768px) {
+    .stats-row { grid-template-columns:1fr 1fr; }
+    .rapport-grid { grid-template-columns:1fr; }
+    .form-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen" class="login-screen active">
+  <div class="login-box">
+    <div class="login-logo">📈</div>
+    <h2>Groen van Texel</h2>
+    <p>Voer uw toegangscode in</p>
+    <input type="password" class="login-input" id="login-code" placeholder="••••••" maxlength="20"
+      onkeypress="if(event.key==='Enter') doLogin()">
+    <button class="login-btn" onclick="doLogin()">Inloggen</button>
+    <div class="login-error" id="login-error">Ongeldige code — probeer opnieuw</div>
+    <div class="login-hint">Uw code staat in de welkomstmail van Groen van Texel</div>
+  </div>
+</div>
+
+<nav class="topbar">
+  <div class="logo">
+    <div class="logo-icon">📈</div>
+    <div class="logo-text">
+      <strong>GROEN VAN TEXEL</strong>
+      <span>Financiële Doorlichting & Monitoring</span>
+    </div>
+  </div>
+  <div class="topbar-nav">
+    <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
+    <button class="nav-btn" id="nav-klanten-formulier" onclick="showView('formulier',this)" data-admin-label="Klanten" data-klant-label="Cijfers aanleveren">Klanten</button>
+    <button class="nav-btn" id="nav-lead-formulier" style="display:none" onclick="showView('lead',this)">📋 Mijn scan</button>
+    <button class="nav-btn" onclick="showView('rapport',this)">Rapport</button>
+    <button class="nav-btn" onclick="showView('setup',this)">⚙ Instellen</button>
+    <button class="nav-btn" onclick="uitloggen()" style="color:#ffaaaa;">↩ Uitloggen</button>
+  </div>
+</nav>
+
+<div id="setup-banner" class="setup-banner" style="display:none">
+  ⚠ Database nog niet verbonden — ga naar <a onclick="showView('setup', document.querySelector('.nav-btn:nth-child(4)'))">Instellen</a> om Supabase te koppelen.
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="view-dashboard" class="view active">
+  <div class="dashboard">
+    <div class="page-header">
+      <h1>Klantenoverzicht</h1>
+      <p id="dashboard-subtitle">Maandelijkse financiële monitoring — alle actieve abonnementen</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card green"><div class="stat-label">Actieve klanten</div><div class="stat-value" id="stat-klanten">—</div><div class="stat-sub">€249/mnd per klant</div></div>
+      <div class="stat-card blue"><div class="stat-label">Maandelijks inkomen</div><div class="stat-value" id="stat-inkomen">—</div><div class="stat-sub">Doorlopend abonnement</div></div>
+      <div class="stat-card orange"><div class="stat-label">Signalen deze maand</div><div class="stat-value" id="stat-signalen">—</div><div class="stat-sub">Vereisen opvolging</div></div>
+      <div class="stat-card red"><div class="stat-label">Cijfers verwacht</div><div class="stat-value" id="stat-wacht">—</div><div class="stat-sub">Nog niet ontvangen</div></div>
+    </div>
+    <div class="section-title">Klanten deze maand</div>
+    <div class="client-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Bedrijf</th><th>Sector</th><th>Periode</th><th>Signaal</th><th>Actie</th>
+          </tr>
+        </thead>
+        <tbody id="client-tbody">
+          <tr><td colspan="5"><div class="empty-state"><p>Verbinding maken met database...</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FORMULIER ══ -->
+<div id="view-formulier" class="view">
+  <div class="form-container">
+
+    <!-- TAB SCHAKELAAR -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);background:#fff;">
+      <button id="tab-doorlichting" onclick="toonFormulier('doorlichting')"
+        style="flex:1;padding:14px 12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;border:none;cursor:pointer;background:var(--blue);color:#fff;border-right:1.5px solid var(--border);">
+        🔍 Eenmalige doorlichting
+      </button>
+      <button id="tab-monitoring" onclick="toonFormulier('monitoring')"
+        style="flex:1;padding:14px 12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;border:none;cursor:pointer;background:#fff;color:var(--mid);">
+        📅 Maandelijkse monitoring
+      </button>
+    </div>
+
+    <!-- ══ FORMULIER: DOORLICHTING ══ -->
+    <div id="form-doorlichting" class="form-card">
+      <div class="form-header">
+        <h2>Jaarcijfers aanleveren — Financiële Doorlichting</h2>
+        <p>Dit formulier is voor de eenmalige Financiële Basiscan (€397 excl. BTW). Lever de jaarcijfers aan van de afgelopen 1 tot 3 jaar.</p>
+        <p class="form-intro">U ontvangt de doorlichting binnen 5 werkdagen. Vragen over welke bestanden nodig zijn? Neem contact op via uw welkomstmail.</p>
+      </div>
+      <div class="form-body">
+        <div class="form-section">
+          <div class="form-section-title">Gegevens</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Bedrijfsnaam *</label>
+              <input type="text" id="fd-bedrijf" placeholder="Uw bedrijfsnaam">
+            </div>
+            <div class="form-group">
+              <label>Sector *</label>
+              <select id="fd-sector" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%;">
+                <option value="">— Kies uw sector —</option>
+                <option>Installatietechniek</option>
+                <option>Bouw & Aannemerij</option>
+                <option>Transport & Logistiek</option>
+                <option>Groothandel</option>
+                <option>Productie / Maakindustrie</option>
+                <option>Schoonmaak & Facilitair</option>
+                <option>Anders</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>E-mailadres</label>
+              <input type="email" id="fd-email" placeholder="voor bevestiging en rapport">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Jaarcijfers aanleveren</div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Lever minimaal het meest recente afgesloten jaar. Twee of drie jaar geeft een beter beeld van de trend.</p>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Verlies & Winst rekening — laatste jaar *</label>
+            <div class="upload-veld">
+              <input type="file" id="fd-vw1" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Volledige V&W over het laatste afgesloten boekjaar.<br>
+            <strong>Exporteer uit uw boekhoudprogramma</strong> (Exact, Snelstart, Twinfield of AFAS) als PDF of Excel.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Balans — laatste jaar *</label>
+            <div class="upload-veld">
+              <input type="file" id="fd-balans1" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Volledige balans per jaareinde inclusief debiteuren, crediteuren, kas en eigen vermogen.<br>
+            <strong>Exporteer uit uw boekhoudprogramma</strong> als PDF of Excel.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>V&W + Balans — jaar daarvoor <span style="font-weight:400;color:var(--light)">(aanbevolen)</span></label>
+            <div class="upload-veld">
+              <input type="file" id="fd-jaar2" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Vorig jaar — voor trendvergelijking. Eén bestand met V&W én balans is prima.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>V&W + Balans — twee jaar geleden <span style="font-weight:400;color:var(--light)">(optioneel)</span></label>
+            <div class="upload-veld">
+              <input type="file" id="fd-jaar3" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Voor een volledig driejarenbeeld. Niet verplicht maar geeft een sterkere analyse.</span>
+          </div>
+
+          <div class="form-group">
+            <label>Ouderdomsanalyse debiteuren <span style="font-weight:400;color:var(--light)">(optioneel)</span></label>
+            <div class="upload-veld">
+              <input type="file" id="fd-deb" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Overzicht van openstaande facturen per leeftijdscategorie. Exporteer via 'Debiteuren' of 'Openstaande posten' in uw boekhoudprogramma.</span>
+          </div>
+        </div>
+
+        <button class="submit-btn" id="submit-btn-doorlichting" onclick="submitDoorlichting()">
+          ▶ Jaarcijfers verzenden — doorlichting volgt binnen 5 werkdagen
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ FORMULIER: MONITORING ══ -->
+    <div id="form-monitoring" class="form-card" style="display:none;">
+      <div class="form-header">
+        <h2>Maandcijfers aanleveren</h2>
+        <p>Dit formulier is voor uw maandelijkse monitoring. Lever de cijfers aan van de afgelopen maand.</p>
+        <p class="form-intro">U ontvangt het maandoverzicht binnen 3 werkdagen. Heeft u vragen over welke bestanden u nodig heeft? Neem contact op via uw welkomstmail.</p>
+      </div>
+      <div class="form-body">
+        <div class="form-section">
+          <div class="form-section-title">Gegevens</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Bedrijfsnaam *</label>
+              <input type="text" id="f-bedrijf" placeholder="Uw bedrijfsnaam">
+            </div>
+            <div class="form-group">
+              <label>Periode *</label>
+              <input type="month" id="f-periode" value="">
+            </div>
+            <div class="form-group">
+              <label>E-mailadres</label>
+              <input type="email" id="f-email" placeholder="voor bevestiging">
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="f-sector" value="">
+        <input type="hidden" id="f-omzet" value="0">
+        <input type="hidden" id="f-marge" value="">
+        <input type="hidden" id="f-ebitda" value="">
+        <input type="hidden" id="f-netto" value="">
+        <input type="hidden" id="f-deb" value="">
+        <input type="hidden" id="f-kas" value="">
+        <input type="hidden" id="f-solv" value="">
+        <input type="hidden" id="f-personeel" value="">
+
+        <div class="form-section">
+          <div class="form-section-title">Bestanden aanleveren</div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Resultatenrekening — lopend jaar *</label>
+            <div class="upload-veld">
+              <input type="file" id="f-vw" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Omzet, kosten en marge van 1 januari tot en met afgelopen maand.<br>
+            <strong>Exporteer uit uw boekhoudprogramma</strong> (Exact, Snelstart, Twinfield of AFAS) als PDF of Excel.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Balans per laatste maand *</label>
+            <div class="upload-veld">
+              <input type="file" id="f-balans" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Volledige balans inclusief debiteuren, crediteuren, kas en voorraad.<br>
+            <strong>Exporteer uit uw boekhoudprogramma</strong> als PDF of Excel.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Ouderdomsanalyse debiteuren *</label>
+            <div class="upload-veld">
+              <input type="file" id="f-debiteuren" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Overzicht van openstaande facturen en hoe lang ze al openstaan.<br>
+            <strong>Exporteer apart</strong> uit uw boekhoudprogramma via 'Debiteuren' of 'Openstaande posten'.</span>
+          </div>
+
+          <div class="form-group">
+            <label>Liquiditeitsprognose <span style="font-weight:400;color:var(--light)">(optioneel)</span></label>
+            <div class="upload-veld">
+              <input type="file" id="f-liquiditeit" accept=".pdf,.xlsx,.xls">
+            </div>
+            <span class="form-hint">Alleen als u dit bijhoudt. Een eenvoudig Excel-overzicht van verwachte inkomsten en uitgaven is voldoende.</span>
+          </div>
+        </div>
+
+        <button class="submit-btn" id="submit-btn" onclick="submitForm()">
+          ▶ Cijfers verzenden — overzicht volgt binnen 3 werkdagen
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ FORMULIER: LEAD (gratis 1-pager) ══ -->
+<div id="view-lead" class="view">
+  <div class="form-container">
+    <div class="form-card">
+      <div class="form-header">
+        <h2>Gratis financiële scan — uw 1-pager</h2>
+        <p>Stuur uw jaarcijfers op. U ontvangt binnen 2 werkdagen een persoonlijke 1-pager met uw financiële positie en de belangrijkste verbeterpunten.</p>
+        <p class="form-intro">De scan is volledig gratis en vrijblijvend. Uw gegevens worden vertrouwelijk behandeld en niet gedeeld met derden.</p>
+      </div>
+      <div class="form-body">
+        <div class="form-section">
+          <div class="form-section-title">Uw bedrijf</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Bedrijfsnaam *</label>
+              <input type="text" id="lead-bedrijf" placeholder="Uw bedrijfsnaam">
+            </div>
+            <div class="form-group">
+              <label>Sector *</label>
+              <select id="lead-sector" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%;">
+                <option value="">— Kies uw sector —</option>
+                <option>Installatietechniek</option>
+                <option>Bouw & Aannemerij</option>
+                <option>Transport & Logistiek</option>
+                <option>Groothandel</option>
+                <option>Productie / Maakindustrie</option>
+                <option>Schoonmaak & Facilitair</option>
+                <option>Anders</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Jaar *</label>
+              <select id="lead-jaar" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%;">
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>E-mailadres *</label>
+              <input type="email" id="lead-email" placeholder="voor uw 1-pager">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Jaarcijfers aanleveren</div>
+          <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Lever minimaal het meest recente afgesloten jaar. Twee of drie jaar geeft een beter beeld van de trend.</p>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Verlies & Winst rekening — laatste jaar *</label>
+            <div class="upload-veld"><input type="file" id="lead-vw1" accept=".pdf,.xlsx,.xls"></div>
+            <span class="form-hint">Volledige V&W over het laatste afgesloten boekjaar.<br>
+            <strong>Exporteer uit uw boekhoudprogramma</strong> (Exact, Snelstart, Twinfield of AFAS) als PDF of Excel.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Balans — laatste jaar *</label>
+            <div class="upload-veld"><input type="file" id="lead-balans1" accept=".pdf,.xlsx,.xls"></div>
+            <span class="form-hint">Volledige balans per jaareinde inclusief debiteuren, crediteuren, kas en eigen vermogen.<br>
+            <strong>Exporteer uit uw boekhoudprogramma</strong> als PDF of Excel.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>V&W + Balans — jaar daarvoor <span style="font-weight:400;color:var(--light)">(aanbevolen)</span></label>
+            <div class="upload-veld"><input type="file" id="lead-jaar2" accept=".pdf,.xlsx,.xls"></div>
+            <span class="form-hint">Vorig jaar — voor trendvergelijking. Eén bestand met V&W én balans is prima.</span>
+          </div>
+
+          <div class="form-group">
+            <label>V&W + Balans — twee jaar geleden <span style="font-weight:400;color:var(--light)">(optioneel)</span></label>
+            <div class="upload-veld"><input type="file" id="lead-jaar3" accept=".pdf,.xlsx,.xls"></div>
+            <span class="form-hint">Voor een volledig driejarenbeeld. Niet verplicht maar geeft een sterkere analyse.</span>
+          </div>
+        </div>
+
+        <div style="background:var(--blue-pale);border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--blue);line-height:1.6;">
+          <strong>Wat ontvangt u?</strong><br>
+          Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm, de drie belangrijkste verbeterpunten en de financiële impact daarvan. Binnen 2 werkdagen in uw portaal.
+        </div>
+
+        <button class="submit-btn" id="lead-submit-btn" onclick="submitLead()">
+          ▶ Versturen — uw gratis 1-pager volgt binnen 2 werkdagen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ KLANTENBEHEER (admin) ══ -->
+<div id="view-klanten" class="view">
+  <div class="form-container">
+    <div style="font-size:20px;font-weight:700;color:var(--blue);margin-bottom:20px;">👥 Klantbeheer</div>
+
+    <!-- Nieuwe klant toevoegen -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+      <div style="font-weight:700;color:var(--blue);margin-bottom:14px;font-size:15px;">➕ Nieuwe klant toevoegen</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--mid);display:block;margin-bottom:4px;">Bedrijfsnaam *</label>
+          <input type="text" id="nk-naam" placeholder="bijv. Van Dorp BV" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--mid);display:block;margin-bottom:4px;">Inlogcode *</label>
+          <input type="text" id="nk-code" placeholder="bijv. vandorp2026" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--mid);display:block;margin-bottom:4px;">Type</label>
+          <select id="nk-type" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;box-sizing:border-box;">
+            <option value="lead">🎯 Lead (gratis 1-pager)</option>
+            <option value="doorlichting">🔍 Doorlichting (€397)</option>
+            <option value="monitoring">📅 Monitoring (€249/mnd)</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--mid);display:block;margin-bottom:4px;">E-mailadres klant</label>
+          <input type="email" id="nk-email" placeholder="klant@bedrijf.nl" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--mid);display:block;margin-bottom:4px;">Sector</label>
+          <select id="nk-sector" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;box-sizing:border-box;">
+            <option value="">— Kies sector —</option>
+            <option>Installatietechniek</option>
+            <option>Bouw & Aannemerij</option>
+            <option>Transport & Logistiek</option>
+            <option>Groothandel</option>
+            <option>Productie / Maakindustrie</option>
+            <option>Schoonmaak & Facilitair</option>
+            <option>Anders</option>
+          </select>
+        </div>
+      </div>
+      <button class="action-btn primary" onclick="klantToevoegen()" style="padding:10px 24px;font-size:13px;">➕ Klant toevoegen</button>
+      <div id="nk-status" style="font-size:13px;margin-top:10px;color:var(--mid);"></div>
+    </div>
+
+    <!-- Klantenoverzicht tabel -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 24px;">
+      <div style="font-weight:700;color:var(--blue);margin-bottom:14px;font-size:15px;">📋 Alle klanten</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:var(--blue);color:#fff;">
+            <th style="padding:10px 12px;text-align:left;">Bedrijf</th>
+            <th style="padding:10px 12px;text-align:left;">Inlogcode</th>
+            <th style="padding:10px 12px;text-align:left;">Type</th>
+            <th style="padding:10px 12px;text-align:left;">Sector</th>
+            <th style="padding:10px 12px;text-align:left;">Acties</th>
+          </tr>
+        </thead>
+        <tbody id="klanten-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ RAPPORT ══ -->
+<div id="view-rapport" class="view">
+  <div class="rapport-container">
+    <div class="rapport-select-bar" id="rapport-klant-bar">
+      <label>Klant:</label>
+      <select id="r-klant" onchange="loadRapport()">
+        <option value="">— Kies klant —</option>
+      </select>
+      <label>Periode:</label>
+      <select id="r-periode" onchange="loadRapport()">
+        <option value="">— Kies periode —</option>
+      </select>
+      <button class="pdf-btn" onclick="window.print()" style="margin:0;padding:8px 16px;font-size:13px;">⬇ PDF</button>
+    </div>
+
+    <!-- ADMIN: AI Analyse sectie voor leads -->
+    <div id="ai-analyse-sectie" style="display:none; background:#f0f4ff; border:1.5px solid var(--blue); border-radius:12px; padding:20px 24px; margin-bottom:20px;">
+      <div style="font-weight:700; color:var(--blue); margin-bottom:6px; font-size:15px;">🤖 AI-analyse — MKB Stresstest Methode™</div>
+      <p style="font-size:13px; color:var(--mid); margin-bottom:14px;">Haal de geüploade jaarcijfers op uit Supabase en laat Claude de 1-pager automatisch genereren.</p>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+        <select id="ai-sector" style="font-size:13px; padding:8px 12px; border:1.5px solid var(--border); border-radius:6px; font-family:inherit; flex:1; min-width:200px;">
+          <option value="">— Kies sector —</option>
+          <option value="Installatietechniek">Installatietechniek</option>
+          <option value="Bouw & Aannemerij">Bouw & Aannemerij</option>
+          <option value="Transport & Logistiek">Transport & Logistiek</option>
+          <option value="Groothandel">Groothandel</option>
+          <option value="Productie / Maakindustrie">Productie / Maakindustrie</option>
+          <option value="Schoonmaak & Facilitair">Schoonmaak & Facilitair</option>
+          <option value="Anders">Anders</option>
+        </select>
+        <button class="action-btn primary" onclick="startAIAnalyse()" style="padding:10px 24px; font-size:13px; background:var(--blue);">🚀 Analyseer & genereer 1-pager</button>
+      </div>
+      <div id="ai-analyse-status" style="font-size:13px; margin-top:8px; color:var(--mid);"></div>
+      <div id="ai-analyse-resultaat" style="display:none; margin-top:16px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px; font-size:13px; line-height:1.7; white-space:pre-wrap; max-height:600px; overflow-y:auto;"></div>
+      <!-- Visualisatie: radar + trend -->
+      <div id="ai-visualisatie" style="display:none; margin-top:20px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:16px;">
+          <!-- Radargrafiek -->
+          <div style="background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px;">
+            <div style="font-weight:700; color:var(--blue); font-size:13px; margin-bottom:10px;">📡 Financieel profiel</div>
+            <canvas id="radar-chart" style="max-height:260px;"></canvas>
+          </div>
+          <!-- Scorekaart -->
+          <div style="background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px;">
+            <div style="font-weight:700; color:var(--blue); font-size:13px; margin-bottom:10px;">📊 Kerncijfers vs. norm</div>
+            <div id="score-kaart" style="font-size:12px; line-height:2;"></div>
+          </div>
+        </div>
+        <!-- Trendtabel -->
+        <div style="background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px;">
+          <div style="font-weight:700; color:var(--blue); font-size:13px; margin-bottom:10px;">📈 Trendanalyse — ratio's in perspectief</div>
+          <div id="trend-tabel" style="font-size:12px; overflow-x:auto;"></div>
+        </div>
+      </div>
+
+      <div id="ai-analyse-acties" style="display:none; margin-top:12px; display:none; gap:12px; flex-wrap:wrap;">
+        <button class="action-btn primary" onclick="kopieerAnalyse()" style="padding:8px 18px; font-size:13px;">📋 Kopieer analyse</button>
+        <button class="action-btn" onclick="slaAnalyseOp()" style="padding:8px 18px; font-size:13px; background:#f5f5f5; color:var(--blue); border:1.5px solid var(--blue);">💾 Sla op als rapport</button>
+      </div>
+    </div>
+
+    <!-- ADMIN: PDF upload sectie -->
+    <div id="pdf-upload-sectie" style="display:none; background:#fff; border:1px solid var(--border); border-radius:12px; padding:20px 24px; margin-bottom:20px;">
+      <div style="font-weight:700; color:var(--blue); margin-bottom:12px; font-size:15px;">📎 Basiscan rapport uploaden en versturen</div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+        <input type="file" id="pdf-file-input" accept=".pdf,.docx" style="font-size:13px; flex:1; min-width:200px;">
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <input type="email" id="pdf-klant-email" placeholder="E-mailadres klant (voor notificatie)" style="font-size:13px; flex:1; min-width:220px; padding:8px 12px; border:1.5px solid var(--border); border-radius:6px; font-family:inherit;">
+        <button class="action-btn primary" onclick="uploadPDF()" style="padding:10px 20px; font-size:13px;">⬆ Uploaden &amp; versturen</button>
+      </div>
+      <div id="pdf-upload-status" style="font-size:13px; margin-top:10px; color:var(--mid);"></div>
+    </div>
+
+    <!-- KLANT: PDF download knop -->
+    <div id="pdf-download-sectie" style="display:none; background:var(--green-pale); border:1px solid var(--green); border-radius:12px; padding:20px 24px; margin-bottom:20px;">
+      <div style="font-weight:700; color:var(--green); margin-bottom:8px; font-size:15px;">📄 Uw Basiscan Rapport beschikbaar</div>
+      <p style="font-size:13px; color:var(--mid); margin-bottom:12px;">Uw persoonlijke rapport is klaar. Download het hieronder als PDF.</p>
+      <button class="action-btn primary" id="pdf-download-btn" onclick="downloadPDF()" style="padding:10px 24px; font-size:14px; background:var(--green);">⬇ Download Rapport PDF</button>
+    </div>
+
+    <div id="rapport-content">
+      <div class="empty-state" style="background:#fff;border-radius:12px;border:1px solid var(--border);">
+        <p id="rapport-leeg-tekst">Rapport wordt geladen...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SETUP ══ -->
+<div id="view-setup" class="view">
+  <div class="setup-container">
+    <div class="setup-card">
+      <div class="setup-card-header">
+        <h2>Database instellen</h2>
+        <p>Eenmalige koppeling met Supabase — gratis, geen creditcard nodig</p>
+      </div>
+      <div class="setup-body">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>Maak een gratis Supabase account</h3>
+            <p>Ga naar <strong>supabase.com</strong> → "Start your project" → maak een account met Google of e-mail. Gratis tier is voldoende voor 20+ klanten.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Maak een nieuw project aan</h3>
+            <p>Kies "New project" → geef het project een naam → regio: <code>West EU (Ireland)</code> → stel een wachtwoord in → klik "Create new project" (duurt 1 minuut).</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Maak de tabel aan</h3>
+            <p>In Supabase → ga naar <strong>SQL Editor</strong> → plak onderstaande code → klik "Run":</p>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:8px;font-size:12px;font-family:monospace;color:var(--dark);line-height:1.6;overflow-x:auto;">
+CREATE TABLE maandcijfers (<br>
+&nbsp;&nbsp;id uuid DEFAULT gen_random_uuid() PRIMARY KEY,<br>
+&nbsp;&nbsp;bedrijf text NOT NULL,<br>
+&nbsp;&nbsp;sector text,<br>
+&nbsp;&nbsp;periode text NOT NULL,<br>
+&nbsp;&nbsp;email text,<br>
+&nbsp;&nbsp;omzet numeric,<br>
+&nbsp;&nbsp;brutomarge numeric,<br>
+&nbsp;&nbsp;ebitda numeric,<br>
+&nbsp;&nbsp;netto numeric,<br>
+&nbsp;&nbsp;debiteurendagen numeric,<br>
+&nbsp;&nbsp;kas numeric,<br>
+&nbsp;&nbsp;solvabiliteit numeric,<br>
+&nbsp;&nbsp;personeelskosten numeric,<br>
+&nbsp;&nbsp;signaal text,<br>
+&nbsp;&nbsp;created_at timestamptz DEFAULT now()<br>
+);<br><br>
+ALTER TABLE maandcijfers ENABLE ROW LEVEL SECURITY;<br>
+CREATE POLICY "Publiek lezen en schrijven" ON maandcijfers FOR ALL USING (true) WITH CHECK (true);
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h3>Kopieer uw API-sleutels</h3>
+            <p>In Supabase → <strong>Project Settings</strong> → <strong>API</strong> → kopieer "Project URL" en "anon public" key → plak hieronder:</p>
+          </div>
+        </div>
+
+        <div class="config-form">
+          <div class="form-group">
+            <label>Supabase Project URL</label>
+            <input type="text" id="cfg-url" placeholder="https://xxxxx.supabase.co">
+          </div>
+          <div class="form-group">
+            <label>Supabase Anon Key</label>
+            <input type="text" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+          </div>
+          <button class="save-config-btn" onclick="saveConfig()">✔ Verbinding opslaan & testen</button>
+          <div id="config-status" style="font-size:13px;color:var(--mid);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── VERSIE CHECK uitgeschakeld ────────────────────────────────────────────
+const APP_VERSION = '2026031101';
+
+// ── CONFIG ──────────────────────────────────────────────────────────────
+let supabaseClient = null;
+const NORMS = {
+  brutomarge: { min: 30, max: 40 },
+  ebitda: { min: 6, max: 12 },
+  debiteurendagen: { min: 0, max: 45 },
+  solvabiliteit: { min: 25, max: 40 },
+  personeelskosten: { min: 45, max: 55 }
+};
+
+function getConfig() {
+  return {
+    url: 'https://eyzrjirnarqwykmhwmsk.supabase.co',
+    key: 'sb_publishable_Wyuy8VQFrs6CnIP9eyTCvA_6CxBT6qX'
+  };
+}
+
+function initSupabase() {
+  const { url, key } = getConfig();
+  try {
+    supabaseClient = supabase.createClient(url, key);
+    document.getElementById('setup-banner').style.display = 'none';
+    return true;
+  } catch(e) {
+    document.getElementById('setup-banner').style.display = 'block';
+    return false;
+  }
+}
+
+// ── SETUP ────────────────────────────────────────────────────────────────
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  const key = document.getElementById('cfg-key').value.trim();
+  if (!url || !key) { showToast('⚠ Vul beide velden in', '#E67E22'); return; }
+
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_key', key);
+
+  const status = document.getElementById('config-status');
+  status.textContent = 'Verbinding testen...';
+
+  try {
+    supabaseClient = supabase.createClient(url, key);
+    supabaseClient.from('maandcijfers').select('count', { count: 'exact', head: true })
+      .then(({ error }) => {
+        if (error) {
+          status.textContent = '✖ Fout: ' + error.message;
+          status.style.color = 'var(--red)';
+        } else {
+          status.textContent = '✔ Verbinding geslaagd!';
+          status.style.color = 'var(--green)';
+          document.getElementById('setup-banner').style.display = 'none';
+          showToast('✔ Database verbonden — dashboard wordt geladen');
+          setTimeout(() => {
+            showView('dashboard', document.querySelector('.nav-btn'));
+            loadDashboard();
+            const nkBtn = document.getElementById('nav-klanten-formulier');
+            if (nkBtn) nkBtn.textContent = 'Klanten';
+          }, 1000);
+        }
+      });
+  } catch(e) {
+    status.textContent = '✖ Ongeldige configuratie';
+    status.style.color = 'var(--red)';
+  }
+}
+
+// ── EMAILJS ──────────────────────────────────────────────────────────────
+async function verstuurEmailNotificatie(bedrijf, periode, bestandsnaam) {
+  try {
+    const nu = new Date();
+    const tijdstip = nu.toLocaleDateString('nl-NL', {day:'2-digit', month:'2-digit', year:'numeric'}) 
+                   + ' om ' + nu.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
+    await emailjs.send('service_oqgsajg', 'template_q3aea4c', {
+      bedrijf: bedrijf,
+      periode: periode,
+      bestandsnaam: bestandsnaam,
+      name: bedrijf,
+      time: tijdstip,
+      message: 'Nieuwe upload van ' + bedrijf + ' (' + periode + '): ' + bestandsnaam
+    });
+  } catch(e) {
+    console.log('Email fout:', e);
+  }
+}
+
+async function verstuurRapportNotificatie(bedrijf, klantEmail, downloadUrl) {
+  try {
+    const nu = new Date();
+    const tijdstip = nu.toLocaleDateString('nl-NL', {day:'2-digit', month:'2-digit', year:'numeric'});
+    const rapportNaam = bedrijf.replace(/\s+/g,'_') + '_Basiscan.pdf';
+    // Notificatie aan uzelf
+    await emailjs.send('service_oqgsajg', 'template_q3aea4c', {
+      bedrijf: bedrijf,
+      periode: 'Rapport klaar',
+      bestandsnaam: rapportNaam,
+      name: bedrijf,
+      time: tijdstip,
+      message: 'Rapport klaargezet voor ' + bedrijf + (downloadUrl ? '\n\nDownloadlink voor klant:\n' + downloadUrl : '')
+    });
+    // Notificatie aan klant (apart template of zelfde met klant-email als to_email)
+    if (klantEmail) {
+      await emailjs.send('service_oqgsajg', 'template_q3aea4c', {
+        bedrijf: bedrijf,
+        periode: 'Uw rapport is klaar',
+        bestandsnaam: rapportNaam,
+        name: bedrijf,
+        time: tijdstip,
+        to_email: klantEmail,
+        message: 'Goed nieuws — uw Financiële Basiscan is klaar.' + (downloadUrl ? '\n\nDownload uw rapport via deze link:\n' + downloadUrl : '\n\nLog in op groenvantexel.netlify.app om uw rapport te downloaden.')
+      });
+    }
+  } catch(e) {
+    console.log('Rapport notificatie fout:', e);
+  }
+}
+
+async function uploadJaarrekening(bedrijf, periode) {
+  const velden = [
+    { id: 'f-vw', label: 'Resultatenrekening' },
+    { id: 'f-balans', label: 'Balans' },
+    { id: 'f-debiteuren', label: 'Debiteuren' },
+    { id: 'f-liquiditeit', label: 'Liquiditeit' }
+  ];
+  let geupload = [];
+  let downloadLinks = [];
+  for (const v of velden) {
+    const input = document.getElementById(v.id);
+    if (!input || !input.files[0]) continue;
+    const file = input.files[0];
+    const ts = new Date().toISOString().slice(0,16).replace(/[-:T]/g,'');
+    const naam = bedrijf.replace(/[\s]+/g, '_') + '_' + periode + '_' + v.label + '_' + ts + '_' + file.name;
+    const { error } = await supabaseClient.storage
+      .from('rapporten')
+      .upload('jaarrekeningen/' + naam, file, { upsert: true });
+    if (error) { console.error('Upload fout:', error); showToast('Upload fout: ' + error.message, '#E67E22'); }
+    else {
+      geupload.push(naam);
+      const { data: urlData } = supabaseClient.storage.from('rapporten').getPublicUrl('jaarrekeningen/' + naam);
+      if (urlData?.publicUrl) downloadLinks.push(v.label + ': ' + urlData.publicUrl);
+    }
+  }
+  if (geupload.length > 0) {
+    const linksText = downloadLinks.length > 0
+      ? '\n\nDownloadlinks:\n' + downloadLinks.join('\n')
+      : '';
+    await verstuurEmailNotificatie(bedrijf, periode, geupload.join(', ') + linksText);
+  }
+  return geupload;
+}
+
+// ── LOGIN SYSTEEM ─────────────────────────────────────────────────────────
+const ADMIN_CODE = 'GvT2026admin';
+// Fallback codes voor bestaande klanten (blijft werken naast Supabase)
+const KLANT_CODES = {
+  'testbv2026':  { naam: 'Test BV',  type: 'monitoring' },
+  'vandorp2026': { naam: 'Van Dorp', type: 'monitoring' },
+  'devries2026': { naam: 'De Vries Installatie', type: 'doorlichting' },
+  'gratis2026':  { naam: 'Gratis Scan', type: 'lead' },
+};
+
+let currentUser = null;
+
+function verwerkKlantLogin(klantData) {
+  const naam = klantData.naam;
+  const klantType = klantData.type || 'doorlichting';
+  currentUser = naam;
+  document.getElementById('login-screen').classList.remove('active');
+  document.getElementById('login-error').style.display = 'none';
+  sessionStorage.setItem('gvt-user', naam);
+  sessionStorage.setItem('gvt-type', klantType);
+  document.querySelector('.nav-btn[onclick*="dashboard"]').style.display = 'none';
+  document.querySelector('.nav-btn[onclick*="setup"]').style.display = 'none';
+  document.getElementById('rapport-klant-bar').style.display = 'none';
+  initSupabase();
+
+  if (klantType === 'lead') {
+    document.querySelector('.nav-btn[onclick*="formulier"]').style.display = 'none';
+    document.getElementById('nav-lead-formulier').style.display = 'inline-flex';
+    document.getElementById('nav-lead-formulier').classList.add('active');
+    document.querySelector('.nav-btn[onclick*="rapport"]').classList.remove('active');
+    showView('lead', null);
+    loadRapportVoorKlant(naam);
+  } else if (klantType === 'monitoring') {
+    const nkBtn = document.getElementById('nav-klanten-formulier');
+    if (nkBtn) nkBtn.textContent = 'Cijfers aanleveren';
+    document.querySelector('.nav-btn[onclick*="formulier"]').classList.add('klant-zichtbaar');
+    document.getElementById('tab-doorlichting').style.display = 'none';
+    toonFormulier('monitoring');
+    showView('rapport', document.querySelector('.nav-btn[onclick*="rapport"]'));
+    loadRapportVoorKlant(naam);
+    document.getElementById('f-bedrijf').value = naam;
+    document.getElementById('f-bedrijf').readOnly = true;
+  } else {
+    const nkBtn = document.getElementById('nav-klanten-formulier');
+    if (nkBtn) nkBtn.textContent = 'Cijfers aanleveren';
+    document.querySelector('.nav-btn[onclick*="formulier"]').classList.add('klant-zichtbaar');
+    toonFormulier('doorlichting');
+    showView('rapport', document.querySelector('.nav-btn[onclick*="rapport"]'));
+    loadRapportVoorKlant(naam);
+    document.getElementById('f-bedrijf').value = naam;
+    document.getElementById('f-bedrijf').readOnly = true;
+  }
+}
+
+async function doLogin() {
+  const code = document.getElementById('login-code').value.trim();
+  const error = document.getElementById('login-error');
+
+  // Admin check
+  if (code === ADMIN_CODE) {
+    currentUser = 'admin';
+    document.getElementById('login-screen').classList.remove('active');
+    error.style.display = 'none';
+    sessionStorage.setItem('gvt-user', 'admin');
+    initSupabase();
+    loadDashboard();
+    return;
+  }
+
+  // Eerst hardcoded fallback checken
+  if (KLANT_CODES[code]) {
+    verwerkKlantLogin(KLANT_CODES[code]);
+    return;
+  }
+
+  // Dan Supabase opzoeken
+  const loginBtn = document.querySelector('.login-btn');
+  if (loginBtn) loginBtn.disabled = true;
+  
+  try {
+    // Supabase initialiseren als nog niet gedaan
+    if (!supabaseClient) initSupabase();
+    
+    // Wacht tot Supabase klaar is
+    let tries = 0;
+    while (!supabaseClient && tries < 10) {
+      await new Promise(r => setTimeout(r, 100));
+      tries++;
+    }
+
+    if (supabaseClient) {
+      const { data, error: sbError } = await supabaseClient
+        .from('klanten')
+        .select('naam, code, type')
+        .eq('code', code)
+        .single();
+
+      if (data && !sbError) {
+        verwerkKlantLogin({ naam: data.naam, type: data.type });
+        if (loginBtn) loginBtn.disabled = false;
+        return;
+      }
+    }
+  } catch(e) {
+    console.log('Supabase login fout:', e);
+  }
+
+  // Niet gevonden
+  if (loginBtn) loginBtn.disabled = false;
+  error.style.display = 'block';
+  document.getElementById('login-code').value = '';
+}
+
+async function loadRapportVoorKlant(bedrijf) {
+  let tries = 0;
+  while (!supabaseClient && tries < 10) {
+    await new Promise(r => setTimeout(r, 200));
+    tries++;
+  }
+  if (!supabaseClient) return;
+
+  const { data } = await supabaseClient
+    .from('maandcijfers')
+    .select('*')
+    .eq('bedrijf', bedrijf)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (data && data.length > 0) {
+    const r = data[0];
+    const klantSelect = document.getElementById('r-klant');
+    klantSelect.innerHTML = `<option value="${r.bedrijf}">${r.bedrijf}</option>`;
+    await loadRapportPeriodes(r.bedrijf);
+    document.getElementById('r-periode').value = r.periode;
+    await loadRapport();
+  } else {
+    const leegTekst = document.getElementById('rapport-leeg-tekst');
+    const klantType = sessionStorage.getItem('gvt-type') || 'doorlichting';
+    if (leegTekst) {
+      if (klantType === 'lead') {
+        leegTekst.textContent = 'Uw gratis 1-pager is nog niet klaar. U ontvangt een bericht zodra deze beschikbaar is — doorgaans binnen 2 werkdagen.';
+      } else {
+        leegTekst.textContent = 'Uw rapport is nog niet beschikbaar. U ontvangt een bericht zodra het klaarstaat.';
+      }
+    }
+  }
+}
+
+// ── PDF UPLOAD (admin) ────────────────────────────────────────────────────
+let huidigePDFKlant = null;
+let huidigePDFPeriode = null;
+
+function updatePDFSectie(bedrijf, periode) {
+  huidigePDFKlant = bedrijf;
+  huidigePDFPeriode = periode;
+  
+  const isLead = periode && periode.startsWith('lead-');
+  
+  // Toon AI-analyse sectie voor leads (admin only)
+  const aiSectie = document.getElementById('ai-analyse-sectie');
+  if (aiSectie && currentUser === 'admin' && isLead && bedrijf) {
+    aiSectie.style.display = 'block';
+    document.getElementById('ai-analyse-status').textContent = '';
+    document.getElementById('ai-analyse-resultaat').style.display = 'none';
+    document.getElementById('ai-visualisatie').style.display = 'none';
+    document.getElementById('ai-analyse-acties').style.display = 'none';
+  } else if (aiSectie) {
+    aiSectie.style.display = 'none';
+  }
+  
+  if (currentUser === 'admin' && bedrijf && periode) {
+    document.getElementById('pdf-upload-sectie').style.display = 'block';
+  }
+  checkPDFBeschikbaar(bedrijf, periode);
+}
+
+async function checkPDFBeschikbaar(bedrijf, periode) {
+  if (!supabaseClient || !bedrijf || !periode) return;
+  const bestandsnaam = `${bedrijf}_${periode}.pdf`.replace(/\s+/g, '_');
+  const { data } = supabaseClient.storage.from('rapporten').getPublicUrl(bestandsnaam);
+  if (data && data.publicUrl) {
+    try {
+      const res = await fetch(data.publicUrl, { method: 'HEAD' });
+      if (res.ok) {
+        document.getElementById('pdf-download-sectie').style.display = 'block';
+        document.getElementById('pdf-download-btn').setAttribute('data-url', data.publicUrl);
+        if (currentUser === 'admin') {
+          document.getElementById('pdf-upload-status').textContent = '✔ PDF al geüpload — klant kan downloaden';
+          document.getElementById('pdf-upload-status').style.color = 'var(--green)';
+        }
+        return;
+      }
+    } catch(e) {}
+  }
+  document.getElementById('pdf-download-sectie').style.display = 'none';
+}
+
+async function uploadPDF() {
+  const fileInput = document.getElementById('pdf-file-input');
+  const status = document.getElementById('pdf-upload-status');
+  if (!fileInput.files[0]) { status.textContent = '⚠ Kies eerst een PDF bestand'; return; }
+  if (!huidigePDFKlant || !huidigePDFPeriode) { status.textContent = '⚠ Selecteer eerst een klant en periode'; return; }
+
+  const bestandsnaam = `${huidigePDFKlant}_${huidigePDFPeriode}.pdf`.replace(/\s+/g, '_');
+  status.textContent = '⏳ Uploaden...';
+
+  const { error } = await supabaseClient.storage
+    .from('rapporten')
+    .upload(bestandsnaam, fileInput.files[0], { upsert: true, contentType: 'application/pdf' });
+
+  if (error) {
+    status.textContent = '✖ Fout: ' + error.message;
+    status.style.color = 'var(--red)';
+  } else {
+    status.textContent = '✔ Rapport geüpload — klant kan nu downloaden';
+    status.style.color = 'var(--green)';
+    checkPDFBeschikbaar(huidigePDFKlant, huidigePDFPeriode);
+    showToast('✔ Rapport geüpload voor ' + huidigePDFKlant);
+
+    // Verstuur e-mail notificatie naar klant
+    const klantEmail = document.getElementById('pdf-klant-email').value.trim();
+    const { data: urlData } = supabaseClient.storage.from('rapporten').getPublicUrl(bestandsnaam);
+    const downloadUrl = urlData?.publicUrl || '';
+    await verstuurRapportNotificatie(huidigePDFKlant, klantEmail, downloadUrl);
+  }
+}
+
+function downloadPDF() {
+  const url = document.getElementById('pdf-download-btn').getAttribute('data-url');
+  if (url) window.open(url, '_blank');
+}
+
+// Check sessie bij laden
+const savedUser = sessionStorage.getItem('gvt-user');
+if (savedUser) {
+  currentUser = savedUser;
+  document.getElementById('login-screen').classList.remove('active');
+  if (currentUser === 'admin') {
+    const nkBtn = document.getElementById('nav-klanten-formulier');
+    if (nkBtn) nkBtn.textContent = 'Klanten';
+  } else if (currentUser !== 'admin') {
+    const klantType = sessionStorage.getItem('gvt-type') || 'doorlichting';
+    document.querySelector('.nav-btn[onclick*="dashboard"]').style.display = 'none';
+    document.querySelector('.nav-btn[onclick*="setup"]').style.display = 'none';
+    document.getElementById('rapport-klant-bar').style.display = 'none';
+    if (klantType === 'lead') {
+      document.querySelector('.nav-btn[onclick*="formulier"]').style.display = 'none';
+      document.getElementById('nav-lead-formulier').style.display = 'inline-flex';
+      document.getElementById('nav-lead-formulier').classList.add('active');
+      document.querySelector('.nav-btn[onclick*="rapport"]').classList.remove('active');
+      showView('lead', null);
+    } else if (klantType === 'monitoring') {
+      const nkBtnM = document.getElementById('nav-klanten-formulier');
+      if (nkBtnM) nkBtnM.textContent = 'Cijfers aanleveren';
+      document.querySelector('.nav-btn[onclick*="formulier"]').classList.add('klant-zichtbaar');
+      document.getElementById('tab-doorlichting').style.display = 'none';
+      toonFormulier('monitoring');
+      showView('rapport', document.querySelector('.nav-btn[onclick*="rapport"]'));
+      document.getElementById('f-bedrijf').value = currentUser;
+      document.getElementById('f-bedrijf').readOnly = true;
+    } else {
+      const nkBtnD = document.getElementById('nav-klanten-formulier');
+      if (nkBtnD) nkBtnD.textContent = 'Cijfers aanleveren';
+      document.querySelector('.nav-btn[onclick*="formulier"]').classList.add('klant-zichtbaar');
+      toonFormulier('doorlichting');
+      showView('rapport', document.querySelector('.nav-btn[onclick*="rapport"]'));
+      document.getElementById('f-bedrijf').value = currentUser;
+      document.getElementById('f-bedrijf').readOnly = true;
+    }
+  }
+}
+
+function berekenSignaal(row) {
+  let kritiek = 0, aandacht = 0;
+  if (row.ebitda !== null && row.ebitda < NORMS.ebitda.min) {
+    (row.ebitda < NORMS.ebitda.min * 0.5 ? kritiek++ : aandacht++);
+  }
+  if (row.brutomarge !== null && (row.brutomarge < NORMS.brutomarge.min || row.brutomarge > NORMS.brutomarge.max * 1.2)) aandacht++;
+  if (row.debiteurendagen !== null && row.debiteurendagen > NORMS.debiteurendagen.max * 1.2) kritiek++;
+  else if (row.debiteurendagen !== null && row.debiteurendagen > NORMS.debiteurendagen.max) aandacht++;
+  if (row.solvabiliteit !== null && row.solvabiliteit < NORMS.solvabiliteit.min * 0.8) kritiek++;
+  else if (row.solvabiliteit !== null && row.solvabiliteit < NORMS.solvabiliteit.min) aandacht++;
+
+  if (kritiek > 0) return 'kritiek';
+  if (aandacht > 0) return 'aandacht';
+  return 'goed';
+}
+
+function signaalBadge(s) {
+  if (s === 'kritiek') return '<span class="signal kritiek">✖ Kritiek</span>';
+  if (s === 'aandacht') return '<span class="signal aandacht">⚠ Let op</span>';
+  if (s === 'wacht') return '<span class="signal wacht">○ Wacht</span>';
+  return '<span class="signal goed">✔ Goed</span>';
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  if (!supabaseClient) { renderDashboardEmpty(); return; }
+
+  const { data, error } = await supabaseClient
+    .from('maandcijfers')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) { showToast('⚠ Fout bij laden: ' + error.message, '#E67E22'); renderDashboardEmpty(); return; }
+
+  const byBedrijf = {};
+  (data || []).forEach(r => {
+    if (!byBedrijf[r.bedrijf]) byBedrijf[r.bedrijf] = r;
+  });
+
+  const klanten = Object.values(byBedrijf);
+  const signalen = klanten.filter(k => berekenSignaal(k) !== 'goed').length;
+
+  document.getElementById('stat-klanten').textContent = klanten.length;
+  document.getElementById('stat-inkomen').textContent = '€' + (klanten.length * 249).toLocaleString('nl-NL');
+  document.getElementById('stat-signalen').textContent = signalen;
+  document.getElementById('stat-wacht').textContent = 0;
+
+  const tbody = document.getElementById('client-tbody');
+  if (klanten.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>Nog geen klanten — stuur de aanleverings-link naar uw eerste klant.</p><button class="action-btn primary" onclick="showView(\'formulier\', document.querySelector(\'.nav-btn:nth-child(2)\'))">Demo formulier invullen</button></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = klanten.map(k => {
+    const sig = berekenSignaal(k);
+    return `<tr>
+      <td><div class="client-name">${k.bedrijf}</div><div class="client-sector">${k.sector || '—'}</div></td>
+      <td>${k.sector || '—'}</td>
+      <td>${k.periode || '—'}</td>
+      <td>${signaalBadge(sig)}</td>
+      <td>
+        <button class="action-btn primary" onclick="openRapport('${k.bedrijf}','${k.periode}')">Rapport</button>
+        <button class="action-btn secondary" onclick="openDetails('${k.id}')" style="margin-left:4px">Details</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const klantSelect = document.getElementById('r-klant');
+  klantSelect.innerHTML = '<option value="">— Kies klant —</option>' +
+    klanten.map(k => `<option value="${k.bedrijf}">${k.bedrijf}</option>`).join('');
+}
+
+function renderDashboardEmpty() {
+  document.getElementById('stat-klanten').textContent = '0';
+  document.getElementById('stat-inkomen').textContent = '€0';
+  document.getElementById('stat-signalen').textContent = '0';
+  document.getElementById('stat-wacht').textContent = '0';
+  document.getElementById('client-tbody').innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>Database niet verbonden — ga naar Instellen om Supabase te koppelen.</p></div></td></tr>';
+}
+
+// ── LEAD FORMULIER ───────────────────────────────────────────────────────
+// ── BESTAND UITLEZEN ─────────────────────────────────────────────────────
+
+async function leesBestandAlsTekst(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  
+  if (ext === 'xlsx' || ext === 'xls') {
+    return await leesExcel(file);
+  } else if (ext === 'pdf') {
+    return await leesPDF(file);
+  }
+  return `[${file.name} — formaat niet ondersteund voor automatisch uitlezen]`;
+}
+
+async function leesExcel(file) {
+  try {
+    // SheetJS laden
+    if (!window.XLSX) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    const buffer = await file.arrayBuffer();
+    const wb = window.XLSX.read(buffer, { type: 'array' });
+    let tekst = `[Excel: ${file.name}]\n`;
+    wb.SheetNames.forEach(naam => {
+      const ws = wb.Sheets[naam];
+      tekst += `\n--- Tabblad: ${naam} ---\n`;
+      tekst += window.XLSX.utils.sheet_to_csv(ws, { FS: ' | ' });
+    });
+    return tekst;
+  } catch(e) {
+    return `[Excel ${file.name}: kon niet worden uitgelezen — ${e.message}]`;
+  }
+}
+
+async function leesPDF(file) {
+  try {
+    if (!window.pdfjsLib) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    const buffer = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: buffer }).promise;
+    let tekst = `[PDF: ${file.name}]\n`;
+    for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      tekst += `\n--- Pagina ${i} ---\n`;
+      tekst += content.items.map(item => item.str).join(' ');
+    }
+    return tekst;
+  } catch(e) {
+    return `[PDF ${file.name}: kon niet worden uitgelezen — ${e.message}]`;
+  }
+}
+
+async function submitLead() {
+  const bedrijf = document.getElementById('lead-bedrijf').value.trim();
+  const sector  = document.getElementById('lead-sector').value;
+  const jaar    = document.getElementById('lead-jaar').value;
+  const email   = document.getElementById('lead-email').value.trim();
+  const btn     = document.getElementById('lead-submit-btn');
+
+  if (!bedrijf) { alert('Vul uw bedrijfsnaam in.'); return; }
+  if (!sector)  { alert('Kies uw sector.'); return; }
+  if (!email)   { alert('Vul uw e-mailadres in.'); return; }
+
+  const bestand1 = document.getElementById('lead-vw1').files[0];
+  const bestand2 = document.getElementById('lead-balans1').files[0];
+  if (!bestand1 || !bestand2) { alert('Upload minimaal de V&W en balans van het laatste jaar.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Bezig met verzenden...';
+
+  try {
+    let geupload = [];
+    let downloadLinks = [];
+    let bestandenTekst = '';
+    const bestanden = [
+      { id: 'lead-vw1',    label: 'VW_jaar1' },
+      { id: 'lead-balans1',label: 'Balans_jaar1' },
+      { id: 'lead-jaar2',  label: 'VW_Balans_jaar2' },
+      { id: 'lead-jaar3',  label: 'VW_Balans_jaar3' },
+    ];
+
+    for (const b of bestanden) {
+      const file = document.getElementById(b.id).files[0];
+      if (!file) continue;
+      
+      // Uitlezen als tekst
+      btn.textContent = `${b.label} uitlezen...`;
+      const tekst = await leesBestandAlsTekst(file);
+      bestandenTekst += `\n=== ${b.label} ===\n${tekst}\n`;
+      
+      // Uploaden naar Supabase Storage
+      const ext = file.name.split('.').pop();
+      const naam = `lead/${bedrijf.replace(/\s+/g,'-')}_${b.label}_${Date.now()}.${ext}`;
+      if (supabaseClient) {
+        const { error } = await supabaseClient.storage.from('jaarrekeningen').upload(naam, file, { upsert: true });
+        if (!error) {
+          geupload.push(b.label);
+          const { data: urlData } = supabaseClient.storage.from('jaarrekeningen').getPublicUrl(naam);
+          if (urlData?.publicUrl) downloadLinks.push(b.label + ': ' + urlData.publicUrl);
+        }
+      }
+    }
+
+    // Sla bestandstekst op in Supabase voor later gebruik door AI
+    if (supabaseClient && bestandenTekst) {
+      await supabaseClient.from('maandcijfers').insert([{
+        bedrijf, periode: 'lead-' + jaar,
+        sector, omzet: 0, signaal: 'wacht', email: email || null,
+        notities: bestandenTekst.substring(0, 50000)
+      }]);
+    }
+
+    const linksText = downloadLinks.length > 0
+      ? '\n\nDownloadlinks:\n' + downloadLinks.join('\n')
+      : '\n\nGeen bestanden opgeslagen in Supabase.';
+    await verstuurEmailNotificatie(
+      bedrijf,
+      'Gratis scan ' + jaar,
+      (geupload.join(', ') || 'geen bestanden') + ' | Sector: ' + sector + linksText
+    );
+
+    btn.textContent = '✔ Ontvangen — uw 1-pager is binnen 2 werkdagen klaar in uw portaal';
+    btn.style.background = 'var(--green)';
+    showToast('✔ Cijfers ontvangen — 1-pager volgt binnen 2 werkdagen');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '▶ Versturen — uw gratis 1-pager volgt binnen 2 werkdagen';
+    alert('Er ging iets mis. Probeer opnieuw of neem contact op.');
+  }
+}
+
+// ── FORMULIER ────────────────────────────────────────────────────────────
+// ── FORMULIER TABS ────────────────────────────────────────────────────────
+function toonFormulier(type) {
+  const isDoorlichting = type === 'doorlichting';
+  document.getElementById('form-doorlichting').style.display = isDoorlichting ? 'block' : 'none';
+  document.getElementById('form-monitoring').style.display = isDoorlichting ? 'none' : 'block';
+  const tabD = document.getElementById('tab-doorlichting');
+  const tabM = document.getElementById('tab-monitoring');
+  tabD.style.background = isDoorlichting ? 'var(--blue)' : '#fff';
+  tabD.style.color = isDoorlichting ? '#fff' : 'var(--mid)';
+  tabD.style.fontWeight = isDoorlichting ? '700' : '600';
+  tabM.style.background = isDoorlichting ? '#fff' : 'var(--blue)';
+  tabM.style.color = isDoorlichting ? 'var(--mid)' : '#fff';
+  tabM.style.fontWeight = isDoorlichting ? '600' : '700';
+}
+
+async function submitDoorlichting() {
+  const bedrijf = document.getElementById('fd-bedrijf').value.trim();
+  const sector = document.getElementById('fd-sector').value;
+  const email = document.getElementById('fd-email').value.trim();
+  const btn = document.getElementById('submit-btn-doorlichting');
+
+  if (!bedrijf) { alert('Vul uw bedrijfsnaam in.'); return; }
+  if (!sector) { alert('Kies uw sector.'); return; }
+
+  const bestand1 = document.getElementById('fd-vw1').files[0];
+  const bestand2 = document.getElementById('fd-balans1').files[0];
+  if (!bestand1 || !bestand2) { alert('Upload minimaal de V&W en balans van het laatste jaar.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Bezig met verzenden...';
+
+  try {
+    let geupload = [];
+    const bestanden = [
+      { id: 'fd-vw1', label: 'VW_jaar1' },
+      { id: 'fd-balans1', label: 'Balans_jaar1' },
+      { id: 'fd-jaar2', label: 'VW_Balans_jaar2' },
+      { id: 'fd-jaar3', label: 'VW_Balans_jaar3' },
+      { id: 'fd-deb', label: 'Debiteuren' },
+    ];
+
+    let downloadLinks = [];
+    for (const b of bestanden) {
+      const file = document.getElementById(b.id).files[0];
+      if (!file) continue;
+      const ext = file.name.split('.').pop();
+      const naam = `doorlichting/${bedrijf.replace(/\s+/g,'-')}_${b.label}_${Date.now()}.${ext}`;
+      if (supabaseClient) {
+        const { error } = await supabaseClient.storage.from('jaarrekeningen').upload(naam, file, { upsert: true });
+        if (!error) {
+          geupload.push(b.label);
+          const { data: urlData } = supabaseClient.storage.from('jaarrekeningen').getPublicUrl(naam);
+          if (urlData?.publicUrl) downloadLinks.push(b.label + ': ' + urlData.publicUrl);
+        }
+      }
+    }
+
+    if (supabaseClient) {
+      await supabaseClient.from('maandcijfers').insert([{
+        bedrijf, periode: 'doorlichting-' + new Date().getFullYear(),
+        sector, omzet: 0, type: 'doorlichting', email: email || null
+      }]);
+    }
+
+    btn.textContent = '✔ Verzonden — u ontvangt binnen 5 werkdagen uw doorlichting';
+    btn.style.background = 'var(--green)';
+    const linksText = downloadLinks.length > 0
+      ? '\n\nDownloadlinks:\n' + downloadLinks.join('\n')
+      : '\n\nGeen bestanden opgeslagen in Supabase.';
+    await verstuurEmailNotificatie(bedrijf, 'doorlichting ' + new Date().getFullYear(), (geupload.join(', ') || 'geen bestanden') + linksText);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '▶ Jaarcijfers verzenden — doorlichting volgt binnen 5 werkdagen';
+    alert('Er ging iets mis. Probeer opnieuw of neem contact op.');
+  }
+}
+
+async function submitForm() {
+  const bedrijf = document.getElementById('f-bedrijf').value.trim();
+  const periode = document.getElementById('f-periode').value;
+
+  if (!bedrijf || !periode) {
+    showToast('⚠ Vul minimaal bedrijfsnaam en periode in', '#E67E22');
+    return;
+  }
+
+  const row = {
+    bedrijf,
+    sector: document.getElementById('f-sector').value || null,
+    periode,
+    email: document.getElementById('f-email').value || null,
+    omzet: parseFloat(document.getElementById('f-omzet').value) || null,
+    brutomarge: parseFloat(document.getElementById('f-marge').value) || null,
+    ebitda: parseFloat(document.getElementById('f-ebitda').value) || null,
+    netto: parseFloat(document.getElementById('f-netto').value) || null,
+    debiteurendagen: parseFloat(document.getElementById('f-deb').value) || null,
+    kas: parseFloat(document.getElementById('f-kas').value) || null,
+    solvabiliteit: parseFloat(document.getElementById('f-solv').value) || null,
+    personeelskosten: parseFloat(document.getElementById('f-personeel').value) || null,
+    signaal: null
+  };
+
+  row.signaal = berekenSignaal(row);
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Verzenden...';
+
+  if (!supabaseClient) {
+    btn.disabled = false;
+    btn.textContent = '▶ Cijfers verzenden — overzicht volgt binnen 3 werkdagen';
+    showToast('✔ Ontvangen (demo mode — koppel database om op te slaan)');
+    return;
+  }
+
+  await uploadJaarrekening(bedrijf, periode);
+
+  const { error } = await supabaseClient.from('maandcijfers').insert([row]);
+
+  btn.disabled = false;
+  btn.textContent = '▶ Cijfers verzenden — overzicht volgt binnen 3 werkdagen';
+
+  if (error) {
+    showToast('⚠ Fout bij opslaan: ' + error.message, '#E67E22');
+    return;
+  }
+
+  showToast('✔ Cijfers ontvangen — maandoverzicht binnen 3 werkdagen');
+
+  ['f-marge','f-ebitda','f-netto','f-deb','f-kas','f-solv','f-personeel','f-email'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  if (currentUser && currentUser !== 'admin') {
+    document.getElementById('f-bedrijf').value = currentUser;
+    document.getElementById('f-bedrijf').readOnly = true;
+  } else {
+    document.getElementById('f-bedrijf').value = '';
+  }
+}
+
+async function laadRapportKlantenDropdown() {
+  let tries = 0;
+  while (!supabaseClient && tries < 20) {
+    await new Promise(r => setTimeout(r, 200));
+    tries++;
+  }
+  if (!supabaseClient) return;
+
+  const { data } = await supabaseClient
+    .from('maandcijfers')
+    .select('bedrijf')
+    .order('bedrijf', { ascending: true });
+
+  const uniek = [...new Set((data || []).map(r => r.bedrijf))];
+  const sel = document.getElementById('r-klant');
+  sel.innerHTML = '<option value="">— Kies klant —</option>' +
+    uniek.map(n => `<option value="${n}">${n}</option>`).join('');
+}
+
+// ── RAPPORT ──────────────────────────────────────────────────────────────
+function openRapport(bedrijf, periode) {
+  showView('rapport', document.querySelector('.nav-btn:nth-child(3)'));
+  document.getElementById('r-klant').value = bedrijf;
+  loadRapportPeriodes(bedrijf).then(() => {
+    document.getElementById('r-periode').value = periode;
+    loadRapport();
+  });
+}
+
+async function loadRapportPeriodes(bedrijf) {
+  if (!supabaseClient || !bedrijf) return;
+  const { data } = await supabaseClient.from('maandcijfers').select('periode').eq('bedrijf', bedrijf).order('periode', { ascending: false });
+  const sel = document.getElementById('r-periode');
+  sel.innerHTML = '<option value="">— Kies periode —</option>' + (data || []).map(r => `<option value="${r.periode}">${r.periode}</option>`).join('');
+  // Automatisch eerste periode selecteren
+  if (data && data.length === 1) {
+    sel.value = data[0].periode;
+  }
+}
+
+async function loadRapport() {
+  const bedrijf = document.getElementById('r-klant').value;
+  const periode = document.getElementById('r-periode').value;
+
+  if (!bedrijf) { await loadRapportPeriodes(''); return; }
+  await loadRapportPeriodes(bedrijf);
+  const periodeNaLaden = document.getElementById('r-periode').value;
+  if (!periode && !periodeNaLaden) return;
+  const gebruiktePeriode = periode || periodeNaLaden;
+
+  if (!supabaseClient) {
+    document.getElementById('rapport-content').innerHTML = '<div class="empty-state" style="background:#fff;border-radius:12px;border:1px solid var(--border)"><p>Database niet verbonden</p></div>';
+    return;
+  }
+
+  const { data } = await supabaseClient.from('maandcijfers').select('*').eq('bedrijf', bedrijf).eq('periode', gebruiktePeriode).single();
+  if (!data) return;
+
+  updatePDFSectie(bedrijf, gebruiktePeriode);
+
+  const sig = berekenSignaal(data);
+  const signaalKleur = sig === 'kritiek' ? 'var(--red)' : sig === 'aandacht' ? 'var(--orange)' : 'var(--green)';
+
+  const metricKleur = (val, norm) => {
+    if (val === null || val === undefined) return 'var(--mid)';
+    if (val < norm.min * 0.8 || val > norm.max * 1.2) return 'var(--red)';
+    if (val < norm.min || val > norm.max) return 'var(--orange)';
+    return 'var(--green)';
+  };
+
+  document.getElementById('rapport-content').innerHTML = `
+    <div class="rapport-header">
+      <div class="rapport-title-bar">
+        <div>
+          <h2>${data.periode && data.periode.startsWith('lead-') ? '1-pager aanvraag' : 'Maandrapport'} — ${data.periode}</h2>
+          <span>${data.bedrijf} &nbsp;•&nbsp; ${data.periode && data.periode.startsWith('lead-') ? 'Gratis 1-pager' : 'Monitoring €249/mnd'}</span>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;color:var(--blue-pale)">Signaal</div>
+          <div style="font-size:18px;font-weight:700;color:white;margin-top:4px">${sig === 'kritiek' ? '✖ KRITIEK' : sig === 'aandacht' ? '⚠ LET OP' : '✔ GOED'}</div>
+        </div>
+      </div>
+      <div class="rapport-meta">
+        <div><div class="meta-label">Bedrijf</div><div class="meta-value">${data.bedrijf}</div></div>
+        <div><div class="meta-label">Sector</div><div class="meta-value">${data.sector || '—'}</div></div>
+        <div><div class="meta-label">Periode</div><div class="meta-value">${data.periode}</div></div>
+        <div><div class="meta-label">Ontvangen</div><div class="meta-value">${new Date(data.created_at).toLocaleDateString('nl-NL')}</div></div>
+      </div>
+    </div>
+
+    <div class="rapport-grid">
+      <div class="rapport-card">
+        <h3>Kerncijfers</h3>
+        <div class="metric-row"><span class="metric-name">Omzet lopend jaar</span><span class="metric-value">€ ${data.omzet ? data.omzet.toLocaleString('nl-NL') : '—'}</span></div>
+        <div class="metric-row"><span class="metric-name">Brutomarge %</span><span class="metric-value" style="color:${metricKleur(data.brutomarge, NORMS.brutomarge)}">${data.brutomarge ?? '—'}${data.brutomarge ? '%' : ''}</span></div>
+        <div class="metric-row"><span class="metric-name">EBITDA %</span><span class="metric-value" style="color:${metricKleur(data.ebitda, NORMS.ebitda)}">${data.ebitda ?? '—'}${data.ebitda ? '%' : ''}</span></div>
+        <div class="metric-row"><span class="metric-name">Nettoresultaat %</span><span class="metric-value">${data.netto ?? '—'}${data.netto ? '%' : ''}</span></div>
+        <div class="metric-row"><span class="metric-name">Debiteurendagen</span><span class="metric-value" style="color:${metricKleur(data.debiteurendagen, NORMS.debiteurendagen)}">${data.debiteurendagen ?? '—'}${data.debiteurendagen ? ' dgn' : ''}</span></div>
+        <div class="metric-row"><span class="metric-name">Kaspositie</span><span class="metric-value" style="color:var(--green)">€ ${data.kas ? data.kas.toLocaleString('nl-NL') : '—'}</span></div>
+        <div class="metric-row"><span class="metric-name">Solvabiliteit</span><span class="metric-value" style="color:${metricKleur(data.solvabiliteit, NORMS.solvabiliteit)}">${data.solvabiliteit ?? '—'}${data.solvabiliteit ? '%' : ''}</span></div>
+        <div class="metric-row"><span class="metric-name">Personeelskosten</span><span class="metric-value">${data.personeelskosten ?? '—'}${data.personeelskosten ? '%' : ''}</span></div>
+      </div>
+      <div class="rapport-card">
+        <h3>Normen & Signalen</h3>
+        ${Object.entries(NORMS).map(([key, norm]) => {
+          const val = data[key];
+          const kleur = metricKleur(val, norm);
+          const label = {brutomarge:'Brutomarge',ebitda:'EBITDA',debiteurendagen:'Debiteurendagen',solvabiliteit:'Solvabiliteit',personeelskosten:'Personeelskn.'}[key];
+          const unit = key === 'debiteurendagen' ? ' dgn' : '%';
+          return `<div class="metric-row"><span class="metric-name">${label}</span><span class="metric-value" style="color:${kleur}">${val ?? '—'}${val !== null && val !== undefined ? unit : ''} <span style="font-size:11px;color:var(--light)">(norm ${norm.min}–${norm.max}${unit})</span></span></div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="section-title">Prioriteit & Aanbeveling</div>
+    <div class="actie-card">
+      <div class="actie-header">
+        <div class="actie-title">▶ Actie deze maand</div>
+        <div class="actie-effect" style="background:${sig==='kritiek'?'var(--red-pale)':sig==='aandacht'?'var(--orange-pale)':'var(--green-pale)'};color:${signaalKleur}">${sig === 'kritiek' ? 'Urgent' : sig === 'aandacht' ? 'Let op' : 'Op schema'}</div>
+      </div>
+      <div class="actie-desc">
+        ${sig === 'kritiek' ? `<strong style="color:var(--red)">Kritieke afwijking gedetecteerd.</strong> Op basis van de ingevoerde cijfers zijn één of meer indicatoren significant buiten de sectornorm. Directe bespreking gewenst. Neem contact op voor een telefonische toelichting.` :
+          sig === 'aandacht' ? `<strong style="color:var(--orange)">Aandachtspunt gesignaleerd.</strong> Eén of meer indicatoren wijken licht af van de norm. Zie de kerncijfers hierboven voor details. In het maandoverzicht volgt de concrete actie.` :
+          `<strong style="color:var(--green)">Alle indicatoren binnen norm.</strong> De financiële positie van ${data.bedrijf} is stabiel. Doorlopende monitoring blijft belangrijk om vroegtijdig signalen op te vangen.`}
+      </div>
+    </div>
+  `;
+}
+
+// ── DETAILS MODAL ─────────────────────────────────────────────────────────
+async function openDetails(id) {
+  if (!supabaseClient) return;
+  const { data } = await supabaseClient.from('maandcijfers').select('*').eq('id', id).single();
+  if (!data) return;
+  document.getElementById('modal-title').textContent = data.bedrijf + ' — ' + data.periode;
+  document.getElementById('modal-body').innerHTML = `
+    <p style="font-size:14px;color:var(--mid);margin-bottom:16px">Ontvangen: ${new Date(data.created_at).toLocaleDateString('nl-NL')}</p>
+    ${[
+      ['Omzet lopend jaar', data.omzet ? '€ ' + data.omzet.toLocaleString('nl-NL') : '—'],
+      ['Brutomarge', data.brutomarge ? data.brutomarge + '%' : '—'],
+      ['EBITDA', data.ebitda ? data.ebitda + '%' : '—'],
+      ['Debiteurendagen', data.debiteurendagen ? data.debiteurendagen + ' dgn' : '—'],
+      ['Solvabiliteit', data.solvabiliteit ? data.solvabiliteit + '%' : '—'],
+      ['Kas', data.kas ? '€ ' + data.kas.toLocaleString('nl-NL') : '—'],
+    ].map(([l,v]) => `<div class="metric-row"><span class="metric-name">${l}</span><span class="metric-value">${v}</span></div>`).join('')}
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+// ── UTILITIES ────────────────────────────────────────────────────────────
+function showView(name, btn) {
+  // Admin ziet klantenbeheer ipv formulier
+  if (name === 'formulier' && currentUser === 'admin') {
+    name = 'klanten';
+    laadKlanten();
+  }
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const viewEl = document.getElementById('view-' + name);
+  if (viewEl) viewEl.classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'rapport' && currentUser === 'admin') laadRapportKlantenDropdown();
+  if (name === 'lead' && currentUser && currentUser !== 'admin') {
+    // Prefill bedrijfsnaam als die al bekend is
+    const leadBedrijf = document.getElementById('lead-bedrijf');
+    if (leadBedrijf && !leadBedrijf.readOnly && currentUser !== 'Gratis Scan') {
+      leadBedrijf.placeholder = currentUser;
+    }
+  }
+  if (currentUser && currentUser !== 'admin') {
+    setTimeout(() => {
+      const el = document.getElementById('f-bedrijf');
+      if (el) { el.value = currentUser; el.readOnly = true; }
+    }, 100);
+  }
+}
+
+
+// ══ KLANTBEHEER FUNCTIES ══════════════════════════════════════════════════
+
+function laadKlanten() {
+  const tbody = document.getElementById('klanten-tbody');
+  if (!tbody) return;
+
+  if (!supabaseClient) {
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;color:#888;text-align:center;">Supabase nog niet verbonden — ga naar Instellen.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;color:#888;text-align:center;">Laden...</td></tr>';
+
+  supabaseClient.from('klanten').select('*').order('created_at', { ascending: false })
+    .then(({ data, error }) => {
+      if (error || !data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;color:#888;text-align:center;">Nog geen klanten gevonden.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map((k, i) => `
+        <tr style="background:${i % 2 === 0 ? '#fff' : '#f0f6ff'};">
+          <td style="padding:10px 12px;font-weight:600;color:#1F4E79;">${k.naam || '—'}</td>
+          <td style="padding:10px 12px;font-family:monospace;font-size:12px;color:#555;">${k.code || '—'}</td>
+          <td style="padding:10px 12px;">
+            <span style="background:${k.type === 'monitoring' ? '#D5F5E3' : k.type === 'lead' ? '#FEF9E7' : '#D6E4F2'};color:${k.type === 'monitoring' ? '#1E8449' : k.type === 'lead' ? '#B7950B' : '#1F4E79'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">
+              ${k.type === 'monitoring' ? '📅 Monitoring' : k.type === 'lead' ? '🎯 Lead' : '🔍 Doorlichting'}
+            </span>
+          </td>
+          <td style="padding:10px 12px;color:#555;">${k.sector || '—'}</td>
+          <td style="padding:10px 12px;">
+            <button onclick="verwijderKlant('${k.id}', '${k.naam}')" style="background:#fdecea;color:#c0392b;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;">✕ Verwijder</button>
+          </td>
+        </tr>`).join('');
+    });
+}
+
+function klantToevoegen() {
+  const naam  = document.getElementById('nk-naam')?.value?.trim();
+  const code  = document.getElementById('nk-code')?.value?.trim();
+  const type  = document.getElementById('nk-type')?.value;
+  const email = document.getElementById('nk-email')?.value?.trim();
+  const sector = document.getElementById('nk-sector')?.value;
+  const status = document.getElementById('nk-status');
+
+  if (!naam || !code) { status.textContent = '⚠ Bedrijfsnaam en inlogcode zijn verplicht.'; status.style.color = '#c0392b'; return; }
+  if (!supabaseClient)  { status.textContent = '⚠ Supabase niet verbonden.'; status.style.color = '#c0392b'; return; }
+
+  status.textContent = 'Toevoegen...'; status.style.color = '#888';
+
+  supabaseClient.from('klanten').insert([{ naam, code, type, email, sector }])
+    .then(({ error }) => {
+      if (error) { status.textContent = '✗ Fout: ' + error.message; status.style.color = '#c0392b'; return; }
+      status.textContent = '✓ Klant toegevoegd!'; status.style.color = '#1E8449';
+      document.getElementById('nk-naam').value = '';
+      document.getElementById('nk-code').value = '';
+      document.getElementById('nk-email').value = '';
+      document.getElementById('nk-sector').value = '';
+      laadKlanten();
+    });
+}
+
+function verwijderKlant(id, naam) {
+  if (!confirm(`Klant "${naam}" verwijderen?`)) return;
+  supabaseClient.from('klanten').delete().eq('id', id)
+    .then(({ error }) => {
+      if (error) { showToast('Fout bij verwijderen: ' + error.message, '#c0392b'); return; }
+      showToast(`"${naam}" verwijderd.`);
+      laadKlanten();
+    });
+}
+
+// ══ AI ANALYSE — MKB STRESSTEST METHODE™ ═══════════════════════════════
+
+async function startAIAnalyse() {
+  const status = document.getElementById('ai-analyse-status');
+  const resultaat = document.getElementById('ai-analyse-resultaat');
+  const acties = document.getElementById('ai-analyse-acties');
+  const sector = document.getElementById('ai-sector').value;
+  
+  if (!sector) { status.textContent = '⚠ Kies eerst de sector van de klant.'; return; }
+  if (!huidigePDFKlant || !huidigePDFPeriode) { status.textContent = '⚠ Selecteer eerst een klant en periode.'; return; }
+
+  status.textContent = '⏳ Jaarcijfers ophalen uit database...';
+  resultaat.style.display = 'none';
+  acties.style.display = 'none';
+
+  let bestandenTekst = '';
+  try {
+    // Haal opgeslagen bestandstekst op uit maandcijfers
+    const { data: cijferData } = await supabaseClient
+      .from('maandcijfers')
+      .select('notities, sector')
+      .eq('bedrijf', huidigePDFKlant)
+      .eq('periode', huidigePDFPeriode)
+      .single();
+
+    if (cijferData?.notities) {
+      bestandenTekst = cijferData.notities;
+      status.textContent = '✅ Jaarcijfers gevonden — analyse starten...';
+    } else {
+      // Fallback: bestandsnamen uit Storage
+      const { data: files } = await supabaseClient.storage
+        .from('jaarrekeningen')
+        .list('lead', { search: huidigePDFKlant.replace(/\s+/g, '-') });
+      
+      if (files && files.length > 0) {
+        bestandenTekst = `Bestanden aangeleverd: ${files.map(f => f.name).join(', ')}\n\nDe bestandsinhoud is niet beschikbaar. Genereer een voorbeeldanalyse op basis van de sector ${sector}.`;
+      } else {
+        bestandenTekst = `Geen bestanden gevonden. Genereer een voorbeeldanalyse voor sector ${sector}.`;
+      }
+      status.textContent = '⚠ Geen uitgelezen cijfers — analyse op basis van sectorprofiel...';
+    }
+  } catch(e) {
+    bestandenTekst = `Fout bij ophalen: ${e.message}. Genereer een voorbeeldanalyse voor sector ${sector}.`;
+  }
+
+  status.textContent = '🤖 Claude analyseert de jaarcijfers — dit duurt 20-30 seconden...';
+
+  const ANALYSE_PROMPT = `Je bent een financieel analist gespecialiseerd in MKB-bedrijven. Voer de MKB Stresstest Methode™ uit op de aangeleverde jaarcijfers.
+
+SECTOR: ${sector}
+KLANT: ${huidigePDFKlant}
+PERIODE: ${huidigePDFPeriode}
+
+SECTORNORMEN VOOR ${sector.toUpperCase()}:
+- Brutomarge: 30–40%
+- EBITDA: 6–12%
+- Personeelskosten: 45–60% van omzet
+- Debiteurendagen: 30–45 dagen
+- Voorraadratio: 30–60 dagen
+- Solvabiliteit: 25–40%
+- Current ratio: 1,3–1,8
+- Liquiditeitsbuffer: 1–3 maanden omzet
+
+STAP 1 — RATIO'S BEREKENEN & BEOORDELEN
+Bereken en beoordeel de volgende ratio's:
+— Brutomarge (%) = brutoresultaat / netto-omzet × 100
+— Personeelskosten als % van omzet
+— Debiteurendagen = (debiteuren / omzet) × 365
+— Voorraadratio = (voorraad / omzet) × 365
+— Current ratio = vlottende activa / kortlopende schulden
+— Solvabiliteit = eigen vermogen / balanstotaal × 100
+— Kasontwikkeling = vergelijk liquide middelen met nettowinst
+
+STAP 2 — DRIE GROOTSTE AFWIJKINGEN
+Geef de drie grootste afwijkingen met per afwijking:
+1. Wat de afwijking is (in cijfers en procentpunten)
+2. Financieel effect in euro's via de rekenregels uit Stap 3
+3. Mogelijke oorzaak
+
+STAP 3 — REKENREGELS VERBETERPOTENTIEEL
+Post A — Personeelskosten: (Sectormidden % − werkelijk %) × omzet → risico-correctie, geen besparing
+Post B — EV-overkapitalisatie: EV huidig − (sectormidden solvabiliteit % × balanstotaal)
+Post C — Debiteurendagen: (werkelijke dagen − 45) / 365 × omzet (alleen als >45)
+Post D — Voorraadratio: (werkelijke dagen − 60) / 365 × omzet (alleen als >60)
+Post E — Kas-overschot: liquide middelen − (omzet / 12) (alleen als >2 maanden omzet)
+
+STAP 4 — TOTALEN
+Totaal 1-pager: Post B + C + D (euro)
+Totaal Basiscan: Post A + B + C + D + E (euro)
+
+STAP 5 — OUTPUTFORMAAT
+Schrijf in zakelijk Nederlands. Begin direct met de ratio's. Geen inleidende tekst.
+Geef output in deze volgorde:
+1. Ratio-overzicht (tabel: ratio | uitkomst | sectornorm | beoordeling ✅/⚠/🔴)
+2. Toelichting kasontwikkeling
+3. Drie grootste afwijkingen (tabel: afwijking | eurobedrag | oorzaak)
+4. Totaal 1-pager: € ___
+5. Totaal Basiscan: € ___
+6. Score: ___/100
+
+MKB Stresstest Methode™ | Vertrouwelijk — intern gebruik`;
+
+  try {
+    const response = await fetch('/api/analyse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bedrijf: huidigePDFKlant,
+        sector,
+        periode: huidigePDFPeriode,
+        bestanden: bestandenTekst
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    const tekst = data.resultaat || 'Geen resultaat ontvangen.';
+
+    resultaat.textContent = tekst;
+    resultaat.style.display = 'block';
+    acties.style.display = 'flex';
+    status.textContent = '✔ Analyse gereed';
+    
+    // Sla op in sessionStorage voor kopiëren
+    sessionStorage.setItem('ai-analyse-tekst', tekst);
+
+    // Toon radargrafiek + trendtabel
+    toonVisualisatie(tekst);
+
+  } catch(e) {
+    status.textContent = '⚠ Fout bij AI-analyse: ' + e.message;
+  }
+}
+
+function kopieerAnalyse() {
+  const tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
+  navigator.clipboard.writeText(tekst).then(() => {
+    showToast('✔ Analyse gekopieerd naar klembord');
+  });
+}
+
+// ── VISUALISATIE ─────────────────────────────────────────────────────────────
+
+let radarChartInstance = null;
+
+function parseAnalyseData(tekst) {
+  // Extraheer ratio's uit de analysetekst via patroonherkenning
+  const data = {
+    brutomarge: null, ebitda: null, personeelskosten: null,
+    debiteurendagen: null, solvabiliteit: null, currentratio: null,
+    score: null,
+    totaal1pager: null, totaalbasiscan: null
+  };
+
+  const regels = tekst.split('\n');
+  for (const regel of regels) {
+    const r = regel.toLowerCase();
+    const getGetal = (str) => { const m = str.match(/([\d,\.]+)/); return m ? parseFloat(m[1].replace(',', '.')) : null; };
+
+    if (r.includes('brutomarge') && data.brutomarge === null) data.brutomarge = getGetal(regel);
+    if ((r.includes('ebitda') || r.includes('ebita')) && data.ebitda === null) data.ebitda = getGetal(regel);
+    if (r.includes('personeelskost') && data.personeelskosten === null) data.personeelskosten = getGetal(regel);
+    if (r.includes('debiteurendag') && data.debiteurendagen === null) data.debiteurendagen = getGetal(regel);
+    if (r.includes('solvabiliteit') && data.solvabiliteit === null) data.solvabiliteit = getGetal(regel);
+    if ((r.includes('current ratio') || r.includes('current-ratio')) && data.currentratio === null) data.currentratio = getGetal(regel);
+    if (r.includes('score') && r.includes('/100') && data.score === null) data.score = getGetal(regel);
+    if (r.includes('totaal 1-pager') && data.totaal1pager === null) {
+      const m = regel.match(/€\s*([\d\.,]+)/); if (m) data.totaal1pager = m[1];
+    }
+    if (r.includes('totaal basiscan') && data.totaalbasiscan === null) {
+      const m = regel.match(/€\s*([\d\.,]+)/); if (m) data.totaalbasiscan = m[1];
+    }
+  }
+  return data;
+}
+
+function scoreRatio(naam, waarde) {
+  // Geeft score 0-100 + kleur + norm-tekst
+  const normen = {
+    brutomarge:       { min: 30, mid: 35, max: 40, eenheid: '%', label: 'Brutomarge' },
+    ebitda:           { min: 6,  mid: 9,  max: 12, eenheid: '%', label: 'EBITDA' },
+    personeelskosten: { min: 45, mid: 52, max: 60, eenheid: '%', label: 'Personeelskosten', inverteer: true },
+    debiteurendagen:  { min: 30, mid: 37, max: 45, eenheid: 'dgn', label: 'Debiteurendagen', inverteer: true },
+    solvabiliteit:    { min: 25, mid: 32, max: 40, eenheid: '%', label: 'Solvabiliteit' },
+    currentratio:     { min: 1.3, mid: 1.55, max: 1.8, eenheid: '', label: 'Current ratio' },
+  };
+  const n = normen[naam];
+  if (!n || waarde === null) return { score: 50, kleur: '#9CA3AF', norm: '—', signaal: '—' };
+
+  let score, signaal, kleur;
+  if (!n.inverteer) {
+    if (waarde >= n.min && waarde <= n.max) { score = 75 + (waarde - n.min) / (n.max - n.min) * 25; signaal = '✅'; kleur = '#16A34A'; }
+    else if (waarde < n.min) { score = Math.max(0, (waarde / n.min) * 60); signaal = waarde < n.min * 0.8 ? '🔴' : '⚠'; kleur = waarde < n.min * 0.8 ? '#DC2626' : '#D97706'; }
+    else { score = Math.max(0, 100 - (waarde - n.max) * 5); signaal = '⚠'; kleur = '#D97706'; }
+  } else {
+    if (waarde >= n.min && waarde <= n.max) { score = 100 - (waarde - n.min) / (n.max - n.min) * 25; signaal = '✅'; kleur = '#16A34A'; }
+    else if (waarde > n.max) { score = Math.max(0, 60 - (waarde - n.max) * 2); signaal = waarde > n.max * 1.2 ? '🔴' : '⚠'; kleur = waarde > n.max * 1.2 ? '#DC2626' : '#D97706'; }
+    else { score = 100; signaal = '✅'; kleur = '#16A34A'; }
+  }
+  return { score: Math.round(Math.min(100, Math.max(0, score))), kleur, norm: `${n.min}–${n.max}${n.eenheid}`, signaal, label: n.label, eenheid: n.eenheid };
+}
+
+function toonVisualisatie(tekst) {
+  const parsed = parseAnalyseData(tekst);
+  const vis = document.getElementById('ai-visualisatie');
+  vis.style.display = 'block';
+
+  const ratioKeys = ['brutomarge','ebitda','personeelskosten','debiteurendagen','solvabiliteit','currentratio'];
+  const scores = ratioKeys.map(k => scoreRatio(k, parsed[k]));
+
+  // ── RADARGRAFIEK ──────────────────────────────────────────────────────────
+  const ctx = document.getElementById('radar-chart').getContext('2d');
+  if (radarChartInstance) radarChartInstance.destroy();
+  radarChartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: scores.map(s => s.label || ''),
+      datasets: [
+        {
+          label: 'Bedrijf',
+          data: scores.map(s => s.score),
+          backgroundColor: 'rgba(27,43,107,0.15)',
+          borderColor: '#1B2B6B',
+          borderWidth: 2,
+          pointBackgroundColor: scores.map(s => s.kleur),
+          pointRadius: 5,
+        },
+        {
+          label: 'Norm (75)',
+          data: Array(6).fill(75),
+          backgroundColor: 'rgba(22,163,74,0.05)',
+          borderColor: 'rgba(22,163,74,0.4)',
+          borderDash: [5,5],
+          borderWidth: 1.5,
+          pointRadius: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, font: { size: 10 } }, pointLabels: { font: { size: 11 } } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // ── SCOREKAART ────────────────────────────────────────────────────────────
+  const sk = document.getElementById('score-kaart');
+  const normen = ['30–40%','6–12%','45–60%','30–45 dgn','25–40%','1,3–1,8'];
+  sk.innerHTML = ratioKeys.map((k, i) => {
+    const s = scores[i];
+    const waarde = parsed[k] !== null ? `${parsed[k]}${s.eenheid||''}` : '—';
+    const balk = `<div style="display:inline-block;width:${s.score}%;height:6px;background:${s.kleur};border-radius:3px;vertical-align:middle;"></div>`;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="width:120px;color:#374151;">${s.label}</span>
+      <span style="width:54px;font-weight:600;color:${s.kleur};">${waarde}</span>
+      <div style="flex:1;background:#F3F4F6;border-radius:3px;height:6px;">${balk}</div>
+      <span style="width:20px;text-align:center;">${s.signaal}</span>
+      <span style="width:70px;color:#9CA3AF;font-size:11px;">${normen[i]}</span>
+    </div>`;
+  }).join('') + (parsed.score ? `<div style="margin-top:12px;padding:10px;background:#F0F4FF;border-radius:8px;text-align:center;font-weight:700;color:#1B2B6B;font-size:15px;">Score: ${parsed.score}/100</div>` : '');
+
+  // ── TRENDTABEL ────────────────────────────────────────────────────────────
+  const tt = document.getElementById('trend-tabel');
+  const rows = [
+    ['Indicator', 'Uitkomst', 'Sectornorm', 'Beoordeling', 'Actieprioriteit'],
+    ['Brutomarge', parsed.brutomarge !== null ? parsed.brutomarge+'%' : '—', '30–40%', scores[0].signaal, scores[0].score < 60 ? '🔴 Hoog' : scores[0].score < 75 ? '🟠 Middel' : '🟢 OK'],
+    ['EBITDA', parsed.ebitda !== null ? parsed.ebitda+'%' : '—', '6–12%', scores[1].signaal, scores[1].score < 60 ? '🔴 Hoog' : scores[1].score < 75 ? '🟠 Middel' : '🟢 OK'],
+    ['Personeelskosten', parsed.personeelskosten !== null ? parsed.personeelskosten+'%' : '—', '45–60%', scores[2].signaal, scores[2].score < 60 ? '🔴 Hoog' : scores[2].score < 75 ? '🟠 Middel' : '🟢 OK'],
+    ['Debiteurendagen', parsed.debiteurendagen !== null ? parsed.debiteurendagen+' dgn' : '—', '30–45 dgn', scores[3].signaal, scores[3].score < 60 ? '🔴 Hoog' : scores[3].score < 75 ? '🟠 Middel' : '🟢 OK'],
+    ['Solvabiliteit', parsed.solvabiliteit !== null ? parsed.solvabiliteit+'%' : '—', '25–40%', scores[4].signaal, scores[4].score < 60 ? '🔴 Hoog' : scores[4].score < 75 ? '🟠 Middel' : '🟢 OK'],
+    ['Current ratio', parsed.currentratio !== null ? parsed.currentratio : '—', '1,3–1,8', scores[5].signaal, scores[5].score < 60 ? '🔴 Hoog' : scores[5].score < 75 ? '🟠 Middel' : '🟢 OK'],
+  ];
+
+  const prioriteitKleur = p => p.startsWith('🔴') ? '#FEE2E2' : p.startsWith('🟠') ? '#FEF3C7' : '#F0FDF4';
+
+  tt.innerHTML = `<table style="width:100%;border-collapse:collapse;">` +
+    rows.map((row, i) => `<tr style="background:${i===0?'#1B2B6B':i%2===0?'#F9FAFB':'#fff'};">` +
+      row.map((cel, j) => {
+        const isHeader = i === 0;
+        const isPrioriteit = j === 4 && i > 0;
+        return `<td style="padding:7px 10px;${isHeader?'color:#fff;font-weight:700;':'color:#374151;'}${isPrioriteit?`background:${prioriteitKleur(cel)};`:''} border-bottom:1px solid #F3F4F6;">${cel}</td>`;
+      }).join('')
+    + `</tr>`).join('') +
+    (parsed.totaal1pager || parsed.totaalbasiscan ? `
+    <tr><td colspan="5" style="padding:10px;background:#F0F4FF;">
+      <span style="color:#1B2B6B;font-weight:700;">Totaal 1-pager: €${parsed.totaal1pager||'—'}</span>
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      <span style="color:#1B2B6B;font-weight:700;">Totaal Basiscan: €${parsed.totaalbasiscan||'—'}</span>
+    </td></tr>` : '') +
+    `</table>`;
+}
+
+async function slaAnalyseOp() {
+  const tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
+  if (!tekst || !huidigePDFKlant || !huidigePDFPeriode) return;
+  
+  const { error } = await supabaseClient
+    .from('maandcijfers')
+    .update({ notities: tekst })
+    .eq('bedrijf', huidigePDFKlant)
+    .eq('periode', huidigePDFPeriode);
+  
+  if (!error) showToast('✔ Analyse opgeslagen');
+}
+
+function uitloggen() {
+  sessionStorage.clear();
+  currentUser = null;
+
+  // Reset nav-knop terug naar standaard (Klanten — wordt bij klant-login omgezet)
+  const nkBtn = document.getElementById('nav-klanten-formulier');
+  if (nkBtn) nkBtn.textContent = 'Klanten';
+
+  // Verberg lead nav-knop
+  const leadNavBtn = document.getElementById('nav-lead-formulier');
+  if (leadNavBtn) leadNavBtn.style.display = 'none';
+
+  // Verberg alle views en nav
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  // Toon loginscherm opnieuw
+  const loginScreen = document.getElementById('login-screen');
+  if (loginScreen) loginScreen.classList.add('active');
+
+  // Reset invoerveld
+  const inp = document.querySelector('.login-box input');
+  if (inp) { inp.value = ''; inp.focus(); }
+  const err = document.getElementById('login-error');
+  if (err) err.style.display = 'none';
+}
+
+function showToast(msg, color = '#1E8449') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3800);
+}
+
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+document.getElementById('f-periode').value = new Date().toISOString().slice(0, 7);
+
+const { url, key } = getConfig();
+if (url) document.getElementById('cfg-url').value = url;
+if (key) document.getElementById('cfg-key').value = key;
+
+if (savedUser) {
+  initSupabase();
+  if (savedUser === 'admin') {
+    loadDashboard();
+    const nkBtn = document.getElementById('nav-klanten-formulier');
+    if (nkBtn) nkBtn.textContent = 'Klanten';
+  } else {
+    const klantType = sessionStorage.getItem('gvt-type') || 'doorlichting';
+    if (klantType === 'lead') {
+      // lead: geen extra actie, view-lead is al gezet
+    } else {
+      loadRapportVoorKlant(savedUser);
+    }
+  }
+}
+
+// ── PWA INSTALL ───────────────────────────────────────────────────────────
+let deferredPrompt;
+const installBtn = document.getElementById('pwa-install-btn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (installBtn) installBtn.style.display = 'flex';
+});
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    }
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  if (installBtn) installBtn.style.display = 'none';
+});
+
+emailjs.init('ubJuLGAX11M-mSoIZ');
+
+// Verwijder eventuele oude service workers zodat updates direct zichtbaar zijn
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
+  });
+}
+</script>
+
+<!-- PWA Install Button -->
+<div id="pwa-install-btn" style="display:none;position:fixed;bottom:24px;right:24px;background:#1F4E79;color:#fff;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(31,78,121,.4);align-items:center;gap:8px;z-index:999;">
+  📲 Installeer als app
+</div>
+
+</body>
+
+<!-- ROTATIE MELDING MOBIEL -->
+<div id="rotatie-melding" style="display:none;position:fixed;inset:0;background:rgba(31,78,121,0.93);z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+  <div style="font-size:48px;margin-bottom:16px;">📱➡️</div>
+  <div style="color:#fff;font-family:'DM Sans',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">Draai uw scherm horizontaal</div>
+  <div style="color:rgba(255,255,255,0.8);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;">Deze app werkt het beste in liggende stand.<br>Draai uw telefoon voor een beter overzicht.</div>
+</div>
+
+<script>
+function checkOrientatie() {
+  const melding = document.getElementById('rotatie-melding');
+  if (!melding) return;
+  const isMobiel = window.innerWidth < 768;
+  const isPortrait = window.innerHeight > window.innerWidth;
+  melding.style.display = (isMobiel && isPortrait) ? 'flex' : 'none';
+}
+window.addEventListener('resize', checkOrientatie);
+window.addEventListener('orientationchange', checkOrientatie);
+checkOrientatie();
+</script>
+
+</html>
