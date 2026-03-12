@@ -664,8 +664,27 @@
 
       <div id="ai-analyse-acties" style="display:none; margin-top:12px; gap:12px; flex-wrap:wrap;">
         <button class="action-btn primary" onclick="genereer1Pager()" style="padding:10px 24px; font-size:13px; background:var(--green);">📄 Genereer 1-pager preview</button>
+        <button class="action-btn primary" onclick="genereerStripoMail()" style="padding:10px 24px; font-size:13px; background:#6B21A8;">📧 Genereer Stripo-mail</button>
         <button class="action-btn" onclick="slaAnalyseOp()" style="padding:8px 18px; font-size:13px; background:#f5f5f5; color:var(--blue); border:1.5px solid var(--blue);">💾 Sla analyse op</button>
       </div>
+    </div>
+
+    <!-- ADMIN: Stripo mail output -->
+    <div id="stripo-mail-sectie" style="display:none; background:#fff; border:2px solid #6B21A8; border-radius:12px; padding:0; margin-bottom:20px; overflow:hidden;">
+      <div style="background:#6B21A8; padding:14px 24px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:700; color:#fff; font-size:15px;">📧 Stripo-mail — klaar om te plakken</div>
+        <div style="display:flex; gap:10px;">
+          <button onclick="kopieerStripoHTML()" style="background:#fff; color:#6B21A8; border:none; border-radius:7px; padding:9px 22px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">📋 Kopieer HTML</button>
+        </div>
+      </div>
+      <div style="padding:16px 24px 8px; background:#faf5ff;">
+        <p style="font-size:13px; color:#6B21A8; margin:0 0 12px;">
+          1. Klik <strong>Kopieer HTML</strong> hierboven<br>
+          2. Ga naar Stripo → open je kopie → klik <strong>&lt;/&gt;</strong> → selecteer alles → plak<br>
+          3. Controleer de preview → Export → Gmail → versturen
+        </p>
+      </div>
+      <div id="stripo-mail-preview" style="padding:16px 24px; max-height:400px; overflow-y:auto; border-top:1px solid #e9d5ff; font-size:12px; font-family:monospace; color:#374151; white-space:pre-wrap; word-break:break-all;"></div>
     </div>
 
     <!-- ADMIN: 1-pager preview + publiceer -->
@@ -2216,6 +2235,185 @@ async function slaAnalyseOp() {
     .eq('periode', huidigePDFPeriode);
   
   if (!error) showToast('✔ Analyse opgeslagen');
+}
+
+// ── STRIPO MAIL GENEREREN ─────────────────────────────────────────────────────
+
+async function genereerStripoMail() {
+  const analyseTekst = sessionStorage.getItem('ai-analyse-tekst') || '';
+  if (!analyseTekst) { showToast('⚠ Voer eerst een AI-analyse uit', '#E67E22'); return; }
+
+  const sectie = document.getElementById('stripo-mail-sectie');
+  const preview = document.getElementById('stripo-mail-preview');
+  const bedrijf = huidigePDFKlant || '[BEDRIJF]';
+  const periode = huidigePDFPeriode || '2024';
+  const sector = document.getElementById('ai-sector')?.value || '—';
+  const datum = new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  preview.textContent = '⏳ AI genereert de ingevulde Stripo-mail...';
+  sectie.style.display = 'block';
+  sectie.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `Op basis van onderstaande financiële analyse, geef ALLEEN een JSON object terug (geen uitleg, geen markdown) met deze exacte sleutels:
+
+{
+  "BEDRIJFSNAAM": "...",
+  "SECTOR": "...",
+  "JAAR": "...",
+  "DATUM": "...",
+  "OMZET": "€ ...",
+  "BRUTOMARGE": "...%",
+  "BRUTOMARGE_KLEUR": "#kleurcode (groen=#1E8449, oranje=#E67E22, rood=#C0392B)",
+  "BRUTOMARGE_SIGNAAL": "✅ of ⚠ of 🔴",
+  "DEBDAGEN": "... dagen",
+  "DEB_KLEUR": "#kleurcode",
+  "DEB_SIGNAAL": "✅ of ⚠ of 🔴",
+  "EXTRA_LABEL": "Solvabiliteit",
+  "EXTRA_WAARDE": "...%",
+  "EXTRA_NORM": "25–40%",
+  "EXTRA_SIGNAAL": "✅ of ⚠ of 🔴",
+  "EXTRA_KLEUR": "#kleurcode",
+  "NETTO": "...%",
+  "NETTO_KLEUR": "#kleurcode",
+  "NETTO_SIGNAAL": "✅ of ⚠ of 🔴",
+  "B1_TITEL": "Bevinding 1 titel (max 8 woorden)",
+  "B1_TEKST": "Toelichting in 1-2 zinnen",
+  "B1_IMPACT": "€ ...",
+  "B2_TITEL": "Bevinding 2 titel",
+  "B2_TEKST": "Toelichting in 1-2 zinnen",
+  "B2_IMPACT": "€ ...",
+  "B3_TITEL": "Bevinding 3 titel",
+  "B3_TEKST": "Toelichting in 1-2 zinnen",
+  "B3_IMPACT": "€ ...",
+  "VERBETER": "€ ... (totaal verbeterpotentieel)",
+  "P1_ACTIE": "Prioriteit 1 actie (kort)",
+  "P1_RESULTAAT": "€ ...",
+  "P2_ACTIE": "Prioriteit 2 actie",
+  "P2_RESULTAAT": "€ ...",
+  "P3_ACTIE": "Prioriteit 3 actie",
+  "P3_RESULTAAT": "€ ...",
+  "INLOGCODE": "zie klantbeheer",
+  "BEDRIJFSNAAM_URL": "${bedrijf.toLowerCase().replace(/\s+/g,'')}2024",
+  "NAAM_ADVISEUR": "Dick Groen"
+}
+
+Bedrijf: ${bedrijf}
+Sector: ${sector}
+Periode: ${periode}
+Datum: ${datum}
+
+ANALYSE:
+${analyseTekst}`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const raw = data.content?.find(b => b.type === 'text')?.text || '';
+    let waarden;
+    try {
+      const clean = raw.replace(/```json|```/g, '').trim();
+      waarden = JSON.parse(clean);
+    } catch(e) {
+      preview.textContent = '⚠ Kon JSON niet verwerken:\n' + raw;
+      return;
+    }
+
+    // Laad het Stripo-sjabloon en vervang alle placeholders
+    const sjabloonResp = await fetch('https://groenvantexel.netlify.app/stripo_1pager_sjabloon.html').catch(() => null);
+    let sjabloon = '';
+    if (sjabloonResp && sjabloonResp.ok) {
+      sjabloon = await sjabloonResp.text();
+    } else {
+      // Fallback: gebruik ingebakken mini-sjabloon
+      sjabloon = bouwStripoFallback(waarden);
+      sessionStorage.setItem('stripo-html', sjabloon);
+      preview.textContent = sjabloon;
+      showToast('✅ Stripo-mail gegenereerd — kopieer en plak in Stripo');
+      return;
+    }
+
+    // Vervang alle placeholders
+    for (const [key, val] of Object.entries(waarden)) {
+      sjabloon = sjabloon.split(`{{${key}}}`).join(val || '');
+    }
+
+    sessionStorage.setItem('stripo-html', sjabloon);
+    preview.textContent = sjabloon;
+    showToast('✅ Stripo-mail gegenereerd — kopieer en plak in Stripo');
+
+  } catch(e) {
+    preview.textContent = '⚠ Fout: ' + e.message;
+  }
+}
+
+function bouwStripoFallback(w) {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Financiële Quickscan — ${w.BEDRIJFSNAAM}</title></head>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1F4E79;">
+    <tr><td style="padding:20px 24px;">
+      <div style="color:#fff;font-size:20px;font-weight:700;">GROEN VAN TEXEL</div>
+      <div style="color:#9dc3e6;font-size:12px;">Schilderend 52, 1791 BH Den Burg | dickgroen2@gmail.com | 06 4215 2499</div>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td style="padding:20px 24px 8px;">
+      <h1 style="color:#1F4E79;font-size:22px;margin:0 0 4px;">FINANCIËLE QUICKSCAN</h1>
+      <p style="color:#555;font-size:13px;margin:0;">MKB Stresstest Methode™ — Vertrouwelijk</p>
+    </td></tr>
+    <tr><td style="padding:8px 24px 16px;">
+      <table width="100%" style="border-collapse:collapse;font-size:13px;">
+        <tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;">Signaal</td></tr>
+        <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">Omzet</td><td style="padding:8px 10px;font-weight:700;border-bottom:1px solid #eee;">${w.OMZET}</td><td style="padding:8px 10px;color:#888;border-bottom:1px solid #eee;">—</td><td style="padding:8px 10px;border-bottom:1px solid #eee;">—</td></tr>
+        <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">Brutomarge</td><td style="padding:8px 10px;font-weight:700;color:${w.BRUTOMARGE_KLEUR};border-bottom:1px solid #eee;">${w.BRUTOMARGE}</td><td style="padding:8px 10px;color:#888;border-bottom:1px solid #eee;">30–40%</td><td style="padding:8px 10px;border-bottom:1px solid #eee;">${w.BRUTOMARGE_SIGNAAL}</td></tr>
+        <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">Debiteurendagen</td><td style="padding:8px 10px;font-weight:700;color:${w.DEB_KLEUR};border-bottom:1px solid #eee;">${w.DEBDAGEN}</td><td style="padding:8px 10px;color:#888;border-bottom:1px solid #eee;">30–45 dgn</td><td style="padding:8px 10px;border-bottom:1px solid #eee;">${w.DEB_SIGNAAL}</td></tr>
+        <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">${w.EXTRA_LABEL}</td><td style="padding:8px 10px;font-weight:700;color:${w.EXTRA_KLEUR};border-bottom:1px solid #eee;">${w.EXTRA_WAARDE}</td><td style="padding:8px 10px;color:#888;border-bottom:1px solid #eee;">${w.EXTRA_NORM}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;">${w.EXTRA_SIGNAAL}</td></tr>
+        <tr><td style="padding:8px 10px;">Nettoresultaat</td><td style="padding:8px 10px;font-weight:700;color:${w.NETTO_KLEUR};">${w.NETTO}</td><td style="padding:8px 10px;color:#888;">6–12%</td><td style="padding:8px 10px;">${w.NETTO_SIGNAAL}</td></tr>
+      </table>
+    </td></tr>
+    <tr><td style="padding:0 24px 16px;">
+      <div style="background:#D5F5E3;border-radius:8px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:13px;font-weight:700;color:#1E8449;">Totaal verbeterpotentieel</div>
+        <div style="font-size:22px;font-weight:700;color:#1E8449;">${w.VERBETER}</div>
+      </div>
+    </td></tr>
+    <tr><td style="padding:0 24px 16px;">
+      <div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:18px;">
+        <div style="font-size:14px;font-weight:700;color:#1F4E79;margin-bottom:8px;">Wilt u de volledige Basisscan?</div>
+        <p style="font-size:13px;color:#1F4E79;margin:0 0 14px;">Alle ratio's volledig onderbouwd, sectorvergelijking en concreet actieplan — €397 excl. BTW.</p>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+          <a href="https://groenvantexel.netlify.app" style="background:#1F4E79;color:#fff;text-decoration:none;border-radius:8px;padding:12px 32px;font-size:14px;font-weight:700;display:inline-block;">✓ Ja, ik wil de Basisscan — €397</a>
+        </td></tr></table>
+      </div>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;border-top:1px solid #ddd;">
+    <tr><td style="padding:14px 24px;font-size:11px;color:#888;">
+      Dick Groen | Groen van Texel | 06 4215 2499 | dickgroen2@gmail.com<br>
+      Financiële Doorlichting (MKB Stresstest Methode™) — Vertrouwelijk
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function kopieerStripoHTML() {
+  const html = sessionStorage.getItem('stripo-html') || '';
+  if (!html) { showToast('⚠ Genereer eerst de Stripo-mail', '#E67E22'); return; }
+  navigator.clipboard.writeText(html).then(() => {
+    showToast('✅ HTML gekopieerd — plak in Stripo code editor (Ctrl+A → Ctrl+V)');
+  });
 }
 
 // ── 1-PAGER GENEREREN (admin preview) ────────────────────────────────────────
