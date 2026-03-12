@@ -691,9 +691,9 @@
 
     <!-- KLANT: Basiscan bestellen knop -->
     <div id="basiscan-bestel-sectie" style="display:none; background:#EAF4FB; border:1.5px solid #2E75B6; border-radius:12px; padding:20px 24px; margin-bottom:20px;">
-      <div style="font-weight:700; color:#1F4E79; margin-bottom:6px; font-size:15px;">Volledige Basiscan — 20ac397 excl. BTW</div>
+      <div style="font-weight:700; color:#1F4E79; margin-bottom:6px; font-size:15px;">Volledige Basiscan — €397 excl. BTW</div>
       <p style="font-size:13px; color:#1F4E79; margin-bottom:16px;">Alle ratios uitgewerkt, sectorvergelijking en concrete aanbevelingen met verwachte financiele impact. Binnen 3 werkdagen in uw portaal.</p>
-      <button id="basiscan-bestel-btn" onclick="bestelBasiscan()" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Ja, ik wil de Basiscan - 397 euro</button>
+      <button id="basiscan-bestel-btn" onclick="bestelBasiscan()" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Ja, ik wil de Basiscan — €397</button>
       <p id="basiscan-bestel-bevestiging" style="display:none;font-size:13px;color:#1F4E79;margin-top:12px;font-weight:600;">Bedankt - uw aanvraag is ontvangen. U hoort binnen 1 werkdag van ons.</p>
     </div>
 
@@ -1212,10 +1212,10 @@ async function bestelBasiscan() {
     await emailjs.send('service_oqgsajg', 'template_q3aea4c', {
       bedrijf: currentUser,
       periode: 'Basiscan aanvraag',
-      bestandsnaam: 'Basiscan aanvraag',
+      bestandsnaam: currentUser + ' verzoekt om een Basiscan',
       name: currentUser,
       time: tijdstip,
-      message: currentUser + ' verzoekt om een Basiscan (\u20ac397 excl. BTW). U kunt direct starten.',
+      message: currentUser + ' verzoekt om een Basiscan (€397 excl. BTW). U kunt direct starten.',
     });
     btn.style.display = 'none';
     bevestiging.style.display = 'block';
@@ -1225,7 +1225,7 @@ async function bestelBasiscan() {
     }, 3000);
   } catch(e) {
     btn.disabled = false;
-    btn.textContent = 'Ja, ik wil de Basiscan - 397 euro';
+    btn.textContent = 'Ja, ik wil de Basiscan — €397';
     alert('Er ging iets mis. Probeer opnieuw of neem contact op via uw welkomstmail.');
   }
 }
