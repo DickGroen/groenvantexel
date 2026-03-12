@@ -282,9 +282,9 @@
     <!-- ══ FORMULIER: DOORLICHTING ══ -->
     <div id="form-doorlichting" class="form-card">
       <div class="form-header">
-        <h2>Jaarcijfers aanleveren — Financiële Doorlichting</h2>
-        <p>Dit formulier is voor de eenmalige Financiële Basiscan (€397 excl. BTW). Lever de jaarcijfers aan van de afgelopen 1 tot 3 jaar.</p>
-        <p class="form-intro">U ontvangt de doorlichting binnen 5 werkdagen. Vragen over welke bestanden nodig zijn? Neem contact op via uw welkomstmail.</p>
+        <h2>Jaarcijfers aanleveren</h2>
+        <p>Lever hier uw jaarcijfers aan. Op basis daarvan ontvangt u binnen 3 werkdagen een eerste doorlichting op hoofdlijnen — kosteloos.</p>
+        <p class="form-intro">Lever minimaal het meest recente afgesloten jaar aan. Vragen over welke bestanden nodig zijn? Neem contact op via uw welkomstmail.</p>
       </div>
       <div class="form-body">
         <div class="form-section">
@@ -362,7 +362,7 @@
         </div>
 
         <button class="submit-btn" id="submit-btn-doorlichting" onclick="submitDoorlichting()">
-          ▶ Jaarcijfers verzenden — doorlichting volgt binnen 5 werkdagen
+          ▶ Jaarcijfers verzenden — doorlichting volgt binnen 3 werkdagen
         </button>
       </div>
     </div>
@@ -683,6 +683,20 @@
       <div id="pdf-upload-status" style="font-size:13px; margin-top:10px; color:var(--mid);"></div>
     </div>
 
+    <!-- KLANT: Basiscan akkoord status -->
+    <div id="basiscan-status-sectie" style="display:none; background:#FEF9E7; border:1.5px solid #D4AC0D; border-radius:12px; padding:18px 24px; margin-bottom:20px;">
+      <div style="font-weight:700; color:#7D6608; margin-bottom:6px; font-size:15px;">✅ Basiscan in behandeling</div>
+      <p style="font-size:13px; color:#7D6608; margin:0;">Uw opdracht is bevestigd. U ontvangt de volledige Financiële Basiscan binnen 3 werkdagen in dit portaal.</p>
+    </div>
+
+    <!-- KLANT: Basiscan bestellen knop -->
+    <div id="basiscan-bestel-sectie" style="display:none; background:#EAF4FB; border:1.5px solid #2E75B6; border-radius:12px; padding:20px 24px; margin-bottom:20px;">
+      <div style="font-weight:700; color:#1F4E79; margin-bottom:6px; font-size:15px;">Volledige Basiscan — 20ac397 excl. BTW</div>
+      <p style="font-size:13px; color:#1F4E79; margin-bottom:16px;">Alle ratios uitgewerkt, sectorvergelijking en concrete aanbevelingen met verwachte financiele impact. Binnen 3 werkdagen in uw portaal.</p>
+      <button id="basiscan-bestel-btn" onclick="bestelBasiscan()" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Ja, ik wil de Basiscan - 397 euro</button>
+      <p id="basiscan-bestel-bevestiging" style="display:none;font-size:13px;color:#1F4E79;margin-top:12px;font-weight:600;">Bedankt - uw aanvraag is ontvangen. U hoort binnen 1 werkdag van ons.</p>
+    </div>
+
     <!-- KLANT: PDF download knop -->
     <div id="pdf-download-sectie" style="display:none; background:var(--green-pale); border:1px solid var(--green); border-radius:12px; padding:20px 24px; margin-bottom:20px;">
       <div style="font-weight:700; color:var(--green); margin-bottom:8px; font-size:15px;">📄 Uw Basiscan Rapport beschikbaar</div>
@@ -948,8 +962,9 @@ const ADMIN_CODE = 'GvT2026admin';
 const KLANT_CODES = {
   'testbv2026':  { naam: 'Test BV',  type: 'monitoring' },
   'vandorp2026': { naam: 'Van Dorp', type: 'monitoring' },
-  'devries2026': { naam: 'De Vries Installatie', type: 'doorlichting' },
+  'devries2026': { naam: 'De Vries Installatie', type: 'doorlichting', basiscan_akkoord: true },
   'gratis2026':  { naam: 'Gratis Scan', type: 'lead' },
+  // Voeg basiscan_akkoord: true toe zodra klant akkoord geeft op de 1-pager
 };
 
 let currentUser = null;
@@ -965,6 +980,19 @@ function verwerkKlantLogin(klantData) {
   document.querySelector('.nav-btn[onclick*="dashboard"]').style.display = 'none';
   document.querySelector('.nav-btn[onclick*="setup"]').style.display = 'none';
   document.getElementById('rapport-klant-bar').style.display = 'none';
+
+  // Toon basiscan bestel knop voor doorlichting-klanten zonder akkoord
+  const bestelSectie = document.getElementById('basiscan-bestel-sectie');
+  if (bestelSectie && klantType === 'doorlichting' && !klantData.basiscan_akkoord) {
+    bestelSectie.style.display = 'block';
+  }
+
+  // Toon basiscan akkoord banner indien van toepassing
+  const basiscanSectie = document.getElementById('basiscan-status-sectie');
+  if (basiscanSectie && klantData.basiscan_akkoord) {
+    basiscanSectie.style.display = 'block';
+  }
+
   initSupabase();
 
   if (klantType === 'lead') {
@@ -1172,6 +1200,32 @@ async function uploadPDF() {
 function downloadPDF() {
   const url = document.getElementById('pdf-download-btn').getAttribute('data-url');
   if (url) window.open(url, '_blank');
+}
+
+async function bestelBasiscan() {
+  const btn = document.getElementById('basiscan-bestel-btn');
+  const bevestiging = document.getElementById('basiscan-bestel-bevestiging');
+  btn.disabled = true;
+  btn.textContent = 'Versturen...';
+  try {
+    await emailjs.send('service_oqgsajg', 'template_q3aea4c', {
+      to_email: 'dickgroen2@gmail.com',
+      subject: 'Basiscan aangevraagd',
+      message: 'Klant ' + currentUser + ' heeft akkoord gegeven voor de Financiele Basiscan (397 euro excl. BTW). U kunt direct starten.',
+      bedrijf: currentUser,
+      periode: 'Basiscan aanvraag',
+    });
+    btn.style.display = 'none';
+    bevestiging.style.display = 'block';
+    setTimeout(function() {
+      document.getElementById('basiscan-bestel-sectie').style.display = 'none';
+      document.getElementById('basiscan-status-sectie').style.display = 'block';
+    }, 3000);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Ja, ik wil de Basiscan - 397 euro';
+    alert('Er ging iets mis. Probeer opnieuw of neem contact op via uw welkomstmail.');
+  }
 }
 
 // Check sessie bij laden
@@ -1504,7 +1558,7 @@ async function submitDoorlichting() {
       }]);
     }
 
-    btn.textContent = '✔ Verzonden — u ontvangt binnen 5 werkdagen uw doorlichting';
+    btn.textContent = '✔ Verzonden — u ontvangt binnen 3 werkdagen uw doorlichting';
     btn.style.background = 'var(--green)';
     const linksText = downloadLinks.length > 0
       ? '\n\nDownloadlinks:\n' + downloadLinks.join('\n')
