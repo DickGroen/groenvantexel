@@ -290,30 +290,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
       <div class="form-row cols2">
         <div class="form-group"><label class="form-label">Boekjaar <span class="req">*</span></label>
-          <select id="f-jaar" class="form-select"><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option></select>
+          <select id="f-jaar" class="form-select"></select>
         </div>
         <div class="form-group"><label class="form-label">E-mailadres</label><input id="f-email" type="email" class="form-input" autocomplete="off"></div>
       </div>
 
       <div style="margin-bottom:14px;">
         <div class="form-label" style="margin-bottom:7px;">V&amp;W — laatste jaar <span class="req">*</span></div>
-        <label class="file-zone"><input type="file" id="f-vw1" accept=".pdf,.xlsx,.xls" onchange="toonNaam(this,'f-vw1-naam')">📎 Bestand kiezen (.pdf of .xlsx)</label>
+        <label class="file-zone" id="lbl-vw1"><input type="file" id="f-vw1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen (.pdf of .xlsx)</label>
         <div id="f-vw1-naam" class="file-ok"></div>
         <div style="font-size:11px;color:var(--light);margin-top:3px;">Exporteer uit uw boekhoudprogramma als PDF of Excel.</div>
       </div>
       <div style="margin-bottom:14px;">
         <div class="form-label" style="margin-bottom:7px;">Balans — laatste jaar <span class="req">*</span></div>
-        <label class="file-zone"><input type="file" id="f-balans1" accept=".pdf,.xlsx,.xls" onchange="toonNaam(this,'f-balans1-naam')">📎 Bestand kiezen</label>
+        <label class="file-zone" id="lbl-balans1"><input type="file" id="f-balans1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
         <div id="f-balans1-naam" class="file-ok"></div>
       </div>
       <div style="margin-bottom:14px;">
         <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans — jaar daarvoor <span style="color:var(--light);font-weight:400;">(aanbevolen voor trendanalyse)</span></div>
-        <label class="file-zone"><input type="file" id="f-jaar2" accept=".pdf,.xlsx,.xls" onchange="toonNaam(this,'f-jaar2-naam')">📎 Bestand kiezen</label>
+        <label class="file-zone" id="lbl-jaar2"><input type="file" id="f-jaar2" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
         <div id="f-jaar2-naam" class="file-ok"></div>
       </div>
       <div style="margin-bottom:20px;">
         <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans — twee jaar geleden <span style="color:var(--light);font-weight:400;">(optioneel)</span></div>
-        <label class="file-zone"><input type="file" id="f-jaar3" accept=".pdf,.xlsx,.xls" onchange="toonNaam(this,'f-jaar3-naam')">📎 Bestand kiezen</label>
+        <label class="file-zone" id="lbl-jaar3"><input type="file" id="f-jaar3" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
         <div id="f-jaar3-naam" class="file-ok"></div>
       </div>
 
@@ -363,15 +363,28 @@ let adminPeriode = null;
 // STORAGE
 // ═══════════════════════════════════════════════════════════════
 const store = {
-  getKlanten:   ()      => JSON.parse(localStorage.getItem('gvt_klanten')  || '[]'),
-  setKlanten:   (v)     => localStorage.setItem('gvt_klanten',  JSON.stringify(v)),
-  getUploads:   ()      => JSON.parse(localStorage.getItem('gvt_uploads')  || '[]'),
-  setUploads:   (v)     => localStorage.setItem('gvt_uploads',  JSON.stringify(v)),
-  get1Pagers:   ()      => JSON.parse(localStorage.getItem('gvt_1pagers') || '{}'),
-  set1Pager:    (k,v)   => { const p=store.get1Pagers(); p[k]=v; localStorage.setItem('gvt_1pagers', JSON.stringify(p)); },
-  del1Pager:    (k)     => { const p=store.get1Pagers(); delete p[k]; localStorage.setItem('gvt_1pagers', JSON.stringify(p)); },
-  getAnalyse:   (k)     => localStorage.getItem('gvt_analyse_'+k) || '',
-  setAnalyse:   (k,v)   => localStorage.setItem('gvt_analyse_'+k, v),
+  getKlanten:   ()    => { try { return JSON.parse(localStorage.getItem('gvt_klanten')  || '[]'); } catch(e){ return []; } },
+  setKlanten:   (v)   => { try { localStorage.setItem('gvt_klanten',  JSON.stringify(v)); } catch(e){} },
+  getUploads:   ()    => { try { return JSON.parse(localStorage.getItem('gvt_uploads')  || '[]'); } catch(e){ return []; } },
+  setUploads:   (v)   => {
+    try {
+      localStorage.setItem('gvt_uploads', JSON.stringify(v));
+    } catch(e) {
+      // QuotaExceededError: sla opnieuw op zonder pdfTekst als fallback
+      try {
+        const compact = v.map(u => ({ ...u, pdfTekst: u.pdfTekst ? u.pdfTekst.substring(0, 20000) : '' }));
+        localStorage.setItem('gvt_uploads', JSON.stringify(compact));
+      } catch(e2) {
+        console.error('localStorage vol — upload niet opgeslagen:', e2);
+        throw new Error('Opslag vol. Verwijder oude bestanden of gebruik een andere browser.');
+      }
+    }
+  },
+  get1Pagers:   ()    => { try { return JSON.parse(localStorage.getItem('gvt_1pagers') || '{}'); } catch(e){ return {}; } },
+  set1Pager:    (k,v) => { try { const p=store.get1Pagers(); p[k]=v; localStorage.setItem('gvt_1pagers', JSON.stringify(p)); } catch(e){} },
+  del1Pager:    (k)   => { try { const p=store.get1Pagers(); delete p[k]; localStorage.setItem('gvt_1pagers', JSON.stringify(p)); } catch(e){} },
+  getAnalyse:   (k)   => { try { return localStorage.getItem('gvt_analyse_'+k) || ''; } catch(e){ return ''; } },
+  setAnalyse:   (k,v) => { try { localStorage.setItem('gvt_analyse_'+k, v); } catch(e){} },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -408,8 +421,27 @@ document.getElementById('login-code').addEventListener('keydown', e => { if(e.ke
 function uitloggen() {
   sessie = null; adminKlant = null; adminPeriode = null;
   sessionStorage.removeItem('gvt_sessie');
+  sessionStorage.removeItem('gvt-user');
+
+  // Reset tekst-divs (bestandsnamen, intro, wat)
+  ['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+  // Reset input values
+  ['f-bedrijf','f-email'].forEach(id => { const el = document.getElementById(id); if (el) { el.value = ''; el.readOnly = false; } });
+  ['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const btn = document.getElementById('f-submit');
+  if (btn) {
+    btn.textContent = '▶ Versturen';
+    btn.disabled = false;
+    btn.classList.remove('btn-ghost');
+    btn.classList.add('btn-primary');
+    btn.style.cursor = '';
+  }
+  const fSector = document.getElementById('f-sector'); if (fSector) fSector.value = '';
+
   document.getElementById('login-code').value = '';
   document.getElementById('login-overlay').classList.add('active');
+  document.getElementById('topnav').innerHTML = '';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -477,11 +509,9 @@ function laadDashboard() {
 
 function adminNaarRapport(naam) {
   adminKlant = naam;
+  adminPeriode = null;
+  // switchView roept laadRapportAdmin() aan, die vulKlantDropdown() + selectie doet
   switchView('rapport');
-  setTimeout(() => {
-    const sel = document.getElementById('r-klant');
-    if (sel) { sel.value = naam; onKlantSelect(); }
-  }, 30);
 }
 
 function typeBadge(t) {
@@ -500,13 +530,13 @@ function laadKlantentabel() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px;">Nog geen klanten.</td></tr>';
     return;
   }
-  tbody.innerHTML = klanten.map((k,i) => `<tr>
+  tbody.innerHTML = klanten.map((k) => `<tr>
     <td style="font-weight:600;">${esc(k.naam)}</td>
     <td style="font-family:monospace;font-size:13px;">${esc(k.code)}</td>
     <td>${typeBadge(k.klantType)}</td>
     <td>${k.sector||'—'}</td>
     <td>${k.email||'—'}</td>
-    <td><button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="verwijderKlant(${i})">✕</button></td>
+    <td><button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="verwijderKlant('${esc(k.code)}')">✕</button></td>
   </tr>`).join('');
 }
 
@@ -528,10 +558,12 @@ function klantToevoegen() {
   showToast('✔ Klant '+naam+' toegevoegd');
 }
 
-function verwijderKlant(i) {
+function verwijderKlant(code) {
   if (!confirm('Klant verwijderen?')) return;
-  const k = store.getKlanten(); k.splice(i,1); store.setKlanten(k);
-  laadKlantentabel(); showToast('Klant verwijderd');
+  const k = store.getKlanten().filter(k => k.code !== code);
+  store.setKlanten(k);
+  laadKlantentabel();
+  showToast('Klant verwijderd');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -540,13 +572,8 @@ function verwijderKlant(i) {
 function laadRapportAdmin() {
   resetRapportUI();
   document.getElementById('admin-selectie').style.display = '';
-  vulKlantDropdown();
-  // Herstel selectie als adminKlant al gezet was (bijv. via dashboard klik of refresh)
-  if (adminKlant) {
-    const sel = document.getElementById('r-klant');
-    sel.value = adminKlant;
-    onKlantSelect();
-  }
+  vulKlantDropdown(); // vult dropdown én herstelt selectie als adminKlant gezet is
+  if (adminKlant) onKlantSelect();
 }
 
 function vulKlantDropdown() {
@@ -554,20 +581,30 @@ function vulKlantDropdown() {
   const klanten = store.getKlanten();
   sel.innerHTML = '<option value="">— Selecteer klant —</option>' +
     klanten.map(k=>`<option value="${esc(k.naam)}">${esc(k.naam)}</option>`).join('');
+  // Herstel selectie als adminKlant al gezet is
+  if (adminKlant) sel.value = adminKlant;
 }
 
 function onKlantSelect() {
   adminKlant = document.getElementById('r-klant').value || null;
+  adminPeriode = null;
   const pSel = document.getElementById('r-periode');
   pSel.innerHTML = '<option value="">— Periode —</option>';
-  adminPeriode = null;
-  resetRapportUI(true);
+  resetRapportUI(false); // reset alles inclusief header
   if (!adminKlant) return;
 
-  const periodes = [...new Set(store.getUploads().filter(u=>u.bedrijf===adminKlant).map(u=>u.periode))];
+  const uploads = store.getUploads().filter(u => u.bedrijf === adminKlant);
+  const periodes = [...new Set(uploads.map(u => u.periode))];
   pSel.innerHTML = '<option value="">— Periode —</option>' +
-    periodes.map(p=>`<option value="${p}">${p}</option>`).join('');
-  if (periodes.length===1) { pSel.value=periodes[0]; onPeriodeSelect(); }
+    periodes.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+
+  if (periodes.length === 0) {
+    document.getElementById('r-leeg').style.display = '';
+    document.getElementById('r-leeg-tekst').textContent = 'Nog geen bestanden ontvangen van deze klant.';
+  } else if (periodes.length === 1) {
+    pSel.value = periodes[0];
+    onPeriodeSelect();
+  }
 }
 
 function onPeriodeSelect() {
@@ -635,12 +672,13 @@ function resetRapportUI(behoudHeader=false) {
 // RAPPORT — KLANT
 // ═══════════════════════════════════════════════════════════════
 function laadKlantRapport() {
+  if (!sessie || sessie.type !== 'klant' || !sessie.naam) return;
   resetRapportUI();
   document.getElementById('admin-selectie').style.display = 'none';
   document.getElementById('ai-box').style.display = 'none';
   document.getElementById('prev-box').style.display = 'none';
 
-  const uploads = store.getUploads().filter(u=>u.bedrijf===sessie.naam);
+  const uploads = store.getUploads().filter(u => u.bedrijf === sessie.naam);
   if (!uploads.length) {
     document.getElementById('r-leeg').style.display = '';
     document.getElementById('r-leeg-tekst').textContent = 'Uw rapport is nog niet beschikbaar. U ontvangt bericht zodra het klaarstaat.';
@@ -648,7 +686,7 @@ function laadKlantRapport() {
   }
 
   const periode = uploads[uploads.length-1].periode;
-  const key     = sessie.naam+'-'+periode;
+  const key     = sessie.naam + '-' + periode;
   const pager   = store.get1Pagers()[key];
 
   if (pager?.gepubliceerd) {
@@ -664,109 +702,144 @@ function laadKlantRapport() {
 // KLANT APP
 // ═══════════════════════════════════════════════════════════════
 function initKlantApp() {
+  // Eerst view activeren zodat alle DOM-elementen beschikbaar zijn
+  switchView('aanleveren');
+
   // Formulier prefill
-  document.getElementById('f-bedrijf').value = sessie.naam;
-  document.getElementById('f-bedrijf').readOnly = true;
-  if (sessie.email) document.getElementById('f-email').value = sessie.email;
-  if (sessie.sector) document.getElementById('f-sector').value = sessie.sector;
+  const fBedrijf = document.getElementById('f-bedrijf');
+  if (fBedrijf) { fBedrijf.value = sessie.naam || ''; fBedrijf.readOnly = true; }
+  if (sessie.email)  { const el = document.getElementById('f-email');  if (el) el.value = sessie.email; }
+  if (sessie.sector) { const el = document.getElementById('f-sector'); if (el) el.value = sessie.sector; }
 
   const introTxt = {
-    lead: 'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.',
+    lead:         'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.',
     doorlichting: 'Upload uw jaarcijfers voor de Financiële Basisscan.',
-    monitoring: 'Lever uw maandelijkse cijfers aan voor uw maandoverzicht.',
+    monitoring:   'Lever uw maandelijkse cijfers aan voor uw maandoverzicht.',
   };
   const watTxt = {
-    lead: 'Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm en de drie belangrijkste verbeterpunten — gratis, binnen 3 werkdagen.',
+    lead:         'Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm en de drie belangrijkste verbeterpunten — gratis, binnen 3 werkdagen.',
     doorlichting: 'De Financiële Basisscan (€397 excl. BTW) — alle ratio\'s volledig onderbouwd, sectorvergelijking en een concreet actieplan. Binnen 5 werkdagen.',
-    monitoring: 'Uw maandoverzicht met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.',
+    monitoring:   'Uw maandoverzicht met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.',
   };
-  document.getElementById('form-intro').textContent = introTxt[sessie.klantType]||'';
-  document.getElementById('form-wat').textContent   = watTxt[sessie.klantType]||'';
+  const kt = sessie.klantType || 'lead';
+  const elIntro = document.getElementById('form-intro');
+  const elWat   = document.getElementById('form-wat');
+  if (elIntro) elIntro.textContent = introTxt[kt] || '';
+  if (elWat)   elWat.textContent   = watTxt[kt]   || '';
 
-  // Al eerder geüpload?
-  const uploads = store.getUploads().filter(u=>u.bedrijf===sessie.naam);
+  // Al eerder geüpload? Zet knop op ontvangen-staat
+  const uploads = store.getUploads().filter(u => u.bedrijf === sessie.naam);
   if (uploads.length) {
-    const btn = document.getElementById('f-submit');
-    const datum = uploads[uploads.length-1].datum;
-    btn.textContent = '✔ Ontvangen op '+datum+' — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
-    btn.classList.remove('btn-primary');
-    btn.classList.add('btn-ghost');
-    btn.style.cursor = 'default';
-    btn.disabled = true;
+    const btn   = document.getElementById('f-submit');
+    const datum = uploads[uploads.length-1].datum || '';
+    if (btn) {
+      btn.textContent = '✔ Ontvangen op ' + datum + ' — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-ghost');
+      btn.style.cursor = 'default';
+      btn.disabled = true;
+    }
   }
-
-  switchView('aanleveren');
 }
 
 // ═══════════════════════════════════════════════════════════════
 // FORMULIER SUBMIT
 // ═══════════════════════════════════════════════════════════════
-function toonNaam(input, id) {
-  document.getElementById(id).textContent = input.files[0] ? '✔ '+input.files[0].name : '';
+function toonNaam(inputId, naamId) {
+  const input = document.getElementById(inputId);
+  const naam  = document.getElementById(naamId);
+  if (!input || !naam) return;
+  naam.textContent = input.files?.[0] ? '✔ ' + input.files[0].name : '';
+}
+
+function koppelFileListeners() {
+  // Betrouwbare change-listeners die ook op iOS Safari werken
+  [['f-vw1','f-vw1-naam'],['f-balans1','f-balans1-naam'],['f-jaar2','f-jaar2-naam'],['f-jaar3','f-jaar3-naam']]
+    .forEach(([inputId, naamId]) => {
+      const el = document.getElementById(inputId);
+      if (el) el.addEventListener('change', () => toonNaam(inputId, naamId));
+    });
 }
 
 async function submitFormulier() {
-  const bedrijf = document.getElementById('f-bedrijf').value.trim();
-  const sector  = document.getElementById('f-sector').value;
-  const jaar    = document.getElementById('f-jaar').value;
-  const email   = document.getElementById('f-email').value.trim();
+  const bedrijf = (document.getElementById('f-bedrijf').value || '').trim();
+  const sector  = document.getElementById('f-sector').value || '';
+  const jaar    = document.getElementById('f-jaar').value || '2024';
+  const email   = (document.getElementById('f-email').value || '').trim();
   const btn     = document.getElementById('f-submit');
 
   if (!bedrijf) { showToast('⚠ Vul bedrijfsnaam in','#E67E22'); return; }
   if (!sector)  { showToast('⚠ Kies uw sector','#E67E22'); return; }
-  const vw1    = document.getElementById('f-vw1').files[0];
-  const balans = document.getElementById('f-balans1').files[0];
-  if (!vw1||!balans) { showToast('⚠ Upload minimaal V&W en balans','#E67E22'); return; }
 
-  btn.disabled = true;
+  // Veilig files uitlezen — .files kan undefined zijn als input niet in DOM zit
+  const vw1Input    = document.getElementById('f-vw1');
+  const balansInput = document.getElementById('f-balans1');
+  const vw1    = vw1Input?.files?.[0];
+  const balans = balansInput?.files?.[0];
+  if (!vw1 || !balans) { showToast('⚠ Upload minimaal V&W en balans','#E67E22'); return; }
+
   btn.textContent = '⏳ Bezig met verwerken...';
+  btn.disabled = true;
 
   try {
-    // Lees bestanden uit
     let pdfTekst = '';
     const files = [
-      { file:vw1,    lbl:'VW_jaar1' },
-      { file:balans, lbl:'Balans_jaar1' },
-      { file:document.getElementById('f-jaar2').files[0], lbl:'VW_Balans_jaar2' },
-      { file:document.getElementById('f-jaar3').files[0], lbl:'VW_Balans_jaar3' },
+      { file: vw1,    lbl: 'VW_jaar1' },
+      { file: balans, lbl: 'Balans_jaar1' },
+      { file: document.getElementById('f-jaar2')?.files?.[0], lbl: 'VW_Balans_jaar2' },
+      { file: document.getElementById('f-jaar3')?.files?.[0], lbl: 'VW_Balans_jaar3' },
     ];
+
     for (const f of files) {
       if (!f.file) continue;
-      btn.textContent = '⏳ '+f.lbl+' uitlezen...';
+      btn.textContent = '⏳ ' + f.lbl + ' uitlezen...';
       const t = await leesBestand(f.file);
-      pdfTekst += '\n=== '+f.lbl+' ===\n'+t+'\n';
+      pdfTekst += '\n=== ' + f.lbl + ' ===\n' + t + '\n';
     }
 
-    // Opslaan — vervang bestaande upload voor zelfde bedrijf+jaar
-    const datum   = new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
-    const klantType = sessie?.klantType || 'lead';
-    const periode = klantType+'-'+jaar;
-    // Verwijder alle bestaande uploads voor dit bedrijf+periode (voorkomt dubbelen)
-    const bestaand = store.getUploads().filter(u => !(u.bedrijf===bedrijf && u.periode===periode));
-    bestaand.push({ bedrijf, periode, datum, sector, pdfTekst: pdfTekst.substring(0,100000) });
-    store.setUploads(bestaand);
+    // Detecteer of tekst bruikbaar is voor analyse
+    const probleemPatronen = ['[PDF leesfout', '[Geen tekst', '[formaat niet ondersteund', '[Ongeldig', '[Excel leesfout', '[PDF is leeg'];
+    const tekstLeeg = !pdfTekst.trim() || probleemPatronen.some(p => pdfTekst.includes(p));
+    if (tekstLeeg) console.warn('submitFormulier: pdfTekst leeg of fout — upload gaat door zonder tekst');
 
-    // E-mail notificatie
+    const datum = new Date().toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'});
+
+    // Haal klantType op: sessie heeft voorrang, anders opzoeken via naam
+    let klantType = sessie?.klantType;
+    if (!klantType) {
+      const k = store.getKlanten().find(k => k.naam === bedrijf);
+      klantType = k?.klantType || 'lead';
+    }
+    const periode = klantType + '-' + jaar;
+
+    // Upsert: verwijder bestaande upload voor zelfde bedrijf+periode
+    const overig = store.getUploads().filter(u => !(u.bedrijf === bedrijf && u.periode === periode));
+    overig.push({ bedrijf, periode, datum, sector, pdfTekst: pdfTekst.substring(0, 80000) });
+    store.setUploads(overig); // gooit exception bij QuotaExceededError → catch hieronder
+
+    // E-mail (emailjs.init al gedaan in global init — NIET opnieuw aanroepen)
     try {
-      emailjs.init(ejsPubkey());
       await emailjs.send(ejsService(), ejsTemplate(), {
-        bedrijf, periode, name: bedrijf, time: datum,
-        message: 'Nieuwe upload van '+bedrijf+' ('+periode+')\nSector: '+sector+(email?'\nE-mail: '+email:'')
+        bedrijf, periode,
+        name: bedrijf,
+        time: datum,
+        message: 'Nieuwe upload van ' + bedrijf + ' (' + periode + ')\nSector: ' + sector + (email ? '\nE-mail: ' + email : '') + (tekstLeeg ? '\n⚠ PDF tekst leeg — handmatig controleren' : '')
       });
-    } catch(e) { console.warn('EmailJS:', e); }
+    } catch(e) { console.warn('EmailJS fout (niet fataal):', e.message || e); }
 
-    btn.textContent = '✔ Ontvangen op '+datum+' — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
+    // Succes
+    btn.textContent = '✔ Ontvangen op ' + datum + ' — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
     btn.classList.remove('btn-primary');
     btn.classList.add('btn-ghost');
     btn.style.cursor = 'default';
     btn.disabled = true;
-    showToast('✔ Jaarcijfers ontvangen op '+datum);
+    showToast('✔ Jaarcijfers ontvangen op ' + datum);
 
   } catch(e) {
     btn.disabled = false;
     btn.textContent = '▶ Versturen';
-    showToast('⚠ Er ging iets mis — probeer opnieuw','#E67E22');
-    console.error(e);
+    showToast('⚠ ' + (e.message || 'Er ging iets mis — probeer opnieuw'), '#E67E22');
+    console.error('submitFormulier fout:', e);
   }
 }
 
@@ -774,38 +847,49 @@ async function submitFormulier() {
 // BESTAND LEZEN
 // ═══════════════════════════════════════════════════════════════
 async function leesBestand(file) {
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (ext==='pdf')            return leesPDF(file);
-  if (ext==='xlsx'||ext==='xls') return leesExcel(file);
-  return '['+file.name+' — formaat niet ondersteund]';
+  if (!file || !file.name) return '[Ongeldig bestand]';
+  const delen = file.name.split('.');
+  const ext   = delen.length > 1 ? delen.pop().toLowerCase() : '';
+  if (ext === 'pdf')                return leesPDF(file);
+  if (ext === 'xlsx' || ext === 'xls') return leesExcel(file);
+  // Geen bekende extensie — markeer zodat tekstLeeg-check hem opvangt
+  return '[formaat niet ondersteund: ' + (ext || 'geen extensie') + ']';
 }
 
 async function leesPDF(file) {
   try {
     if (!window.pdfjsLib) {
       await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      // WorkerSrc eenmalig zetten direct na laden — niet bij hergebruik
       window.pdfjsLib.GlobalWorkerOptions.workerSrc =
         'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
+
     const buf = await file.arrayBuffer();
-    const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
+    if (!buf || buf.byteLength === 0) return '[PDF is leeg of kon niet worden gelezen]';
+
+    const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
     let t = '';
-    for (let i=1;i<=Math.min(pdf.numPages,12);i++) {
+    for (let i = 1; i <= Math.min(pdf.numPages, 12); i++) {
       const page = await pdf.getPage(i);
       const c    = await page.getTextContent();
-      t += '\n--- Pagina '+i+' ---\n'+c.items.map(x=>x.str).join(' ');
+      t += '\n--- Pagina ' + i + ' ---\n' + c.items.map(x => x.str).join(' ');
     }
-    return t;
-  } catch(e) { return '[PDF leesfout: '+e.message+']'; }
+    return t.trim() || '[Geen tekst gevonden — mogelijk een scan-PDF]';
+  } catch(e) {
+    return '[PDF leesfout: ' + e.message + ']';
+  }
 }
 
 async function leesExcel(file) {
   try {
     if (!window.XLSX) await laadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
     const buf = await file.arrayBuffer();
-    const wb  = window.XLSX.read(buf,{type:'array'});
-    return wb.SheetNames.map(n=>'\n--- '+n+' ---\n'+window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:' | '})).join('');
-  } catch(e) { return '[Excel leesfout: '+e.message+']'; }
+    const data = new Uint8Array(buf); // XLSX verwacht Uint8Array, niet ArrayBuffer
+    const wb  = window.XLSX.read(data, { type: 'array' });
+    if (!wb.SheetNames.length) return '[Excel: geen tabbladen gevonden]';
+    return wb.SheetNames.map(n => '\n--- ' + n + ' ---\n' + window.XLSX.utils.sheet_to_csv(wb.Sheets[n], { FS: ' | ' })).join('');
+  } catch(e) { return '[Excel leesfout: ' + e.message + ']'; }
 }
 
 function laadScript(src) {
@@ -821,6 +905,7 @@ async function startAnalyse() {
   const status  = document.getElementById('ai-status');
   const output  = document.getElementById('ai-tekst');
   const acties  = document.getElementById('ai-acties');
+  const knop    = document.querySelector('[onclick="startAnalyse()"]');
 
   const uploads = store.getUploads().filter(u=>u.bedrijf===adminKlant&&u.periode===adminPeriode);
   if (!uploads.length) { showToast('⚠ Geen uploads gevonden','#E67E22'); return; }
@@ -829,6 +914,7 @@ async function startAnalyse() {
   status.textContent = '⏳ Analyse bezig...';
   output.style.display = 'none';
   acties.style.display = 'none';
+  if (knop) { knop.disabled = true; knop.textContent = '⏳ Bezig...'; }
 
   const prompt = `Je bent financieel analist voor MKB. Voer de MKB Stresstest Methode™ uit.
 
@@ -879,8 +965,10 @@ ${pdfTekst}`;
     output.style.display = '';
     acties.style.display = 'flex';
     status.textContent = '✔ Analyse gereed';
+    if (knop) { knop.disabled = false; knop.textContent = '🚀 Analyseer gegevens'; }
   } catch(e) {
     status.textContent = '⚠ '+e.message;
+    if (knop) { knop.disabled = false; knop.textContent = '🚀 Analyseer gegevens'; }
     const bestaand = store.getAnalyse(adminKlant+'-'+adminPeriode);
     if (bestaand) { output.textContent=bestaand; output.style.display=''; acties.style.display='flex'; status.textContent='⚠ API fout — bestaande analyse geladen'; }
   }
@@ -891,7 +979,14 @@ ${pdfTekst}`;
 // ═══════════════════════════════════════════════════════════════
 function parseData(tekst) {
   const d = { brutomarge:null,ebitda:null,personeelskosten:null,debiteurendagen:null,solvabiliteit:null,currentratio:null,omzet:null };
-  const getN = s => { const m=s.match(/(\d+[,.]\d+|\d+)/); if(!m)return null; return parseFloat(m[1].replace(/\.(\d{3})/g,'$1').replace(',','.')); };
+  const getN = s => {
+    // Verwijder duizendpunten (NL: 1.234.567) maar bewaar decimaalcomma (1,5)
+    // Stap 1: vervang punten die gevolgd worden door exact 3 cijfers én daarna niet-cijfer/einde → duizendpunt
+    const genormaliseerd = s.replace(/(\d)\.(\d{3})(?!\d)/g, '$1$2');
+    const m = genormaliseerd.match(/(\d+[,]?\d*)/);
+    if (!m) return null;
+    return parseFloat(m[1].replace(',', '.'));
+  };
   const zoekPct = (t,...kws) => { for(const kw of kws){ const m=t.match(new RegExp(kw+'[^\\n]{0,30}?([\\d]+[,.]?[\\d]*)\\s*%','i')); if(m)return parseFloat(m[1].replace(',','.')); } return null; };
 
   for (const regel of tekst.split('\n')) {
@@ -938,9 +1033,9 @@ function berekenBevindingen(d) {
   if (d.personeelskosten&&d.personeelskosten>60)  b.push({t:'Personeelskosten hoog',tx:`Personeelskosten bedragen ${d.personeelskosten}% van de omzet — boven de norm van 45–60%.`,k:'#C0392B'});
   if (d.brutomarge!==null&&d.brutomarge<30)       b.push({t:'Brutomarge laag',tx:`De brutomarge is ${d.brutomarge}% — onder de norm van 30–40%. Inkoop of tariefstelling verdienen aandacht.`,k:'#C0392B'});
   const pos = [
-    {t:'Solvabiliteit gezond',   tx:`De solvabiliteit van ${d.solvabiliteit||'—'}% valt binnen de sectornorm van 25–40%.`,k:'#27AE60'},
-    {t:'Brutomarge op niveau',   tx:`De brutomarge van ${d.brutomarge||'—'}% is gezond.`,k:'#27AE60'},
-    {t:'Financiële basis stabiel',tx:'De overige indicatoren vallen binnen de sectornorm. In de Basisscan werken we alle ratio\'s volledig uit.',k:'#27AE60'},
+    {t:'Solvabiliteit gezond',    tx:`De solvabiliteit van ${d.solvabiliteit !== null ? d.solvabiliteit+'%' : '—'} valt binnen de sectornorm van 25–40%.`, k:'#27AE60'},
+    {t:'Brutomarge op niveau',    tx:`De brutomarge van ${d.brutomarge !== null ? d.brutomarge+'%' : '—'} is gezond.`, k:'#27AE60'},
+    {t:'Financiële basis stabiel',tx:'De overige indicatoren vallen binnen de sectornorm. In de Basisscan werken we alle ratio\'s volledig uit.', k:'#27AE60'},
   ];
   while(b.length<3) b.push(pos[b.length]||pos[2]);
   return b.slice(0,3);
@@ -1040,7 +1135,7 @@ function bouw1PagerHTML(bedrijf, periode, sector, d) {
       <div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:6px;">Wilt u verder?</div>
       <p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 12px;">De Financiële Basisscan (€397 excl. BTW) geeft de volledige uitwerking: alle ratio's volledig onderbouwd, sectorvergelijking en een concreet actieplan.</p>
       <div style="text-align:center;">
-        <button onclick="bestelBasiscan()" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;">✓ Ja, ik wil de Basisscan — €397</button>
+        <button onclick="bestelBasiscan()" data-klant-knop="1" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;">✓ Ja, ik wil de Basisscan — €397</button>
       </div>
     </div>
   </div>
@@ -1071,18 +1166,22 @@ function reset1Pager() {
   showToast('🗑 1-pager verwijderd');
 }
 
-function bestelBasiscan() {
+async function bestelBasiscan() {
+  // Alleen uitvoeren als klant ingelogd is — voorkomt per ongeluk klikken in admin preview
+  if (!sessie || sessie.type !== 'klant') {
+    showToast('⚠ Deze knop is alleen voor ingelogde klanten', '#E67E22');
+    return;
+  }
   showToast('✔ Aanvraag ontvangen — u wordt zo spoedig mogelijk gecontacteerd');
   try {
-    emailjs.init(ejsPubkey());
-    emailjs.send(ejsService(), ejsTemplate(), {
-      bedrijf: sessie?.naam||'onbekend',
+    await emailjs.send(ejsService(), ejsTemplate(), {
+      bedrijf: sessie.naam || 'onbekend',
       periode: 'Basisscan aanvraag',
-      name: sessie?.naam||'Klant',
-      time: new Date().toLocaleDateString('nl-NL'),
-      message: 'Klant '+(sessie?.naam||'onbekend')+' heeft de Basisscan aangevraagd.'
+      name:    sessie.naam || 'Klant',
+      time:    new Date().toLocaleDateString('nl-NL'),
+      message: 'Klant ' + (sessie.naam || 'onbekend') + ' heeft de Basisscan aangevraagd.'
     });
-  } catch(e) {}
+  } catch(e) { console.warn('bestelBasiscan EmailJS fout (niet fataal):', e.message || e); }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1092,16 +1191,19 @@ function slaConfigOp() {
   localStorage.setItem('cfg-service',  document.getElementById('cfg-service').value.trim());
   localStorage.setItem('cfg-template', document.getElementById('cfg-template').value.trim());
   localStorage.setItem('cfg-pubkey',   document.getElementById('cfg-pubkey').value.trim());
+  try { emailjs.init(ejsPubkey()); } catch(e) {}
   showToast('✔ Instellingen opgeslagen');
 }
 
 // ═══════════════════════════════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════════════════════════════
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function showToast(msg, kleur='#1E8449') {
   const t=document.getElementById('toast'); t.textContent=msg; t.style.background=kleur; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3200);
+  // Langere berichten krijgen meer tijd: ~50ms per teken, min 3s, max 6s
+  const duur = Math.min(6000, Math.max(3000, msg.length * 50));
+  setTimeout(()=>t.classList.remove('show'), duur);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1110,35 +1212,92 @@ function showToast(msg, kleur='#1E8449') {
 (function init() {
   try { emailjs.init(ejsPubkey()); } catch(e) {}
 
-  // Herstel config inputs
+  // Koppel file-input listeners (werkt ook op iOS Safari)
+  koppelFileListeners();
+
+  // ── Boekjaar dropdown dynamisch vullen ──
+  const jaarSel = document.getElementById('f-jaar');
+  if (jaarSel) {
+    const huidigJaar = new Date().getFullYear();
+    // Meest recent afgesloten boekjaar is doorgaans vorig jaar
+    jaarSel.innerHTML = [huidigJaar-1, huidigJaar-2, huidigJaar-3]
+      .map(j => `<option value="${j}">${j}</option>`).join('');
+  }
+
+  // ── Herstel config inputs ──
   const s=localStorage.getItem('cfg-service'), t=localStorage.getItem('cfg-template'), p=localStorage.getItem('cfg-pubkey');
   if (s) document.getElementById('cfg-service').value=s;
   if (t) document.getElementById('cfg-template').value=t;
   if (p) document.getElementById('cfg-pubkey').value=p;
 
-  // Herstel sessie na page refresh
-  const raw = sessionStorage.getItem('gvt_sessie');
-  if (raw) {
-    try {
-      sessie = JSON.parse(raw);
-      document.getElementById('login-overlay').classList.remove('active');
-      buildNav(); // NAV EERST — daarna pas views aanroepen
-      if (sessie.type==='admin') {
-        // Views zijn nu beschikbaar
-        switchView('dashboard');
-      } else {
-        initKlantApp();
-      }
-    } catch(e) {
-      sessionStorage.removeItem('gvt_sessie');
-    }
+  // ── Migreer oude storage keys (gvt- → gvt_) ──
+  // Zodat data van de vorige app-versie niet verloren gaat
+  if (!localStorage.getItem('gvt_klanten') && localStorage.getItem('gvt-klanten')) {
+    localStorage.setItem('gvt_klanten', localStorage.getItem('gvt-klanten'));
+  }
+  if (!localStorage.getItem('gvt_uploads') && localStorage.getItem('gvt-uploads')) {
+    localStorage.setItem('gvt_uploads', localStorage.getItem('gvt-uploads'));
   }
 
-  // Testklant toevoegen als nog niet aanwezig
+  // ── Verwijder dubbele uploads (zelfde bedrijf+periode) ──
+  const alleUploads = store.getUploads();
+  const gededupliceerd = [];
+  const gezien = new Set();
+  for (const u of alleUploads) {
+    const key = u.bedrijf + '|' + u.periode;
+    if (!gezien.has(key)) { gezien.add(key); gededupliceerd.push(u); }
+  }
+  if (gededupliceerd.length !== alleUploads.length) store.setUploads(gededupliceerd);
+
+  // ── Testklant toevoegen als nog niet aanwezig ──
   const klanten = store.getKlanten();
   if (!klanten.find(k=>k.code==='vandenberg2024')) {
     klanten.push({ naam:'Installatiebedrijf Van der Berg B.V.', code:'vandenberg2024', klantType:'lead', email:'', sector:'Installatietechniek' });
     store.setKlanten(klanten);
+  }
+
+  // ── Herstel sessie na page refresh ──
+  // Probeer eerst sessionStorage, dan de oude key
+  const raw = sessionStorage.getItem('gvt_sessie') || sessionStorage.getItem('gvt-user');
+  if (raw) {
+    try {
+      // Ondersteun beide formaten: JSON object én losse string (oude app)
+      let parsed;
+      try { parsed = JSON.parse(raw); } catch(e) { parsed = null; }
+
+      if (parsed && parsed.type) {
+        // Nieuwe format: { type:'admin' } of { type:'klant', naam, ... }
+        sessie = parsed;
+        // Herstel klantType als het ontbreekt (kan bij oude sessie)
+        if (sessie.type === 'klant' && !sessie.klantType) {
+          const k = store.getKlanten().find(k => k.code === sessie.code || k.naam === sessie.naam);
+          if (k) sessie = { ...sessie, ...k };
+          else sessie.klantType = 'lead';
+        }
+      } else {
+        // Oud format: gewoon een naam-string → zoek klant op
+        const naam = typeof parsed === 'string' ? parsed : raw;
+        if (naam === 'admin') {
+          sessie = { type: 'admin' };
+        } else {
+          const klant = store.getKlanten().find(k => k.naam === naam || k.code === naam);
+          if (klant) sessie = { type: 'klant', ...klant };
+        }
+      }
+
+      if (sessie) {
+        document.getElementById('login-overlay').classList.remove('active');
+        buildNav(); // NAV ALTIJD EERST
+        if (sessie.type === 'admin') {
+          switchView('dashboard');
+        } else {
+          initKlantApp(); // toont aanleveren + vult knop met datum indien al geüpload
+        }
+      }
+    } catch(e) {
+      sessionStorage.removeItem('gvt_sessie');
+      sessionStorage.removeItem('gvt-user');
+    }
   }
 })();
 </script>
