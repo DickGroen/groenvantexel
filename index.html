@@ -2213,7 +2213,15 @@ function parseAnalyseData(tekst) {
   }
   if (data.omzet === null) {
     const m = tekst.match(/netto-omzet\s+([\d.]+)/i);
-    if (m) data.omzet = parseFloat(m[1].replace('.',''));
+    if (m) data.omzet = parseFloat(m[1].replace(/\./g,''));
+  }
+  // Bereken personeelskosten % uit ruwe cijfers als niet gevonden
+  if (data.personeelskosten === null && data.omzet) {
+    const pM = tekst.match(/personeelskosten\s+([\d.]+)/i);
+    if (pM) {
+      const pKosten = parseFloat(pM[1].replace(/\./g,''));
+      data.personeelskosten = Math.round(pKosten / data.omzet * 100 * 10) / 10;
+    }
   }
 
   return data;
@@ -2580,77 +2588,58 @@ async function publiceer1Pager() {
 }
 
 function berekenBevindingen(parsed, omzet) {
-  // Genereer bevindingen automatisch op basis van afwijkingen van de norm
   const bevindingen = [];
-  
+
   // Debiteurendagen: norm 30-45 dgn
   if (parsed.debiteurendagen && parsed.debiteurendagen > 45) {
-    const extra = parsed.debiteurendagen - 45;
-    const impact = omzet ? Math.round(extra / 365 * omzet) : null;
     bevindingen.push({
-      titel: 'Debiteuren te laat betaald',
-      tekst: `Debiteurendagen: ${Math.round(parsed.debiteurendagen)} dgn (norm 30–45 dgn) — klanten betalen gemiddeld ${Math.round(extra)} dagen te laat.`,
-      impact: impact ? '€ ' + impact.toLocaleString('nl-NL') : '—',
-      kleur: '#C0392B'
-    });
-  }
-  
-  // Brutomarge: norm 30-40% voor installatietechniek
-  if (parsed.brutomarge && parsed.brutomarge > 40) {
-    bevindingen.push({
-      titel: 'Brutomarge boven sectorgemiddelde',
-      tekst: `Brutomarge: ${parsed.brutomarge}% (norm 30–40%) — hogere marge dan sector, positief signaal maar controleer prijsstelling.`,
-      impact: '—',
-      kleur: '#E67E22'
-    });
-  } else if (parsed.brutomarge && parsed.brutomarge < 30) {
-    const impact = omzet ? Math.round((30 - parsed.brutomarge) / 100 * omzet) : null;
-    bevindingen.push({
-      titel: 'Lage brutomarge',
-      tekst: `Brutomarge: ${parsed.brutomarge}% (norm 30–40%) — inkoop of tarieven verdienen aandacht.`,
-      impact: impact ? '€ ' + impact.toLocaleString('nl-NL') : '—',
+      titel: 'Debiteurenprobleem',
+      tekst: `Klanten betalen gemiddeld ${Math.round(parsed.debiteurendagen)} dagen — de norm is 30–45 dagen. Dit bindt onnodig werkkapitaal.`,
       kleur: '#C0392B'
     });
   }
 
   // Personeelskosten: norm 45-60%
   if (parsed.personeelskosten && parsed.personeelskosten > 60) {
-    const impact = omzet ? Math.round((parsed.personeelskosten - 55) / 100 * omzet) : null;
     bevindingen.push({
-      titel: 'Personeelskosten te hoog',
-      tekst: `Personeelskosten: ${parsed.personeelskosten}% van omzet (norm 45–60%) — mogelijke overstaffing of te lage tarieven.`,
-      impact: impact ? '€ ' + impact.toLocaleString('nl-NL') : '—',
-      kleur: '#C0392B'
-    });
-  }
-
-  // Solvabiliteit: norm 25-40%
-  if (parsed.solvabiliteit && parsed.solvabiliteit < 25) {
-    bevindingen.push({
-      titel: 'Solvabiliteit onder de norm',
-      tekst: `Solvabiliteit: ${parsed.solvabiliteit}% (norm 25–40%) — eigen vermogen versterken is aanbevolen.`,
-      impact: '—',
+      titel: 'Personeelskostenprobleem',
+      tekst: `Personeelskosten bedragen ${parsed.personeelskosten}% van de omzet — de norm is 45–60%. Dit drukt de winstgevendheid.`,
       kleur: '#C0392B'
     });
   }
 
   // Nettoresultaat: norm 6-12%
-  if (parsed.ebitda && parsed.ebitda < 6) {
-    const impact = omzet ? Math.round((6 - parsed.ebitda) / 100 * omzet) : null;
+  if (parsed.ebitda !== null && parsed.ebitda < 6) {
     bevindingen.push({
-      titel: 'Nettoresultaat onder de norm',
-      tekst: `Nettoresultaat: ${parsed.ebitda}% (norm 6–12%) — winstgevendheid verdient aandacht.`,
-      impact: impact ? '€ ' + impact.toLocaleString('nl-NL') : '—',
+      titel: 'Winstgevendheidsprobleem',
+      tekst: `Nettoresultaat is ${parsed.ebitda}% — de norm is 6–12%. De volledige uitwerking volgt in de Basisscan.`,
       kleur: '#E67E22'
     });
   }
 
-  // Vul aan tot 3 als er minder zijn
+  // Brutomarge te laag
+  if (parsed.brutomarge !== null && parsed.brutomarge < 30) {
+    bevindingen.push({
+      titel: 'Brutomarge onder de norm',
+      tekst: `Brutomarge is ${parsed.brutomarge}% — de norm is 30–40%. Inkoop of tarieven verdienen aandacht.`,
+      kleur: '#C0392B'
+    });
+  }
+
+  // Solvabiliteit te laag
+  if (parsed.solvabiliteit !== null && parsed.solvabiliteit < 25) {
+    bevindingen.push({
+      titel: 'Solvabiliteitsprobleem',
+      tekst: `Solvabiliteit is ${parsed.solvabiliteit}% — de norm is 25–40%. Het eigen vermogen is te laag ten opzichte van de schulden.`,
+      kleur: '#C0392B'
+    });
+  }
+
+  // Vul aan tot 3
   while (bevindingen.length < 3) {
     bevindingen.push({
       titel: 'Financiële positie stabiel',
-      tekst: 'Dit onderdeel valt binnen de sectornorm. Doorlopende monitoring blijft aanbevolen.',
-      impact: '—',
+      tekst: 'Dit onderdeel valt binnen de sectornorm. In de Basisscan werken we alle ratio's volledig uit.',
       kleur: '#27AE60'
     });
   }
@@ -2659,15 +2648,10 @@ function berekenBevindingen(parsed, omzet) {
 }
 
 function berekenTotaal(bevindingen) {
-  let totaal = 0;
-  for (const b of bevindingen) {
-    if (b.impact && b.impact !== '—') {
-      const m = b.impact.replace(/[€\.\s]/g,'').replace(',','.');
-      const v = parseFloat(m);
-      if (!isNaN(v)) totaal += v;
-    }
-  }
-  return totaal > 0 ? '€ ' + Math.round(totaal).toLocaleString('nl-NL') : '—';
+  // Geen bedrag tonen — wordt uitgewerkt in de Basisscan
+  const problemen = bevindingen.filter(b => b.kleur !== '#27AE60').length;
+  if (problemen === 0) return 'Binnen norm';
+  return problemen === 1 ? '1 aandachtspunt' : problemen + ' aandachtspunten';
 }
 
 function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
@@ -2685,7 +2669,8 @@ function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
       <div>
         <div style="color:#9dc3e6;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">Groen van Texel — Financiële Doorlichting</div>
         <div style="color:#fff;font-size:20px;font-weight:700;margin-top:2px;">${bedrijf}</div>
-        <div style="color:#9dc3e6;font-size:12px;margin-top:2px;">Sector: ${sector} &nbsp;•&nbsp; Boekjaar ${periode} &nbsp;•&nbsp; Verstuurd: ${new Date().toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'})}</div>
+        <div style="color:#9dc3e6;font-size:12px;margin-top:2px;">Sector: ${sector} &nbsp;•&nbsp; Boekjaar ${periode}</div>
+        <div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${new Date().toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'})} — u ontvangt de Basisscan binnen 3 werkdagen na uw akkoord</div>
       </div>
     </div>
 
@@ -2722,25 +2707,13 @@ function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
         </div>
       </div>`).join('')}
       <!-- Totaal -->
-      <div style="background:#D5F5E3;border-radius:6px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;">Totaal verbeterpotentieel</div>
-          <div style="font-size:11px;color:#555;margin-top:1px;">MKB Stresstest Methode™ — ${periode}</div>
-        </div>
-        <div style="font-size:22px;font-weight:700;color:#1E8449;">${totaalBedrag}</div>
+      <div style="background:#D5F5E3;border-radius:6px;padding:14px 16px;margin-top:10px;">
+        <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;">Verbeterpotentieel</div>
+        <div style="font-size:13px;color:#1F4E79;margin-top:5px;line-height:1.6;">De bovenstaande aandachtspunten bevatten verbeterpotentieel voor uw bedrijf. In de <strong>Financiële Basisscan</strong> werken we dit volledig uit — met concrete bedragen en een actieplan.</div>
       </div>
     </div>
 
-    <!-- Prioriteiten -->
-    <div style="padding:16px 24px 0;">
-      <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">3 &nbsp; De drie prioriteiten</div>
-      <table style="width:100%;border-collapse:collapse;font-size:13px;">
-        <tr style="background:#1F4E79;"><td style="padding:7px 10px;color:#fff;font-weight:700;">#</td><td style="padding:7px 10px;color:#fff;font-weight:700;">Termijn</td><td style="padding:7px 10px;color:#fff;font-weight:700;">Actie</td><td style="padding:7px 10px;color:#fff;font-weight:700;text-align:right;">Resultaat</td></tr>
-        <tr style="background:#f9fbfa;"><td style="padding:8px 10px;font-weight:700;border-bottom:1px solid #eef1ee;">1</td><td style="padding:8px 10px;color:#888;font-size:12px;border-bottom:1px solid #eef1ee;">Deze week</td><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${bevindingen[1] || '—'}</td><td style="padding:8px 10px;color:#1E8449;font-weight:700;text-align:right;border-bottom:1px solid #eef1ee;">€ —</td></tr>
-        <tr><td style="padding:8px 10px;font-weight:700;border-bottom:1px solid #eef1ee;">2</td><td style="padding:8px 10px;color:#888;font-size:12px;border-bottom:1px solid #eef1ee;">Deze maand</td><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${bevindingen[2] || '—'}</td><td style="padding:8px 10px;color:#1E8449;font-weight:700;text-align:right;border-bottom:1px solid #eef1ee;">€ —</td></tr>
-        <tr style="background:#f9fbfa;"><td style="padding:8px 10px;font-weight:700;">3</td><td style="padding:8px 10px;color:#888;font-size:12px;">Dit kwartaal</td><td style="padding:8px 10px;">${bevindingen[0] || '—'}</td><td style="padding:8px 10px;color:#1E8449;font-weight:700;text-align:right;">€ —</td></tr>
-      </table>
-    </div>
+
 
     <!-- Akkoordknop klant -->
     <div style="padding:16px 24px 24px;">
