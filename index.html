@@ -640,7 +640,7 @@
         <button class="action-btn primary" onclick="startAIAnalyse()" style="padding:10px 24px; font-size:13px; background:var(--blue);">🚀 Analyseer gegevens</button>
       </div>
       <div id="ai-analyse-status" style="font-size:13px; margin-top:8px; color:var(--mid);"></div>
-      <div id="ai-analyse-resultaat" style="display:none; margin-top:16px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px; font-size:13px; line-height:1.7; white-space:pre-wrap; max-height:600px; overflow-y:auto;"></div>
+      <div id="ai-analyse-resultaat" style="display:none;"></div>
       <!-- Visualisatie: radar + trend -->
       <div id="ai-visualisatie" style="display:none; margin-top:20px;">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:16px;">
@@ -2092,8 +2092,8 @@ MKB Stresstest Methode™ | Vertrouwelijk — intern gebruik`;
     // Sla op in sessionStorage voor kopiëren
     sessionStorage.setItem('ai-analyse-tekst', tekst);
 
-    // Toon radargrafiek + trendtabel
-    toonVisualisatie(tekst);
+    // Toon radargrafiek + trendtabel (verborgen)
+    // toonVisualisatie(tekst);
 
   } catch(e) {
     // Toon knoppen alsnog als er analysetekst in het veld staat
@@ -2196,13 +2196,19 @@ function parseAnalyseData(tekst) {
     if (m) data.solvabiliteit = parseFloat(m[1].replace(',','.'));
   }
   if (data.debiteurendagen === null) {
-    // Bereken: debiteuren / omzet * 365
-    const debM = tekst.match(/debiteuren\s+([\d.]+)/i);
-    const omzM = tekst.match(/netto-omzet\s+([\d.]+)/i);
-    if (debM && omzM) {
-      const deb = parseFloat(debM[1].replace('.',''));
-      const omz = parseFloat(omzM[1].replace('.',''));
-      if (omz > 0) data.debiteurendagen = Math.round(deb / omz * 365);
+    // Zoek eerst "Debiteurendagen: X / Y x 365 = Z dagen" formule
+    const formuleM = tekst.match(/debiteurendagen[:\s]+[\d.,]+\s*\/\s*[\d.,]+\s*x\s*365\s*=\s*([\d]+)\s*dagen/i);
+    if (formuleM) {
+      data.debiteurendagen = parseFloat(formuleM[1]);
+    } else {
+      // Bereken: debiteuren / omzet * 365
+      const debM = tekst.match(/debiteuren\s+(\d{2,3}\.\d{3})/i);
+      const omzM = tekst.match(/netto-omzet\s+(\d+[.,]?\d*\.?\d*)/i);
+      if (debM && omzM) {
+        const deb = parseFloat(debM[1].replace('.',''));
+        const omz = parseFloat(omzM[1].replace(/\./g,'').replace(',','.'));
+        if (omz > 0) data.debiteurendagen = Math.round(deb / omz * 365);
+      }
     }
   }
   if (data.omzet === null) {
@@ -2573,25 +2579,100 @@ async function publiceer1Pager() {
   }
 }
 
-function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
-  // Extraheer bevindingen uit pipe-tabel opmaak
-  const regels = analyseTekst.split('\n');
+function berekenBevindingen(parsed, omzet) {
+  // Genereer bevindingen automatisch op basis van afwijkingen van de norm
   const bevindingen = [];
-  let inAfwijkingen = false;
-  for (const regel of regels) {
-    const r = regel.toLowerCase();
-    if (r.includes('afwijking') || r.includes('drie groot') || r.includes('geld verloren')) inAfwijkingen = true;
-    if (inAfwijkingen && regel.includes('|')) {
-      const cols = regel.split('|').map(s => s.trim()).filter(Boolean);
-      if (cols.length >= 2 && !cols[0].startsWith('-') && !r.includes('afwijking') && !r.includes('eurobedrag') && !r.includes('oorzaak')) {
-        const titel = cols[0].replace(/[*_]/g,'').trim();
-        const impact = cols.find(c => c.includes('€')) || '—';
-        const tekst = cols[cols.length-1] && !cols[cols.length-1].includes('€') ? cols[cols.length-1] : '';
-        if (titel.length > 3) bevindingen.push({ titel, impact, tekst });
-      }
-    }
-    if (bevindingen.length >= 3) break;
+  
+  // Debiteurendagen: norm 30-45 dgn
+  if (parsed.debiteurendagen && parsed.debiteurendagen > 45) {
+    const extra = parsed.debiteurendagen - 45;
+    const impact = omzet ? Math.round(extra / 365 * omzet) : null;
+    bevindingen.push({
+      titel: 'Debiteuren te laat betaald',
+      tekst: `Debiteurendagen: ${Math.round(parsed.debiteurendagen)} dgn (norm 30–45 dgn) — klanten betalen gemiddeld ${Math.round(extra)} dagen te laat.`,
+      impact: impact ? '€ ' + impact.toLocaleString('nl-NL') : '—',
+      kleur: '#C0392B'
+    });
   }
+  
+  // Brutomarge: norm 30-40% voor installatietechniek
+  if (parsed.brutomarge && parsed.brutomarge > 40) {
+    bevindingen.push({
+      titel: 'Brutomarge boven sectorgemiddelde',
+      tekst: `Brutomarge: ${parsed.brutomarge}% (norm 30–40%) — hogere marge dan sector, positief signaal maar controleer prijsstelling.`,
+      impact: '—',
+      kleur: '#E67E22'
+    });
+  } else if (parsed.brutomarge && parsed.brutomarge < 30) {
+    const impact = omzet ? Math.round((30 - parsed.brutomarge) / 100 * omzet) : null;
+    bevindingen.push({
+      titel: 'Lage brutomarge',
+      tekst: `Brutomarge: ${parsed.brutomarge}% (norm 30–40%) — inkoop of tarieven verdienen aandacht.`,
+      impact: impact ? '€ ' + impact.toLocaleString('nl-NL') : '—',
+      kleur: '#C0392B'
+    });
+  }
+
+  // Personeelskosten: norm 45-60%
+  if (parsed.personeelskosten && parsed.personeelskosten > 60) {
+    const impact = omzet ? Math.round((parsed.personeelskosten - 55) / 100 * omzet) : null;
+    bevindingen.push({
+      titel: 'Personeelskosten te hoog',
+      tekst: `Personeelskosten: ${parsed.personeelskosten}% van omzet (norm 45–60%) — mogelijke overstaffing of te lage tarieven.`,
+      impact: impact ? '€ ' + impact.toLocaleString('nl-NL') : '—',
+      kleur: '#C0392B'
+    });
+  }
+
+  // Solvabiliteit: norm 25-40%
+  if (parsed.solvabiliteit && parsed.solvabiliteit < 25) {
+    bevindingen.push({
+      titel: 'Solvabiliteit onder de norm',
+      tekst: `Solvabiliteit: ${parsed.solvabiliteit}% (norm 25–40%) — eigen vermogen versterken is aanbevolen.`,
+      impact: '—',
+      kleur: '#C0392B'
+    });
+  }
+
+  // Nettoresultaat: norm 6-12%
+  if (parsed.ebitda && parsed.ebitda < 6) {
+    const impact = omzet ? Math.round((6 - parsed.ebitda) / 100 * omzet) : null;
+    bevindingen.push({
+      titel: 'Nettoresultaat onder de norm',
+      tekst: `Nettoresultaat: ${parsed.ebitda}% (norm 6–12%) — winstgevendheid verdient aandacht.`,
+      impact: impact ? '€ ' + impact.toLocaleString('nl-NL') : '—',
+      kleur: '#E67E22'
+    });
+  }
+
+  // Vul aan tot 3 als er minder zijn
+  while (bevindingen.length < 3) {
+    bevindingen.push({
+      titel: 'Financiële positie stabiel',
+      tekst: 'Dit onderdeel valt binnen de sectornorm. Doorlopende monitoring blijft aanbevolen.',
+      impact: '—',
+      kleur: '#27AE60'
+    });
+  }
+
+  return bevindingen.slice(0, 3);
+}
+
+function berekenTotaal(bevindingen) {
+  let totaal = 0;
+  for (const b of bevindingen) {
+    if (b.impact && b.impact !== '—') {
+      const m = b.impact.replace(/[€\.\s]/g,'').replace(',','.');
+      const v = parseFloat(m);
+      if (!isNaN(v)) totaal += v;
+    }
+  }
+  return totaal > 0 ? '€ ' + Math.round(totaal).toLocaleString('nl-NL') : '—';
+}
+
+function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
+  const bevindingen = berekenBevindingen(parsed, parsed.omzet);
+  const totaalBedrag = berekenTotaal(bevindingen);
 
   const fmt = (v, e='%') => v !== null ? `${v}${e}` : '—';
   const signaalKleur = (s) => s === '✅' ? '#1E8449' : s === '⚠' ? '#E67E22' : '#DC2626';
@@ -2604,7 +2685,7 @@ function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
       <div>
         <div style="color:#9dc3e6;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">Groen van Texel — Financiële Doorlichting</div>
         <div style="color:#fff;font-size:20px;font-weight:700;margin-top:2px;">${bedrijf}</div>
-        <div style="color:#9dc3e6;font-size:12px;margin-top:2px;">Sector: ${sector} &nbsp;•&nbsp; Boekjaar ${periode}</div>
+        <div style="color:#9dc3e6;font-size:12px;margin-top:2px;">Sector: ${sector} &nbsp;•&nbsp; Boekjaar ${periode} &nbsp;•&nbsp; Verstuurd: ${new Date().toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'})}</div>
       </div>
     </div>
 
@@ -2629,27 +2710,24 @@ function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
     <!-- Bevindingen -->
     <div style="padding:16px 24px 0;">
       <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>
-      ${[0,1,2].map(i => {
-        const bev = bevindingen[i] || {};
-        const kleur = i === 1 ? '#C0392B' : '#E67E22';
-        return `
-      <div style="display:flex;border-left:4px solid ${kleur};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:2px;">
+      ${bevindingen.map((bev, i) => `
+      <div style="display:flex;border-left:4px solid ${bev.kleur};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:2px;">
         <div style="flex:1;padding:10px 14px;">
-          <div style="font-weight:700;color:#1F4E79;font-size:13px;">${bev.titel || ('Bevinding ' + (i+1))}</div>
-          <div style="color:#555;font-size:13px;margin-top:3px;">${bev.tekst || 'Zie analyseresultaat voor toelichting.'}</div>
+          <div style="font-weight:700;color:#1F4E79;font-size:13px;">${bev.titel}</div>
+          <div style="color:#555;font-size:13px;margin-top:3px;">${bev.tekst}</div>
         </div>
         <div style="padding:10px 14px;text-align:right;min-width:90px;">
           <div style="font-size:11px;color:#888;">Impact</div>
-          <div style="font-size:16px;font-weight:700;color:${kleur};">${bev.impact || '—'}</div>
+          <div style="font-size:16px;font-weight:700;color:${bev.kleur};">${bev.impact}</div>
         </div>
-      </div>`;}).join('')}
+      </div>`).join('')}
       <!-- Totaal -->
       <div style="background:#D5F5E3;border-radius:6px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
         <div>
           <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;">Totaal verbeterpotentieel</div>
           <div style="font-size:11px;color:#555;margin-top:1px;">MKB Stresstest Methode™ — ${periode}</div>
         </div>
-        <div style="font-size:22px;font-weight:700;color:#1E8449;">€ ${parsed.totaal1pager || '—'}</div>
+        <div style="font-size:22px;font-weight:700;color:#1E8449;">${totaalBedrag}</div>
       </div>
     </div>
 
