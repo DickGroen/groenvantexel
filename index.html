@@ -662,14 +662,9 @@
         </div>
       </div>
 
-    <div id="ai-analyse-acties" style="display:flex; margin-top:12px; gap:12px; flex-wrap:wrap;">
-        <button class="action-btn primary" onclick="genereer1Pager()" style="padding:10px 24px; font-size:13px; background:var(--green);">📄 Genereer 1-pager preview</button>
-        <button class="action-btn" onclick="slaAnalyseOp()" style="padding:8px 18px; font-size:13px; background:#f5f5f5; color:var(--blue); border:1.5px solid var(--blue);">💾 Sla analyse op</button>
-        <button class="action-btn primary" onclick="genereer1Pager()" style="padding:10px 24px; font-size:13px; background:var(--green);">📄 Genereer 1-pager preview</button>
-        <button class="action-btn" onclick="slaAnalyseOp()" style="padding:8px 18px; font-size:13px; background:#f5f5f5; color:var(--blue); border:1.5px solid var(--blue);">💾 Sla analyse op</button>
-        <button class="action-btn primary" onclick="genereer1Pager()" style="padding:10px 24px; font-size:13px; background:var(--green);">📄 Genereer 1-pager preview</button>
-        <button class="action-btn primary" onclick="genereerStripoMail()" style="padding:10px 24px; font-size:13px; background:#6B21A8;">📧 Genereer Stripo-mail</button>
-        <button class="action-btn" onclick="slaAnalyseOp()" style="padding:8px 18px; font-size:13px; background:#f5f5f5; color:var(--blue); border:1.5px solid var(--blue);">💾 Sla analyse op</button>
+      <div id="ai-analyse-acties" style="display:flex; margin-top:12px; gap:12px; flex-wrap:wrap; visibility:visible !important;">
+        <button class="action-btn primary" onclick="genereer1Pager()" style="padding:10px 24px; font-size:13px; background:var(--green);">&#128196; Genereer 1-pager preview</button>
+        <button class="action-btn" onclick="slaAnalyseOp()" style="padding:8px 18px; font-size:13px; background:#f5f5f5; color:var(--blue); border:1.5px solid var(--blue);">&#128190; Sla analyse op</button>
       </div>
     </div>
 
@@ -2095,21 +2090,7 @@ MKB Stresstest Methode™ | Vertrouwelijk — intern gebruik`;
   }
 }
 
-// Toon actie-knoppen zodra analysetekst verschijnt
-(function() {
-  const observer = new MutationObserver(() => {
-    const resultaat = document.getElementById('ai-analyse-resultaat');
-    const acties = document.getElementById('ai-analyse-acties');
-    if (resultaat && acties && resultaat.textContent.length > 100) {
-      acties.style.display = 'flex';
-      sessionStorage.setItem('ai-analyse-tekst', resultaat.textContent);
-    }
-  });
-  document.addEventListener('DOMContentLoaded', () => {
-    const resultaat = document.getElementById('ai-analyse-resultaat');
-    if (resultaat) observer.observe(resultaat, { childList: true, subtree: true, characterData: true });
-  });
-})();
+
 
 function kopieerAnalyse() {
   const tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
