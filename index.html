@@ -630,7 +630,8 @@ const Rapport = {
     Rapport._reset(false);
     if (!_adminKlant) return;
 
-    const periodes=[...new Set(Store.getUploads().filter(u=>u.bedrijf===_adminKlant).map(u=>u.periode))];
+    const periodes=[...new Set(Store.getUploads().filter(u=>u.bedrijf===_adminKlant).map(u=>u.periode))]
+      .sort((a,b)=>b.localeCompare(a));
     if (pSel) pSel.innerHTML='<option value="">— Periode —</option>'+
       periodes.map(p=>`<option value="${UI.esc(p)}">${UI.esc(p)}</option>`).join('');
 
@@ -852,6 +853,7 @@ const KlantApp = {
 
 // ─── FORMULIER ────────────────────────────────────────────────────────────────
 const Formulier = {
+  _bezig: false,
   reset() {
     ['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat']
       .forEach(id=>setTxt(id,''));
@@ -871,6 +873,8 @@ const Formulier = {
   },
 
   async submit() {
+    if (Formulier._bezig) return;
+    Formulier._bezig = true;
     const bedrijf=($('f-bedrijf')?.value||'').trim();
     const sector =$('f-sector')?.value||'';
     const jaar   =$('f-jaar')?.value||String(new Date().getFullYear()-1);
@@ -916,10 +920,12 @@ const Formulier = {
           message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\n⚠ PDF tekst leeg — handmatig controleren':'') });
       } catch(e){ console.warn('EmailJS fout (niet fataal):', e.message||e); }
 
+      Formulier._bezig = false;
       Formulier._ontvangenStaat(datum);
       UI.toast('✔ Jaarcijfers ontvangen op '+datum);
 
     } catch(e) {
+      Formulier._bezig = false;
       if(btn){ btn.disabled=false; btn.textContent='▶ Versturen'; }
       UI.error('⚠ '+(e.message||'Er ging iets mis — probeer opnieuw'));
       console.error('submit fout:', e);
@@ -1163,11 +1169,13 @@ const Fin = {
   Store.migreer();
   Config.herstelUI();
 
-  // Dedupliceer uploads
+  // Dedupliceer uploads — bewaar de NIEUWSTE per bedrijf+periode combinatie
   const alle=Store.getUploads();
+  // Sorteer nieuwste eerst op datum
+  const gesorteerd=[...alle].sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
   const gezien=new Set();
-  const uniek=alle.filter(u=>{ const k=u.bedrijf+'|'+u.periode; if(gezien.has(k)) return false; gezien.add(k); return true; });
-  if(uniek.length!==alle.length) Store.setUploads(uniek);
+  const uniek=gesorteerd.filter(u=>{ const k=u.bedrijf+'|'+u.periode; if(gezien.has(k)) return false; gezien.add(k); return true; });
+  if(uniek.length!==alle.length){ console.log(`Deduplicatie: ${alle.length-uniek.length} dubbele upload(s) verwijderd`); Store.setUploads(uniek); }
 
   // Testklant
   const kl=Store.getKlanten();
