@@ -296,129 +296,107 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 const ADMIN_CODE = 'GvT2026admin';
 
 // ─── DOM HELPERS ──────────────────────────────────────────────────────────────
-// Centrale null-safe DOM-toegang. Elke functie die een element nodig heeft
-// gebruikt deze helpers — nooit rechtstreeks getElementById zonder check.
-
-const $ = id => document.getElementById(id) || null;
-
-const setTxt  = (id, v) => { const e=$( id); if(e) e.textContent = String(v??''); };
-const setVal  = (id, v) => { const e=$(id);  if(e) e.value       = String(v??''); };
-const setHTML = (id, v) => { const e=$(id);  if(e) e.innerHTML   = String(v??''); };
-const show    = id       => { const e=$(id);  if(e) e.style.display = ''; };
-const hide    = id       => { const e=$(id);  if(e) e.style.display = 'none'; };
-const showFlex= id       => { const e=$(id);  if(e) e.style.display = 'flex'; };
+const $       = id => document.getElementById(id) || null;
+const setTxt  = (id,v) => { const e=$(id); if(e) e.textContent = String(v??''); };
+const setVal  = (id,v) => { const e=$(id); if(e) e.value       = String(v??''); };
+const setHTML = (id,v) => { const e=$(id); if(e) e.innerHTML   = String(v??''); };
+const show    = id     => { const e=$(id); if(e) e.style.display = ''; };
+const hide    = id     => { const e=$(id); if(e) e.style.display = 'none'; };
+const showFlex= id     => { const e=$(id); if(e) e.style.display = 'flex'; };
 
 // ─── UI ───────────────────────────────────────────────────────────────────────
 const UI = {
   toast(msg, kleur='#1E8449') {
-    const t = $('toast');
+    const t=$('toast');
     if (!t) { console.warn('toast:', msg); return; }
-    t.textContent     = msg;
-    t.style.background = kleur;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), Math.min(6000, Math.max(3000, msg.length*50)));
+    t.textContent=msg; t.style.background=kleur; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), Math.min(6000,Math.max(3000,msg.length*50)));
   },
-  warn(msg)  { UI.toast(msg, '#E67E22'); },
-  error(msg) { UI.toast(msg, '#C0392B'); },
-
+  warn(msg)  { UI.toast(msg,'#E67E22'); },
+  error(msg) { UI.toast(msg,'#C0392B'); },
   esc(s) {
-    return String(s??'')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   },
-
   typeBadge(t) {
-    const m = {
-      lead:        '<span class="badge badge-lead">🎯 Lead</span>',
-      doorlichting:'<span class="badge badge-doorlichting">🔍 Doorlichting</span>',
-      monitoring:  '<span class="badge badge-monitoring">📅 Monitoring</span>',
-    };
-    return m[t] || '<span class="badge badge-lead">—</span>';
+    const m={lead:'<span class="badge badge-lead">🎯 Lead</span>',doorlichting:'<span class="badge badge-doorlichting">🔍 Doorlichting</span>',monitoring:'<span class="badge badge-monitoring">📅 Monitoring</span>'};
+    return m[t]||'<span class="badge badge-lead">—</span>';
   },
-
-  datumNL(d=new Date()) {
-    return d.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
-  },
+  datumNL(d=new Date()) { return d.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}); },
 };
 
 // ─── STORAGE ──────────────────────────────────────────────────────────────────
-// Alle localStorage-toegang op één plek, altijd try/catch.
 const Store = {
-  _get(key, def)    { try { return JSON.parse(localStorage.getItem(key))??def; } catch { return def; } },
-  _set(key, val)    { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch { return false; } },
-  _raw(key, def='') { try { return localStorage.getItem(key)??def; } catch { return def; } },
-  _setRaw(key, val) { try { localStorage.setItem(key, val); } catch {} },
+  _get(key,def)    { try{return JSON.parse(localStorage.getItem(key))??def;}catch{return def;} },
+  _set(key,val)    { try{localStorage.setItem(key,JSON.stringify(val));return true;}catch{return false;} },
+  _raw(key,def='') { try{return localStorage.getItem(key)??def;}catch{return def;} },
+  _setRaw(key,val) { try{localStorage.setItem(key,val);}catch{} },
 
-  getKlanten()     { return this._get('gvt_klanten', []); },
-  setKlanten(v)    { this._set('gvt_klanten', v); },
-  getUploads()     { return this._get('gvt_uploads', []); },
+  getKlanten()  { return this._get('gvt_klanten',[]); },
+  setKlanten(v) { this._set('gvt_klanten',v); },
+  getUploads()  { return this._get('gvt_uploads',[]); },
 
   setUploads(v) {
-    if (this._set('gvt_uploads', v)) return;
+    if (this._set('gvt_uploads',v)) return;
     // QuotaExceededError: trim alleen de nieuwste upload
-    const compact = v.map((u,i) => i===v.length-1
-      ? { ...u, pdfTekst: (u.pdfTekst||'').substring(0,20000) }
-      : u
-    );
-    if (!this._set('gvt_uploads', compact)) {
+    const compact=v.map((u,i)=>i===v.length-1?{...u,pdfTekst:(u.pdfTekst||'').substring(0,20000)}:u);
+    if (!this._set('gvt_uploads',compact))
       throw new Error('Opslag vol. Verwijder oude bestanden of gebruik een andere browser.');
-    }
   },
 
-  get1Pagers()     { return this._get('gvt_1pagers', {}); },
-  set1Pager(k,v)   { const p=this.get1Pagers(); p[k]=v; this._set('gvt_1pagers',p); },
-  del1Pager(k)     { const p=this.get1Pagers(); delete p[k]; this._set('gvt_1pagers',p); },
-  getAnalyse(k)    { return this._raw('gvt_analyse_'+k); },
-  setAnalyse(k,v)  { this._setRaw('gvt_analyse_'+k, v); },
-  getCfg(k, def='') { return this._raw('cfg-'+k)||def; },
-  setCfg(k,v)      { this._setRaw('cfg-'+k, v); },
+  get1Pagers()    { return this._get('gvt_1pagers',{}); },
+  set1Pager(k,v)  { const p=this.get1Pagers(); p[k]=v; this._set('gvt_1pagers',p); },
+  del1Pager(k)    { const p=this.get1Pagers(); delete p[k]; this._set('gvt_1pagers',p); },
+  getAnalyse(k)   { return this._raw('gvt_analyse_'+k)||this._raw('gvt-analyse_'+k)||''; },
+  setAnalyse(k,v) { this._setRaw('gvt_analyse_'+k,v); },
+  getCfg(k,def='') { return this._raw('cfg-'+k)||def; },
+  setCfg(k,v)     { this._setRaw('cfg-'+k,v); },
 
   migreer() {
-    for (const [oud, nieuw] of [['gvt-klanten','gvt_klanten'],['gvt-uploads','gvt_uploads']]) {
-      try {
-        const oudVal = localStorage.getItem(oud);
-        if (!localStorage.getItem(nieuw) && oudVal)
-          localStorage.setItem(nieuw, oudVal);
-      } catch {}
+    // Migreer klanten + uploads
+    for (const [oud,nieuw] of [['gvt-klanten','gvt_klanten'],['gvt-uploads','gvt_uploads']]) {
+      try { const v=localStorage.getItem(oud); if(!localStorage.getItem(nieuw)&&v) localStorage.setItem(nieuw,v); } catch{}
     }
+    // Migreer analyse-keys (gvt-analyse_ → gvt_analyse_)
+    try {
+      const keys=[];
+      for(let i=0;i<localStorage.length;i++) { const k=localStorage.key(i); if(k&&k.startsWith('gvt-analyse_')) keys.push(k); }
+      keys.forEach(k=>{ try{ const nk='gvt_analyse_'+k.slice('gvt-analyse_'.length); if(!localStorage.getItem(nk)) localStorage.setItem(nk,localStorage.getItem(k)); }catch{} });
+    } catch{}
   },
 };
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const Config = {
-  service()  { return Store.getCfg('service',  'service_oqgsajg'); },
-  template() { return Store.getCfg('template', 'template_q3aea4c'); },
-  pubkey()   { return Store.getCfg('pubkey',   'ubJuLGAX11M-mSoIZ'); },
-  apikey()   { return Store.getCfg('apikey',   ''); },
+  service()  { return Store.getCfg('service', 'service_oqgsajg'); },
+  template() { return Store.getCfg('template','template_q3aea4c'); },
+  pubkey()   { return Store.getCfg('pubkey',  'ubJuLGAX11M-mSoIZ'); },
+  apikey()   { return Store.getCfg('apikey',  ''); },
 
-  opruimenUploads() {
-    const alle = Store.getUploads();
-    const map = new Map();
-    // Nieuwste eerst sorteren zodat we die bewaren
-    [...alle]
-      .sort((a,b) => new Date(b.datum||0) - new Date(a.datum||0))
-      .forEach(u => { const k = u.bedrijf+'|'+u.periode; if (!map.has(k)) map.set(k, u); });
-    const schoon = [...map.values()];
-    const aantalVerwijderd = alle.length - schoon.length;
-    if (aantalVerwijderd === 0) { UI.toast('✔ Geen duplicaten gevonden'); return; }
-    try {
-      Store.setUploads(schoon);
-      UI.toast(`✔ ${aantalVerwijderd} dubbele upload(s) verwijderd`);
-    } catch(e) {
-      UI.error('⚠ Opruimen mislukt: ' + e.message);
-    }
-  },
-    ['service','template','pubkey','apikey'].forEach(k => {
+  opslaan() {
+    ['service','template','pubkey','apikey'].forEach(k=>{
       const el=$('cfg-'+k); if(el&&el.value.trim()) Store.setCfg(k,el.value.trim());
     });
-    try { emailjs.init(Config.pubkey()); } catch {}
+    try{emailjs.init(Config.pubkey());}catch{}
     UI.toast('✔ Instellingen opgeslagen');
   },
 
   herstelUI() {
-    ['service','template','pubkey','apikey'].forEach(k => {
-      const v=Store.getCfg(k); if(v) setVal('cfg-'+k, v);
+    ['service','template','pubkey','apikey'].forEach(k=>{
+      const v=Store.getCfg(k); if(v) setVal('cfg-'+k,v);
     });
+  },
+
+  opruimenUploads() {
+    const alle=Store.getUploads();
+    const map=new Map();
+    [...alle].sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0))
+      .forEach(u=>{ const k=u.bedrijf+'|'+u.periode; if(!map.has(k)) map.set(k,u); });
+    const schoon=[...map.values()];
+    const n=alle.length-schoon.length;
+    if (n===0) { UI.toast('✔ Geen duplicaten gevonden'); return; }
+    try { Store.setUploads(schoon); UI.toast(`✔ ${n} dubbele upload(s) verwijderd`); }
+    catch(e) { UI.error('⚠ Opruimen mislukt: '+e.message); }
   },
 };
 
@@ -426,39 +404,26 @@ const Config = {
 const Email = {
   async stuur(params) {
     if (typeof emailjs==='undefined') throw new Error('EmailJS niet geladen');
-    await emailjs.send(Config.service(), Config.template(), params);
+    await emailjs.send(Config.service(),Config.template(),params);
   },
 };
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
-let sessie = null; // { type:'admin' } | { type:'klant', naam, code, klantType, sector, email }
+let sessie = null;
 
 const Auth = {
   login() {
-    const code = ($('login-code')?.value||'').trim();
+    const code=($('login-code')?.value||'').trim();
     hide('login-error');
     if (!code) return;
-
-    if (code===ADMIN_CODE) {
-      Auth._open({ type:'admin' });
-      Nav.bouw();
-      Nav.ga('dashboard');
-      return;
-    }
-
-    const klant = Store.getKlanten().find(k=>k.code===code);
-    if (klant) {
-      Auth._open({ type:'klant', ...klant });
-      Nav.bouw();
-      KlantApp.init();
-      return;
-    }
-
+    if (code===ADMIN_CODE) { Auth._open({type:'admin'}); Nav.bouw(); Nav.ga('dashboard'); return; }
+    const klant=Store.getKlanten().find(k=>k.code===code);
+    if (klant) { Auth._open({type:'klant',...klant}); Nav.bouw(); KlantApp.init(); return; }
     show('login-error');
   },
 
   uitloggen() {
-    sessie = null;
+    sessie=null;
     sessionStorage.removeItem('gvt_sessie');
     sessionStorage.removeItem('gvt-user');
     Formulier.reset();
@@ -468,38 +433,28 @@ const Auth = {
   },
 
   _open(s) {
-    sessie = s;
+    sessie=s;
     hide('login-overlay');
-    try { sessionStorage.setItem('gvt_sessie', JSON.stringify(s)); } catch {}
+    try{sessionStorage.setItem('gvt_sessie',JSON.stringify(s));}catch{}
   },
 
   herstelSessie() {
-    const raw = sessionStorage.getItem('gvt_sessie') || sessionStorage.getItem('gvt-user');
+    const raw=sessionStorage.getItem('gvt_sessie')||sessionStorage.getItem('gvt-user');
     if (!raw) return;
     try {
-      let parsed; try { parsed=JSON.parse(raw); } catch { parsed=null; }
-
+      let parsed; try{parsed=JSON.parse(raw);}catch{parsed=null;}
       if (parsed?.type) {
-        sessie = parsed;
-        if (sessie.type==='klant' && !sessie.klantType) {
-          const k = Store.getKlanten().find(k=>k.code===sessie.code||k.naam===sessie.naam);
-          sessie = k ? {...sessie,...k} : {...sessie, klantType:'lead'};
+        sessie=parsed;
+        if (sessie.type==='klant'&&!sessie.klantType) {
+          const k=Store.getKlanten().find(k=>k.code===sessie.code||k.naam===sessie.naam);
+          sessie=k?{...sessie,...k}:{...sessie,klantType:'lead'};
         }
       } else {
-        const naam = typeof parsed==='string' ? parsed : raw;
-        if (naam==='admin') {
-          sessie = { type:'admin' };
-        } else {
-          const klant = Store.getKlanten().find(k=>k.naam===naam||k.code===naam);
-          if (klant) sessie = { type:'klant', ...klant };
-        }
+        const naam=typeof parsed==='string'?parsed:raw;
+        if (naam==='admin') { sessie={type:'admin'}; }
+        else { const k=Store.getKlanten().find(k=>k.naam===naam||k.code===naam); if(k) sessie={type:'klant',...k}; }
       }
-
-      if (!sessie) {
-        // Sessie kon niet worden hersteld — toon loginscherm
-        const ov=$('login-overlay'); if(ov) ov.classList.add('active');
-        return;
-      }
+      if (!sessie) { const ov=$('login-overlay'); if(ov) ov.classList.add('active'); return; }
       hide('login-overlay');
       Nav.bouw();
       sessie.type==='admin' ? Nav.ga('dashboard') : KlantApp.init();
@@ -524,7 +479,7 @@ const Nav = {
     } else {
       nav.innerHTML=`
         <button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button>
-        <button class="nav-btn" id="nb-rapport"    onclick="Nav.ga('rapport');Rapport.laadVoorKlant()">📄 Mijn rapport</button>
+        <button class="nav-btn" id="nb-rapport"    onclick="Nav.ga('rapport')">📄 Mijn rapport</button>
         <button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;
     }
   },
@@ -536,8 +491,8 @@ const Nav = {
     const b=$('nb-'+naam);   if(b) b.classList.add('active');
     if (naam==='dashboard') Dashboard.laad();
     if (naam==='klanten')   Klanten.laadTabel();
-    if (naam==='rapport' && sessie?.type==='admin') Rapport.laadVoorAdmin();
-    if (naam==='rapport' && sessie?.type==='klant') Rapport.laadVoorKlant();
+    if (naam==='rapport'&&sessie?.type==='admin') Rapport.laadVoorAdmin();
+    if (naam==='rapport'&&sessie?.type==='klant') Rapport.laadVoorKlant();
   },
 };
 
@@ -546,26 +501,18 @@ const Dashboard = {
   laad() {
     const klanten=Store.getKlanten();
     const uploads=Store.getUploads();
-    setTxt('s-totaal', klanten.length);
-    setTxt('s-leads',  klanten.filter(k=>k.klantType==='lead').length);
-    setTxt('s-doorl',  klanten.filter(k=>k.klantType==='doorlichting').length);
-    setTxt('s-monit',  klanten.filter(k=>k.klantType==='monitoring').length);
-
+    setTxt('s-totaal',klanten.length);
+    setTxt('s-leads', klanten.filter(k=>k.klantType==='lead').length);
+    setTxt('s-doorl', klanten.filter(k=>k.klantType==='doorlichting').length);
+    setTxt('s-monit', klanten.filter(k=>k.klantType==='monitoring').length);
     const tbody=$('dash-tbody'); if(!tbody) return;
-    if (!klanten.length) {
-      tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--mid);padding:32px;">Nog geen klanten. Voeg een klant toe via Klanten.</td></tr>';
-      return;
-    }
+    if (!klanten.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--mid);padding:32px;">Nog geen klanten. Voeg een klant toe via Klanten.</td></tr>'; return; }
     tbody.innerHTML=klanten.map(k=>{
       const heeftUpload=uploads.some(u=>u.bedrijf===k.naam);
-      const status=heeftUpload
-        ?'<span class="badge badge-ok">✓ Upload ontvangen</span>'
-        :'<span class="badge badge-wacht">Wacht op aanlevering</span>';
+      const status=heeftUpload?'<span class="badge badge-ok">✓ Upload ontvangen</span>':'<span class="badge badge-wacht">Wacht op aanlevering</span>';
       return `<tr>
         <td><span class="link" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">${UI.esc(k.naam)}</span></td>
-        <td>${UI.typeBadge(k.klantType)}</td>
-        <td>${UI.esc(k.sector||'—')}</td>
-        <td>${status}</td>
+        <td>${UI.typeBadge(k.klantType)}</td><td>${UI.esc(k.sector||'—')}</td><td>${status}</td>
         <td><button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">Rapport →</button></td>
       </tr>`;
     }).join('');
@@ -577,34 +524,26 @@ const Klanten = {
   laadTabel() {
     const klanten=Store.getKlanten();
     const tbody=$('kb-tbody'); if(!tbody) return;
-    if (!klanten.length) {
-      tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px;">Nog geen klanten.</td></tr>';
-      return;
-    }
+    if (!klanten.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px;">Nog geen klanten.</td></tr>'; return; }
     tbody.innerHTML=klanten.map(k=>`<tr>
       <td style="font-weight:600;">${UI.esc(k.naam)}</td>
       <td style="font-family:monospace;font-size:13px;">${UI.esc(k.code)}</td>
-      <td>${UI.typeBadge(k.klantType)}</td>
-      <td>${UI.esc(k.sector||'—')}</td>
-      <td>${UI.esc(k.email||'—')}</td>
+      <td>${UI.typeBadge(k.klantType)}</td><td>${UI.esc(k.sector||'—')}</td><td>${UI.esc(k.email||'—')}</td>
       <td><button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="Klanten.verwijder('${UI.esc(k.code)}')">✕</button></td>
     </tr>`).join('');
   },
 
   toevoegen() {
-    const naam  = ($('nk-naam')?.value||'').trim();
-    const code  = ($('nk-code')?.value||'').trim();
-    const type  = $('nk-type')?.value||'lead';
-    const email = ($('nk-email')?.value||'').trim();
-    const sect  = $('nk-sector')?.value||'';
-
-    if (!naam||!code)                        { UI.warn('⚠ Vul naam en inlogcode in'); return; }
-    if (!/^[a-zA-Z0-9_\-]+$/.test(code))    { UI.warn('⚠ Inlogcode mag alleen letters, cijfers, - en _ bevatten'); return; }
-
+    const naam=($('nk-naam')?.value||'').trim();
+    const code=($('nk-code')?.value||'').trim();
+    const type=$('nk-type')?.value||'lead';
+    const email=($('nk-email')?.value||'').trim();
+    const sect=$('nk-sector')?.value||'';
+    if (!naam||!code)                     { UI.warn('⚠ Vul naam en inlogcode in'); return; }
+    if (!/^[a-zA-Z0-9_\-]+$/.test(code)) { UI.warn('⚠ Inlogcode mag alleen letters, cijfers, - en _ bevatten'); return; }
     const klanten=Store.getKlanten();
-    if (klanten.find(k=>k.code===code))      { UI.warn('⚠ Inlogcode al in gebruik'); return; }
-
-    klanten.push({ naam, code, klantType:type, email, sector:sect });
+    if (klanten.find(k=>k.code===code))   { UI.warn('⚠ Inlogcode al in gebruik'); return; }
+    klanten.push({naam,code,klantType:type,email,sector:sect});
     Store.setKlanten(klanten);
     ['nk-naam','nk-code','nk-email'].forEach(id=>setVal(id,''));
     setVal('nk-sector','');
@@ -621,8 +560,7 @@ const Klanten = {
 };
 
 // ─── RAPPORT ──────────────────────────────────────────────────────────────────
-let _adminKlant   = null;
-let _adminPeriode = null;
+let _adminKlant=null, _adminPeriode=null;
 
 const Rapport = {
   adminNaar(naam) { _adminKlant=naam; _adminPeriode=null; Nav.ga('rapport'); },
@@ -642,30 +580,23 @@ const Rapport = {
   },
 
   onKlantSelect() {
-    _adminKlant  = $('r-klant')?.value||null;
-    _adminPeriode= null;
+    _adminKlant=$('r-klant')?.value||null;
+    _adminPeriode=null;
     const pSel=$('r-periode');
     if (pSel) pSel.innerHTML='<option value="">— Periode —</option>';
     Rapport._reset(false);
     if (!_adminKlant) return;
 
-    // Haal uploads op, dedupliceer direct in geheugen (ongeacht wat er in storage staat)
-    const alleUploads = Store.getUploads();
-    const uploadsVoorKlant = alleUploads.filter(u => u.bedrijf === _adminKlant);
+    // Dedupliceer uploads voor deze klant in storage
+    const alle=Store.getUploads();
+    const map=new Map();
+    [...alle].filter(u=>u.bedrijf===_adminKlant)
+      .sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0))
+      .forEach(u=>{ if(!map.has(u.periode)) map.set(u.periode,u); });
+    const rest=alle.filter(u=>u.bedrijf!==_adminKlant);
+    try{ Store.setUploads([...rest,...map.values()]); }catch{}
 
-    // Dedupliceer: per bedrijf+periode de nieuwste bewaren
-    const periodesMap = new Map();
-    uploadsVoorKlant
-      .sort((a,b) => new Date(b.datum||0) - new Date(a.datum||0))
-      .forEach(u => { if (!periodesMap.has(u.periode)) periodesMap.set(u.periode, u); });
-
-    // Schrijf gededupliceerde versie terug naar storage
-    const andereKlanten = alleUploads.filter(u => u.bedrijf !== _adminKlant);
-    const schoon = [...andereKlanten, ...periodesMap.values()];
-    try { Store.setUploads(schoon); } catch(e) { console.warn('Dedup opslaan mislukt:', e.message); }
-
-    const periodes = [...periodesMap.keys()].sort((a,b) => b.localeCompare(a));
-
+    const periodes=[...map.keys()].sort((a,b)=>b.localeCompare(a));
     if (pSel) pSel.innerHTML='<option value="">— Periode —</option>'+
       periodes.map(p=>`<option value="${UI.esc(p)}">${UI.esc(p)}</option>`).join('');
 
@@ -680,12 +611,10 @@ const Rapport = {
   },
 
   _teken() {
-    const klant  =Store.getKlanten().find(k=>k.naam===_adminKlant);
+    const klant=Store.getKlanten().find(k=>k.naam===_adminKlant);
     const uploads=Store.getUploads().filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
-    const datum  =uploads[0]?.datum||'—';
-
-    const badge=UI.typeBadge(klant?.klantType||'lead')
-      .replace(/class="badge[^"]*"/,'style="background:rgba(255,255,255,.15);color:#fff;"');
+    const datum=uploads[0]?.datum||'—';
+    const badge=UI.typeBadge(klant?.klantType||'lead').replace(/class="badge[^"]*"/,'style="background:rgba(255,255,255,.15);color:#fff;"');
     setHTML('r-header',`
       <div class="rh" style="margin-bottom:20px;">
         <h2>${UI.esc(_adminKlant)}</h2>
@@ -697,25 +626,14 @@ const Rapport = {
           ${uploads.length?`<div class="rh-item"><div class="lbl">Ontvangen</div><div class="val">${UI.esc(datum)}</div></div>`:''}
         </div>
       </div>`);
-
     if (uploads.length>0) {
       show('ai-box');
       const aiSec=$('ai-sector'); if(klant?.sector&&aiSec) aiSec.value=klant.sector;
       const bestaand=Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
-      if (bestaand) {
-        setTxt('ai-status','✔ Analyse beschikbaar');
-        setTxt('ai-tekst', bestaand);
-        show('ai-tekst');
-        showFlex('ai-acties');
-      }
+      if (bestaand) { setTxt('ai-status','✔ Analyse beschikbaar'); setTxt('ai-tekst',bestaand); show('ai-tekst'); showFlex('ai-acties'); }
     }
-
     const pager=Store.get1Pagers()[_adminKlant+'-'+_adminPeriode];
-    if (pager?.html) {
-      setHTML('prev-inhoud', pager.html);
-      show('prev-box');
-      setTxt('btn-pub', pager.gepubliceerd?'✅ Gepubliceerd':'✅ Publiceer naar klant');
-    }
+    if (pager?.html) { setHTML('prev-inhoud',pager.html); show('prev-box'); setTxt('btn-pub',pager.gepubliceerd?'✅ Gepubliceerd':'✅ Publiceer naar klant'); }
     hide('r-leeg');
   },
 
@@ -729,50 +647,26 @@ const Rapport = {
     if (!sessie||sessie.type!=='klant'||!sessie.naam) return;
     Rapport._reset();
     hide('admin-selectie'); hide('ai-box'); hide('prev-box');
-
-    const uploads=Store.getUploads()
-      .filter(u=>u.bedrijf===sessie.naam)
+    const uploads=Store.getUploads().filter(u=>u.bedrijf===sessie.naam)
       .sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
-
-    if (!uploads.length) {
-      show('r-leeg');
-      setTxt('r-leeg-tekst','Uw rapport is nog niet beschikbaar. U ontvangt bericht zodra het klaarstaat.');
-      return;
-    }
-
+    if (!uploads.length) { show('r-leeg'); setTxt('r-leeg-tekst','Uw rapport is nog niet beschikbaar. U ontvangt bericht zodra het klaarstaat.'); return; }
     const pager=Store.get1Pagers()[sessie.naam+'-'+uploads[0].periode];
-    if (pager?.gepubliceerd&&pager.html) {
-      setHTML('klant-eenpager-inhoud', pager.html);
-      show('klant-eenpager');
-    } else {
-      show('r-leeg');
-      setTxt('r-leeg-tekst','Uw rapport is nog niet beschikbaar. U ontvangt bericht zodra het klaarstaat.');
-    }
+    if (pager?.gepubliceerd&&pager.html) { setHTML('klant-eenpager-inhoud',pager.html); show('klant-eenpager'); }
+    else { show('r-leeg'); setTxt('r-leeg-tekst','Uw rapport is nog niet beschikbaar. U ontvangt bericht zodra het klaarstaat.'); }
   },
 
   genereer1Pager() {
     if (!_adminKlant||!_adminPeriode) { UI.warn('⚠ Geen klant/periode geselecteerd'); return; }
     const uploads=Store.getUploads().filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
     if (!uploads.length) { UI.warn('⚠ Geen uploads gevonden'); return; }
-
-    const klantObj = Store.getKlanten().find(k=>k.naam===_adminKlant);
-    // Sector: dropdown heeft voorrang, dan klantprofiel, dan upload, dan fallback
-    const sector = ($('ai-sector')?.value||'').trim()
-      || klantObj?.sector
-      || uploads[0].sector
-      || '—';
-
-    // Gebruik AI-analysetekst voor parsing — die bevat gestructureerde kengetallen.
-    // Valt terug op ruwe pdfTekst als er nog geen analyse is gedraaid.
-    const analyseTekst = Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
-    const parseTekst   = analyseTekst || uploads[0].pdfTekst || '';
-
-    if (!analyseTekst) {
-      UI.warn('⚠ Tip: draai eerst de AI-analyse voor nauwkeurigere kengetallen in de 1-pager.');
-    }
-
-    const html = Rapport._bouw1Pager(_adminKlant, _adminPeriode, sector, Fin.parseData(parseTekst));
-    setHTML('prev-inhoud', html);
+    const klantObj=Store.getKlanten().find(k=>k.naam===_adminKlant);
+    const sector=($('ai-sector')?.value||'').trim()||klantObj?.sector||uploads[0].sector||'—';
+    // Prioriteit: storage → zichtbare AI-box tekst → ruwe PDF
+    const uitStorage=Store.getAnalyse(_adminKlant+'-'+_adminPeriode)||'';
+    const uitUI=($('ai-tekst')?.textContent||'').trim();
+    const parseTekst=uitStorage||uitUI||uploads[0].pdfTekst||'';
+    if (!uitStorage&&!uitUI) UI.warn('⚠ Draai eerst de AI-analyse voor nauwkeurige kengetallen.');
+    setHTML('prev-inhoud',Rapport._bouw1Pager(_adminKlant,_adminPeriode,sector,Fin.parseData(parseTekst)));
     show('prev-box');
     setTxt('btn-pub','✅ Publiceer naar klant');
     $('prev-box')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -781,9 +675,9 @@ const Rapport = {
   publiceer() {
     if (!_adminKlant||!_adminPeriode) return;
     const inhoud=$('prev-inhoud');
-    if (!inhoud)              { UI.warn('⚠ Geen preview gevonden'); return; }
-    if (!inhoud.innerHTML.trim()) { UI.warn('⚠ Preview is leeg — genereer eerst een 1-pager'); return; }
-    Store.set1Pager(_adminKlant+'-'+_adminPeriode, { html:inhoud.innerHTML, gepubliceerd:true, datum:UI.datumNL() });
+    if (!inhoud)                    { UI.warn('⚠ Geen preview gevonden'); return; }
+    if (!inhoud.innerHTML.trim())   { UI.warn('⚠ Preview is leeg — genereer eerst een 1-pager'); return; }
+    Store.set1Pager(_adminKlant+'-'+_adminPeriode,{html:inhoud.innerHTML,gepubliceerd:true,datum:UI.datumNL()});
     setTxt('btn-pub','✅ Gepubliceerd');
     UI.toast('✅ 1-pager gepubliceerd — klant ziet hem nu in zijn portaal');
   },
@@ -796,19 +690,16 @@ const Rapport = {
     UI.toast('🗑 1-pager verwijderd');
   },
 
-  _bouw1Pager(bedrijf, periode, sector, d) {
-    const bev   = Fin.bevindingen(d);
-    const datum = UI.datumNL();
-    const jaar  = (periode.match(/(\d{4})/)||[])[1] || periode;
-    const sig   = (n,v)=>Fin.signaal(n,v);
-    const fmt   = (v,e='%')=>(v!==null&&v!==undefined)?v+e:'—';
-    const fmtEur= v=>v!=null?'€ '+Math.round(v).toLocaleString('nl-NL'):'€ —';
-
-    // Omzet correct formatteren als heel getal
-    const omzetStr = d.omzet
-      ? '€ ' + Math.round(d.omzet).toLocaleString('nl-NL')
-      : '—';
-
+  _bouw1Pager(bedrijf,periode,sector,d) {
+    const bev=Fin.bevindingen(d);
+    const datum=UI.datumNL();
+    const jaar=(periode.match(/(\d{4})/)||[])[1]||periode;
+    const sig=(n,v)=>Fin.signaal(n,v);
+    const fmt=(v,e='%')=>(v!==null&&v!==undefined)?v+e:'—';
+    const fmtEur=v=>v!=null?'€ '+Math.round(v).toLocaleString('nl-NL'):'€ —';
+    const omzetStr=d.omzet?'€ '+Math.round(d.omzet).toLocaleString('nl-NL'):'—';
+    const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
+    const totaalStr=totaal>0?fmtEur(totaal):'€ —';
     const rij=(lbl,veld,eenh,norm,alt)=>`
       <tr${alt?' style="background:#f9fbfa;"':''}>
         <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${lbl}</td>
@@ -816,16 +707,6 @@ const Rapport = {
         <td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">${norm}</td>
         <td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${sig(veld,d[veld]).s}</td>
       </tr>`;
-
-    // Totaal verbeterpotentieel = som van alle berekende bedragen
-    const totaal = bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s, 0);
-    const totaalStr = totaal>0 ? fmtEur(totaal) : '€ —';
-
-    const ap = bev.filter(b=>b.k!=='#27AE60');
-    const verbeter = ap.length>0
-      ? `Uit de analyse komen <strong>${ap.length} aandachtspunten</strong> naar voren: ${ap.map(b=>'<em>'+UI.esc(b.t)+'</em>').join(' en ')}. In de Basisscan werken we elk punt volledig uit.`
-      : 'De financiële positie is stabiel. In de Basisscan werken we alle ratio\'s volledig uit.';
-
     return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;">
   <div style="background:#1F4E79;padding:22px 24px;">
     <div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div>
@@ -833,61 +714,32 @@ const Rapport = {
     <div style="color:#9dc3e6;font-size:12px;margin-top:4px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div>
     <div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div>
   </div>
-
   <div style="padding:20px 24px 0;">
     <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div>
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <tr style="background:#1F4E79;">
-        <td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td>
-        <td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td>
-        <td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td>
-        <td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td>
-      </tr>
-      <tr style="background:#f9fbfa;">
-        <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td>
-        <td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td>
-        <td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td>
-        <td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td>
-      </tr>
-      ${rij('Brutomarge %',    'brutomarge',     '%',    '30–40%',   false)}
-      ${rij('Debiteurendagen', 'debiteurendagen',' dgn', '30–45 dgn',true)}
-      ${rij('Solvabiliteit %', 'solvabiliteit',  '%',    '25–40%',   false)}
-      <tr style="background:#f9fbfa;">
-        <td style="padding:8px 10px;">Nettoresultaat %</td>
-        <td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td>
-        <td style="padding:8px 10px;text-align:right;color:#888;">6–12%</td>
-        <td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td>
-      </tr>
+      <tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr>
+      <tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>
+      ${rij('Brutomarge %','brutomarge','%','30–40%',false)}
+      ${rij('Debiteurendagen','debiteurendagen',' dgn','30–45 dgn',true)}
+      ${rij('Solvabiliteit %','solvabiliteit','%','25–40%',false)}
+      <tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">6–12%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr>
     </table>
   </div>
-
   <div style="padding:16px 24px 0;">
     <div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>
     ${bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-      <div style="flex:1;">
-        <div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div>
-        <div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div>
-      </div>
+      <div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div><div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div></div>
       ${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}
     </div>`).join('')}
     <div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div>
-        <div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div>
-      </div>
+      <div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div><div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div></div>
       <div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div>
     </div>
   </div>
-
   <div style="padding:16px 24px 0;">
     <div style="font-size:10px;font-weight:700;color:#1F4E79;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D6E4F0;margin-bottom:12px;">3 &nbsp; De drie prioriteiten</div>
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <tr style="background:#1F4E79;">
-        <td style="padding:8px 10px;color:#fff;font-weight:700;width:28px;">#</td>
-        <td style="padding:8px 10px;color:#fff;font-weight:700;">Termijn</td>
-        <td style="padding:8px 10px;color:#fff;font-weight:700;">Actie</td>
-        <td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Resultaat</td>
-      </tr>
+      <tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;width:28px;">#</td><td style="padding:8px 10px;color:#fff;font-weight:700;">Termijn</td><td style="padding:8px 10px;color:#fff;font-weight:700;">Actie</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Resultaat</td></tr>
       ${bev.map((b,i)=>`<tr${i%2===0?' style="background:#f9fbfa;"':''}>
         <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;font-weight:700;color:#1F4E79;">${i+1}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;color:#555;">${UI.esc(b.termijn||'—')}</td>
@@ -896,22 +748,15 @@ const Rapport = {
       </tr>`).join('')}
     </table>
   </div>
-
   <div style="padding:16px 24px 20px;">
     <div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;">
       <div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:6px;">Wilt u verder?</div>
       <p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 12px;">De Financiële Basisscan (€397 excl. BTW) geeft de volledige uitwerking: alle ratio's volledig onderbouwd, sectorvergelijking en een concreet actieplan.</p>
-      <div style="text-align:center;">
-        <button onclick="Formulier.bestelBasiscan()" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;">✓ Ja, ik wil de Basisscan — €397</button>
-      </div>
+      <div style="text-align:center;"><button onclick="Formulier.bestelBasiscan()" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;">✓ Ja, ik wil de Basisscan — €397</button></div>
     </div>
   </div>
-
   <div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;">
-    <div style="font-size:11px;color:#888;line-height:1.7;">
-      <strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>
-      MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk
-    </div>
+    <div style="font-size:11px;color:#888;line-height:1.7;"><strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div>
   </div>
 </div>`;
   },
@@ -923,34 +768,31 @@ const KlantApp = {
     Nav.ga('aanleveren');
     const fB=$('f-bedrijf');
     if(fB){ fB.value=sessie.naam||''; fB.readOnly=true; }
-    if(sessie.email)  setVal('f-email',  sessie.email);
-    if(sessie.sector) setVal('f-sector', sessie.sector);
-
-    const intro={ lead:'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.', doorlichting:'Upload uw jaarcijfers voor de Financiële Basisscan.', monitoring:'Lever uw maandelijkse cijfers aan voor uw maandoverzicht.' };
-    const wat  ={ lead:'Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm en de drie belangrijkste verbeterpunten — gratis, binnen 3 werkdagen.', doorlichting:'De Financiële Basisscan (€397 excl. BTW) — alle ratio\'s volledig onderbouwd, sectorvergelijking en een concreet actieplan. Binnen 5 werkdagen.', monitoring:'Uw maandoverzicht met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.' };
+    if(sessie.email)  setVal('f-email', sessie.email);
+    if(sessie.sector) setVal('f-sector',sessie.sector);
+    const intro={lead:'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.',doorlichting:'Upload uw jaarcijfers voor de Financiële Basisscan.',monitoring:'Lever uw maandelijkse cijfers aan voor uw maandoverzicht.'};
+    const wat={lead:'Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm en de drie belangrijkste verbeterpunten — gratis, binnen 3 werkdagen.',doorlichting:'De Financiële Basisscan (€397 excl. BTW) — alle ratio\'s volledig onderbouwd, sectorvergelijking en een concreet actieplan. Binnen 5 werkdagen.',monitoring:'Uw maandoverzicht met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.'};
     const kt=sessie.klantType||'lead';
-    setTxt('form-intro', intro[kt]||'');
-    setTxt('form-wat',   wat[kt]  ||'');
-
-    const uploads=Store.getUploads()
-      .filter(u=>u.bedrijf===sessie.naam)
-      .sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
+    setTxt('form-intro',intro[kt]||'');
+    setTxt('form-wat',  wat[kt]  ||'');
+    const uploads=Store.getUploads().filter(u=>u.bedrijf===sessie.naam).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
     if (uploads.length) Formulier._ontvangenStaat(uploads[0].datum||'');
   },
 };
 
 // ─── FORMULIER ────────────────────────────────────────────────────────────────
 const Formulier = {
-  _bezig: false,
+  _bezig:false,
+
   reset() {
-    ['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat']
-      .forEach(id=>setTxt(id,''));
+    ['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));
     ['f-bedrijf','f-email'].forEach(id=>{ const e=$(id); if(e){e.value='';e.readOnly=false;} });
     ['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{ const e=$(id); if(e) e.value=''; });
     setVal('f-sector','');
     const fj=$('f-jaar'); if(fj) fj.selectedIndex=0;
     const btn=$('f-submit');
     if(btn){ btn.textContent='▶ Versturen'; btn.disabled=false; btn.classList.remove('btn-ghost'); btn.classList.add('btn-primary'); btn.style.cursor=''; }
+    Formulier._bezig=false;
   },
 
   _ontvangenStaat(datum) {
@@ -962,70 +804,53 @@ const Formulier = {
 
   async submit() {
     if (Formulier._bezig) return;
-    Formulier._bezig = true;
+    Formulier._bezig=true;
     const bedrijf=($('f-bedrijf')?.value||'').trim();
-    const sector =$('f-sector')?.value||'';
-    const jaar   =$('f-jaar')?.value||String(new Date().getFullYear()-1);
-    const email  =($('f-email')?.value||'').trim();
-    const btn    =$('f-submit');
-
+    const sector=$('f-sector')?.value||'';
+    const jaar=$('f-jaar')?.value||String(new Date().getFullYear()-1);
+    const email=($('f-email')?.value||'').trim();
+    const btn=$('f-submit');
     if (!bedrijf) { Formulier._bezig=false; UI.warn('⚠ Vul bedrijfsnaam in'); return; }
     if (!sector)  { Formulier._bezig=false; UI.warn('⚠ Kies uw sector'); return; }
-    const vw1   =$('f-vw1')?.files?.[0];
+    const vw1=$('f-vw1')?.files?.[0];
     const balans=$('f-balans1')?.files?.[0];
     if (!vw1||!balans) { Formulier._bezig=false; UI.warn('⚠ Upload minimaal V&W en balans'); return; }
-
     if(btn){ btn.textContent='⏳ Bezig met verwerken...'; btn.disabled=true; }
-
     try {
-      const lijst=[
-        {file:vw1,    lbl:'VW_jaar1'},
-        {file:balans, lbl:'Balans_jaar1'},
-        {file:$('f-jaar2')?.files?.[0]||null, lbl:'VW_Balans_jaar2'},
-        {file:$('f-jaar3')?.files?.[0]||null, lbl:'VW_Balans_jaar3'},
-      ];
+      const lijst=[{file:vw1,lbl:'VW_jaar1'},{file:balans,lbl:'Balans_jaar1'},{file:$('f-jaar2')?.files?.[0]||null,lbl:'VW_Balans_jaar2'},{file:$('f-jaar3')?.files?.[0]||null,lbl:'VW_Balans_jaar3'}];
       let pdfTekst='';
       for (const item of lijst) {
         if(!item.file) continue;
         if(btn) btn.textContent='⏳ '+item.lbl+' uitlezen...';
         pdfTekst+='\n=== '+item.lbl+' ===\n'+await Bestanden.lees(item.file)+'\n';
       }
-
       const problemen=['[PDF leesfout','[Geen tekst','[formaat niet ondersteund','[Ongeldig','[Excel leesfout','[PDF is leeg','[Excel: bestand is leeg'];
       const leeg=!pdfTekst.trim()||problemen.some(p=>pdfTekst.includes(p));
       if(leeg){ console.warn('pdfTekst leeg/fout'); UI.warn('⚠ Bestanden konden niet worden uitgelezen (scan-PDF?) — upload gaat door, maar handmatige controle is nodig.'); }
-
       const klantType=sessie?.klantType||Store.getKlanten().find(k=>k.naam===bedrijf)?.klantType||'lead';
       const periode=klantType+'-'+jaar;
       const datum=UI.datumNL();
-
       const overig=Store.getUploads().filter(u=>!(u.bedrijf===bedrijf&&u.periode===periode));
-      overig.push({ bedrijf, periode, datum, sector, pdfTekst:pdfTekst.substring(0,80000) });
+      overig.push({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
       Store.setUploads(overig);
-
-      try {
-        await Email.stuur({ bedrijf, periode, name:bedrijf, time:datum,
-          message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\n⚠ PDF tekst leeg — handmatig controleren':'') });
-      } catch(e){ console.warn('EmailJS fout (niet fataal):', e.message||e); }
-
-      Formulier._bezig = false;
+      try { await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\n⚠ PDF tekst leeg — handmatig controleren':'')}); }
+      catch(e){ console.warn('EmailJS fout (niet fataal):',e.message||e); }
+      Formulier._bezig=false;
       Formulier._ontvangenStaat(datum);
       UI.toast('✔ Jaarcijfers ontvangen op '+datum);
-
     } catch(e) {
-      Formulier._bezig = false;
+      Formulier._bezig=false;
       if(btn){ btn.disabled=false; btn.textContent='▶ Versturen'; }
       UI.error('⚠ '+(e.message||'Er ging iets mis — probeer opnieuw'));
-      console.error('submit fout:', e);
+      console.error('submit fout:',e);
     }
   },
 
   async bestelBasiscan() {
     if (!sessie||sessie.type!=='klant') { UI.warn('⚠ Deze knop is alleen voor ingelogde klanten'); return; }
     UI.toast('✔ Aanvraag ontvangen — u wordt zo spoedig mogelijk gecontacteerd');
-    try {
-      await Email.stuur({ bedrijf:sessie.naam||'onbekend', periode:'Basisscan aanvraag', name:sessie.naam||'Klant', time:UI.datumNL(), message:'Klant '+(sessie.naam||'onbekend')+' heeft de Basisscan aangevraagd.' });
-    } catch(e){ console.warn('bestelBasiscan fout (niet fataal):', e.message||e); }
+    try { await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Basisscan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft de Basisscan aangevraagd.'}); }
+    catch(e){ console.warn('bestelBasiscan fout (niet fataal):',e.message||e); }
   },
 };
 
@@ -1045,13 +870,12 @@ function laadScript(src) {
 const Bestanden = {
   async lees(file) {
     if(!file?.name) return '[Ongeldig bestand]';
-    const delen = file.name.split('.');
-    const ext = delen.length > 1 ? (delen.pop()||'').toLowerCase() : '';
+    const delen=file.name.split('.');
+    const ext=delen.length>1?(delen.pop()||'').toLowerCase():'';
     if(ext==='pdf')               return Bestanden.leesPDF(file);
     if(ext==='xlsx'||ext==='xls') return Bestanden.leesExcel(file);
-    return '[formaat niet ondersteund: ' + (ext ? '.' + ext : 'geen extensie') + ']';
+    return '[formaat niet ondersteund: '+(ext?'.'+ext:'geen extensie')+']';
   },
-
   async leesPDF(file) {
     try {
       if(!window.pdfjsLib) await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
@@ -1067,7 +891,6 @@ const Bestanden = {
       return t.trim()||'[Geen tekst gevonden — mogelijk een scan-PDF]';
     } catch(e){ return '[PDF leesfout: '+e.message+']'; }
   },
-
   async leesExcel(file) {
     try {
       if(!window.XLSX) await laadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
@@ -1078,13 +901,9 @@ const Bestanden = {
       return wb.SheetNames.map(n=>'\n--- '+n+' ---\n'+window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:' | '})).join('');
     } catch(e){ return '[Excel leesfout: '+e.message+']'; }
   },
-
   koppelListeners() {
     [['f-vw1','f-vw1-naam'],['f-balans1','f-balans1-naam'],['f-jaar2','f-jaar2-naam'],['f-jaar3','f-jaar3-naam']]
-      .forEach(([inp,nm])=>{
-        const el=$(inp); if(!el) return;
-        el.addEventListener('change',()=>setTxt(nm, el.files?.[0]?'✔ '+el.files[0].name:''));
-      });
+      .forEach(([inp,nm])=>{ const el=$(inp); if(!el) return; el.addEventListener('change',()=>setTxt(nm,el.files?.[0]?'✔ '+el.files[0].name:'')); });
   },
 };
 
@@ -1095,14 +914,11 @@ const Analyse = {
     const sector=$('ai-sector')?.value||'Algemeen MKB';
     const status=$('ai-status'), output=$('ai-tekst'), acties=$('ai-acties'), knop=$('btn-analyseer');
     if(!status||!output||!acties){ UI.error('⚠ Interne fout: analyse-UI niet gevonden'); return; }
-
     const uploads=Store.getUploads().filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
     if(!uploads.length){ UI.warn('⚠ Geen uploads gevonden'); return; }
-
     status.textContent='⏳ Analyse bezig...';
     output.style.display='none'; acties.style.display='none';
     if(knop){ knop.disabled=true; knop.textContent='⏳ Bezig...'; }
-
     const prompt=`Je bent financieel analist voor MKB. Voer de MKB Stresstest Methode™ uit.
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
@@ -1115,49 +931,36 @@ SECTORNORMEN:
 - Solvabiliteit: 25–40%
 - Current ratio: 1,3–1,8
 
-BEREKEN:
-1. Brutomarge % = brutoresultaat / netto-omzet × 100
-2. Nettoresultaat %
-3. Personeelskosten % van omzet
-4. Debiteurendagen = (debiteuren / omzet) × 365 → schrijf als: "Debiteurendagen = X dagen"
-5. Solvabiliteit = eigen vermogen / balanstotaal × 100
-6. Current ratio
+BEREKEN en presenteer EXACT in dit formaat (zodat automatische parsing werkt):
+Brutomarge %: XX,X%
+Nettoresultaat %: XX,X%
+Personeelskosten %: XX,X%
+Debiteurendagen = XX dagen
+Solvabiliteit %: XX,X%
+Current ratio: X,X
 
-Presenteer als tabel: Indicator | Werkelijk | Sectornorm | Beoordeling
-Benoem daarna de 3 grootste afwijkingen met financieel effect in €.
-Bereken:
-- Post B (solvabiliteit): verschil × balanstotaal
-- Post C (debiteurendagen): (werkelijk − 45) / 365 × omzet (alleen als >45)
-- Totaal 1-pager: € ___
+Presenteer daarna als tabel: Indicator | Werkelijk | Sectornorm | Beoordeling
+Benoem de 3 grootste afwijkingen met financieel effect in €.
 Eindig met: Score: ___/100
 
 JAARCIJFERS:
 ${uploads[0].pdfTekst||''}`;
-
     try {
       const apiKey=Config.apikey();
       if(!apiKey) throw new Error('Geen API-sleutel ingesteld — voeg je Anthropic API-sleutel toe via ⚙ Instellen');
-
       const resp=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
-        headers:{ 'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-iab-override':'true' },
-        body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1500, messages:[{role:'user',content:prompt}] }),
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-iab-override':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]}),
       });
-
-      if(!resp.ok){
-        let msg='API fout '+resp.status;
-        try{ const d=await resp.json(); msg=d?.error?.message||msg; }catch{}
-        throw new Error(msg);
-      }
-
+      if(!resp.ok){ let msg='API fout '+resp.status; try{const d=await resp.json();msg=d?.error?.message||msg;}catch{} throw new Error(msg); }
       const data=await resp.json();
       if(data.error) throw new Error(data.error.message);
       const tekst=data.content?.find(b=>b.type==='text')?.text||'Geen resultaat';
-      Store.setAnalyse(_adminKlant+'-'+_adminPeriode, tekst);
+      Store.setAnalyse(_adminKlant+'-'+_adminPeriode,tekst);
       output.textContent=tekst; output.style.display='';
       acties.style.display='flex'; status.textContent='✔ Analyse gereed';
       if(knop){ knop.disabled=false; knop.textContent='🚀 Analyseer gegevens'; }
-
     } catch(e){
       status.textContent='⚠ '+e.message;
       if(knop){ knop.disabled=false; knop.textContent='🚀 Analyseer gegevens'; }
@@ -1170,104 +973,77 @@ ${uploads[0].pdfTekst||''}`;
 // ─── FINANCIEEL ───────────────────────────────────────────────────────────────
 const Fin = {
   parseData(tekst) {
-    const d={ brutomarge:null,ebitda:null,personeelskosten:null,debiteurendagen:null,solvabiliteit:null,currentratio:null,omzet:null,debiteuren:null,balanstotaal:null };
+    const d={brutomarge:null,ebitda:null,personeelskosten:null,debiteurendagen:null,solvabiliteit:null,currentratio:null,omzet:null,debiteuren:null,balanstotaal:null};
     if(!tekst) return d;
 
-    const getN=s=>{
-      // Verwijder duizendpunten (NL: 1.234.567) maar bewaar decimalen
-      const g=s.replace(/(\d)\.(\d{3})(?!\d)/g,'$1$2');
-      const m=g.match(/(\d+[,.]?\d*)/);
-      if(!m) return null;
-      return parseFloat(m[1].replace(',','.'));
-    };
-    const zoekPct=(t,...kws)=>{ for(const kw of kws){ const m=t.match(new RegExp(kw+'[^\\n]{0,30}?([\\d]+[,.]?[\\d]*)\\s*%','i')); if(m) return parseFloat(m[1].replace(',','.')); } return null; };
-    // Getal uit regel halen waarbij NL-duizendpunten worden verwijderd
-    const getEuro=s=>{ const g=s.replace(/(\d)\.(\d{3})(?!\d)/g,'$1$2'); const m=g.match(/(\d[\d,]*)/); return m?parseFloat(m[1].replace(',','.')):null; };
+    const pct=s=>{ const m=s.match(/([\d]+[,.]?[\d]*)\s*%/); return m?parseFloat(m[1].replace(',','.')):null; };
+    const nlNums=s=>[...s.matchAll(/([\d]{1,3}(?:\.[\d]{3})+|[\d]{5,})/g)].map(m=>parseFloat(m[1].replace(/\./g,''))).filter(v=>v>0);
 
-    for(const regel of tekst.split('\n')){
-      const r=regel.toLowerCase();
-      if(r.includes('brutomarge')&&d.brutomarge===null){
-        const v=zoekPct(regel,'brutomarge')||getN(regel.replace(/brutomarge/i,''));
-        if(v&&v<100) d.brutomarge=v;
+    for (const regel of tekst.split('\n')) {
+      const r=regel.toLowerCase().trim();
+
+      // Brutomarge % — "Brutomarge %: 49,7%" of "Brutomarge % 49,7%"
+      if (d.brutomarge===null&&r.startsWith('brutomarge')) {
+        const v=pct(regel); if(v!==null&&v>0&&v<100) d.brutomarge=v;
       }
-      if((r.includes('nettoresultaat')||r.includes('ebitda'))&&d.ebitda===null){
-        const v=zoekPct(regel,'nettoresultaat','ebitda')||getN(regel.replace(/nettoresultaat\s*%|ebitda/gi,''));
-        if(v&&v<50) d.ebitda=v;
+      // Nettoresultaat / EBITDA
+      if (d.ebitda===null&&(r.startsWith('nettoresultaat')||r.startsWith('ebitda'))) {
+        const v=pct(regel); if(v!==null&&v>-50&&v<50) d.ebitda=v;
       }
-      if(r.includes('personeelskost')&&d.personeelskosten===null){
-        const v=zoekPct(regel,'personeelskost')||getN(regel.replace(/personeelskost\w*/i,''));
-        if(v&&v<100) d.personeelskosten=v;
+      // Personeelskosten % — alleen als er een %-teken in staat
+      if (d.personeelskosten===null&&r.startsWith('personeelskost')&&regel.includes('%')) {
+        const v=pct(regel); if(v!==null&&v>0&&v<100) d.personeelskosten=v;
       }
-      if(r.includes('debiteurendag')&&d.debiteurendagen===null){
-        // Prioriteit 1: "= X dagen" of "= X dgn" — expliciet berekende waarde
-        const mEq=regel.match(/=\s*(\d{1,4})\s*dag/i);
+      // Debiteurendagen — prioriteit: "= X dagen"
+      if (d.debiteurendagen===null&&r.includes('debiteurendag')) {
+        const mEq=regel.match(/=\s*([\d]+)\s*dag/i);
         if(mEq){ const v=parseFloat(mEq[1]); if(v>=1&&v<=365) d.debiteurendagen=v; }
-        else {
-          // Prioriteit 2: een los getal in de regel, maar alleen als het realistisch is
-          const v=getN(regel.replace(/debiteurendag\w*/i,''));
-          if(v&&v>=1&&v<=365) d.debiteurendagen=v;
-        }
+        else { const m=regel.match(/([\d]+)\s*dag/i); if(m){const v=parseFloat(m[1]);if(v>=1&&v<=365) d.debiteurendagen=v;} }
       }
-      if(r.includes('solvabiliteit')&&d.solvabiliteit===null){
-        const v=zoekPct(regel,'solvabiliteit')||getN(regel.replace(/solvabiliteit/i,''));
-        if(v&&v<100) d.solvabiliteit=v;
+      // Solvabiliteit %
+      if (d.solvabiliteit===null&&r.startsWith('solvabiliteit')) {
+        const v=pct(regel); if(v!==null&&v>0&&v<100) d.solvabiliteit=v;
       }
-      if(r.includes('current ratio')&&d.currentratio===null){
-        const v=getN(regel.replace(/current.ratio/i,''));
-        if(v&&v<10) d.currentratio=v;
+      // Current ratio
+      if (d.currentratio===null&&r.includes('current ratio')) {
+        const m=regel.match(/[\d]+[,.][\d]+/); if(m){const v=parseFloat(m[0].replace(',','.'));if(v>0&&v<20) d.currentratio=v;}
       }
-      // Balanstotaal
-      if((r.includes('totaal activa')||r.includes('totaal passiva'))&&d.balanstotaal===null){
-        const v=getEuro(regel.replace(/totaal\s+(activa|passiva)/i,''));
-        if(v&&v>1000) d.balanstotaal=v;
+      // Totaal netto-omzet — grootste getal in de regel
+      if (d.omzet===null&&r.includes('totaal netto-omzet')) {
+        const nums=nlNums(regel).filter(v=>v>10000); if(nums.length) d.omzet=Math.max(...nums);
       }
-      // Debiteuren (voor berekening debiteurendagen)
-      if(r.match(/^debiteuren\s/)&&d.debiteuren===null){
-        const v=getEuro(regel.replace(/debiteuren/i,''));
-        if(v&&v>0) d.debiteuren=v;
+      // Totaal activa/passiva
+      if (d.balanstotaal===null&&(r.includes('totaal activa')||r.includes('totaal passiva'))) {
+        const nums=nlNums(regel).filter(v=>v>10000); if(nums.length) d.balanstotaal=Math.max(...nums);
+      }
+      // Debiteuren (alleen als regel begint met "Debiteuren " gevolgd door cijfer)
+      if (d.debiteuren===null&&r.match(/^debiteuren\s+[\d]/)) {
+        const nums=nlNums(regel); if(nums.length) d.debiteuren=nums[0];
       }
     }
 
-    // Fallbacks
-    if(d.debiteurendagen===null){
-      // Zoek "Debiteurendagen: X / Y x 365 = Z dagen" patroon
-      const mCalc=tekst.match(/[Dd]ebiteurendag[^=\n]{0,80}=\s*(\d{1,4})\s*dag/i);
-      if(mCalc){ const v=parseFloat(mCalc[1]); if(v>=1&&v<=365) d.debiteurendagen=v; }
+    // ── Fallbacks ──────────────────────────────────────────────────────────────
+    // Debiteurendagen uit berekening: "198.400 / 1.435.800 x 365 = 50"
+    if (d.debiteurendagen===null) {
+      const m=tekst.match(/[\d.,]+\s*\/\s*[\d.,]+\s*[x×]\s*365\s*=\s*([\d]+)/i);
+      if(m){ const v=parseFloat(m[1]); if(v>=1&&v<=365) d.debiteurendagen=v; }
     }
-    if(d.debiteurendagen===null&&d.debiteuren&&d.omzet&&d.omzet>0){
-      const calc=Math.round(d.debiteuren/d.omzet*365);
-      if(calc>=1&&calc<=365) d.debiteurendagen=calc;
+    // Berekend uit debiteuren + omzet
+    if (d.debiteurendagen===null&&d.debiteuren&&d.omzet&&d.omzet>0) {
+      const c=Math.round(d.debiteuren/d.omzet*365); if(c>=1&&c<=365) d.debiteurendagen=c;
     }
-    if(d.omzet===null){
-      const m=tekst.match(/(?:totaal netto-omzet|netto-omzet)\s+([\d.]+)/i);
-      if(m) d.omzet=parseFloat(m[1].replace(/\./g,''));
-    }
-    if(d.balanstotaal===null){
-      const m=tekst.match(/totaal\s+(?:activa|passiva)\s+([\d.]+)/i);
-      if(m) d.balanstotaal=parseFloat(m[1].replace(/\./g,''));
-    }
-    if(d.debiteuren===null){
-      const m=tekst.match(/[Dd]ebiteuren\s+([\d.]+)/);
-      if(m) d.debiteuren=parseFloat(m[1].replace(/\./g,''));
-    }
-    if(d.personeelskosten===null&&d.omzet){
-      const m=tekst.match(/[Pp]ersoneelskosten\s+([\d.]+)/);
-      if(m){ const pk=parseFloat(m[1].replace(/\./g,'')); d.personeelskosten=Math.round(pk/d.omzet*1000)/10; }
-    }
-    if(d.brutomarge===null){
-      const m=tekst.match(/[Bb]rutomarge\s*%?\s*([\d,]+)%/i); if(m) d.brutomarge=parseFloat(m[1].replace(',','.'));
-    }
-    if(d.ebitda===null){
-      const m=tekst.match(/[Nn]ettoresultaat\s*%?\s*([\d,]+)%/i); if(m) d.ebitda=parseFloat(m[1].replace(',','.'));
-    }
-    if(d.solvabiliteit===null){
-      const m=tekst.match(/[Ss]olvabiliteit\s*%?\s*([\d,]+)%/i); if(m) d.solvabiliteit=parseFloat(m[1].replace(',','.'));
-    }
+    if (d.omzet===null) { const m=tekst.match(/totaal netto-omzet\s+([\d.]+)/i); if(m) d.omzet=parseFloat(m[1].replace(/\./g,'')); }
+    if (d.balanstotaal===null) { const m=tekst.match(/totaal\s+(?:activa|passiva)\s+([\d.]+)/i); if(m) d.balanstotaal=parseFloat(m[1].replace(/\./g,'')); }
+    if (d.debiteuren===null) { const m=tekst.match(/[Dd]ebiteuren\s+([\d.]+)/); if(m) d.debiteuren=parseFloat(m[1].replace(/\./g,'')); }
+    if (d.personeelskosten===null&&d.omzet) { const m=tekst.match(/[Pp]ersoneelskosten\s+([\d.]+)/); if(m){const pk=parseFloat(m[1].replace(/\./g,''));d.personeelskosten=Math.round(pk/d.omzet*1000)/10;} }
+    if (d.brutomarge===null) { const m=tekst.match(/[Bb]rutomarge\s*%?\s*:?\s*([\d,]+)%/); if(m) d.brutomarge=parseFloat(m[1].replace(',','.')); }
+    if (d.ebitda===null)     { const m=tekst.match(/[Nn]ettoresultaat\s*%?\s*:?\s*([\d,]+)%/); if(m) d.ebitda=parseFloat(m[1].replace(',','.')); }
+    if (d.solvabiliteit===null) { const m=tekst.match(/[Ss]olvabiliteit\s*%?\s*:?\s*([\d,]+)%/); if(m) d.solvabiliteit=parseFloat(m[1].replace(',','.')); }
     return d;
   },
 
-  signaal(naam, waarde) {
-    const n={ brutomarge:{min:30,max:40,inv:false},ebitda:{min:6,max:12,inv:false},personeelskosten:{min:45,max:60,inv:true},debiteurendagen:{min:30,max:45,inv:true},solvabiliteit:{min:25,max:40,inv:false},currentratio:{min:1.3,max:1.8,inv:false} };
+  signaal(naam,waarde) {
+    const n={brutomarge:{min:30,max:40,inv:false},ebitda:{min:6,max:12,inv:false},personeelskosten:{min:45,max:60,inv:true},debiteurendagen:{min:30,max:45,inv:true},solvabiliteit:{min:25,max:40,inv:false},currentratio:{min:1.3,max:1.8,inv:false}};
     const r=n[naam]; if(!r||waarde===null||waarde===undefined) return{s:'—',k:'#9CA3AF'};
     const ok=waarde>=r.min&&waarde<=r.max;
     const ver=r.inv?waarde>r.max*1.2:waarde<r.min*0.8;
@@ -1275,80 +1051,33 @@ const Fin = {
   },
 
   bevindingen(d) {
-    const fmt=n=>n!=null?'€ '+Math.round(n).toLocaleString('nl-NL'):'€ —';
+    const fmtEur=n=>n!=null?'€ '+Math.round(n).toLocaleString('nl-NL'):'€ —';
     const neg=[];
-
-    // Debiteurenprobleem: extra gebonden kapitaal = (werkelijk - 45) / 365 * omzet
     if(d.debiteurendagen&&d.debiteurendagen>45){
       const extra=d.omzet?Math.round((d.debiteurendagen-45)/365*d.omzet):null;
-      neg.push({
-        t:'Debiteurenprobleem',
-        tx:`Klanten betalen gemiddeld na ${Math.round(d.debiteurendagen)} dagen — ${Math.round(d.debiteurendagen)-45} dagen boven de norm van 30–45 dagen. Dit bindt ${extra?fmt(extra):''} aan onnodig werkkapitaal.`,
-        bedrag: extra,
-        actie:'Stuur aanmaningen na 30 dagen en bied 2% korting bij betaling binnen 14 dagen.',
-        termijn:'Deze week',
-        k:'#C0392B'
-      });
+      neg.push({t:'Debiteurenprobleem',tx:`Klanten betalen gemiddeld na ${Math.round(d.debiteurendagen)} dagen — ${Math.round(d.debiteurendagen)-45} dagen boven de norm van 30–45 dagen. Dit bindt ${extra?fmtEur(extra):''} aan onnodig werkkapitaal.`,bedrag:extra,actie:'Stuur aanmaningen na 30 dagen en bied 2% korting bij betaling binnen 14 dagen.',termijn:'Deze week',k:'#C0392B'});
     }
-
-    // Winstgevendheidsprobleem: gemiste winst = (norm 9% - werkelijk) * omzet
     if(d.ebitda!==null&&d.ebitda<6){
       const gemist=d.omzet?Math.round((9-d.ebitda)/100*d.omzet):null;
-      neg.push({
-        t:'Winstgevendheidsprobleem',
-        tx:`Nettoresultaat is ${d.ebitda}% — onder de norm van 6–12%. Bij sectornorm van 9% loopt u ${gemist?fmt(gemist):''} aan winst mis.`,
-        bedrag: gemist,
-        actie:'Analyseer de vijf grootste kostenposten en stel tarieven bij met 3–5%.',
-        termijn:'Deze maand',
-        k:'#E67E22'
-      });
+      neg.push({t:'Winstgevendheidsprobleem',tx:`Nettoresultaat is ${d.ebitda}% — onder de norm van 6–12%. Bij sectornorm van 9% loopt u ${gemist?fmtEur(gemist):''} aan winst mis.`,bedrag:gemist,actie:'Analyseer de vijf grootste kostenposten en stel tarieven bij met 3–5%.',termijn:'Deze maand',k:'#E67E22'});
     }
-
-    // Solvabiliteitsprobleem: vermogenstekort = (norm 32.5% - werkelijk%) * balanstotaal
     if(d.solvabiliteit!==null&&d.solvabiliteit<25){
       const tekort=d.balanstotaal?Math.round((32.5-d.solvabiliteit)/100*d.balanstotaal):null;
-      neg.push({
-        t:'Solvabiliteitsprobleem',
-        tx:`Solvabiliteit is ${d.solvabiliteit}% — onder de norm van 25–40%. Vermogenstekort t.o.v. sectornorm: ${tekort?fmt(tekort):'onbekend'}.`,
-        bedrag: tekort,
-        actie:'Reserveer minimaal 50% van de jaarwinst en bespreek herfinanciering met de bank.',
-        termijn:'Dit kwartaal',
-        k:'#C0392B'
-      });
+      neg.push({t:'Solvabiliteitsprobleem',tx:`Solvabiliteit is ${d.solvabiliteit}% — onder de norm van 25–40%. Vermogenstekort t.o.v. sectornorm: ${tekort?fmtEur(tekort):'onbekend'}.`,bedrag:tekort,actie:'Reserveer minimaal 50% van de jaarwinst en bespreek herfinanciering met de bank.',termijn:'Dit kwartaal',k:'#C0392B'});
     }
-
-    // Personeelskosten te hoog: extra kosten = (werkelijk% - 52.5%) * omzet
     if(d.personeelskosten&&d.personeelskosten>60){
       const extra=d.omzet?Math.round((d.personeelskosten-52.5)/100*d.omzet):null;
-      neg.push({
-        t:'Personeelskosten hoog',
-        tx:`Personeelskosten zijn ${d.personeelskosten}% van omzet — boven de norm van 45–60%. Dat is ${extra?fmt(extra):''} meer dan het sectorgemiddelde.`,
-        bedrag: extra,
-        actie:'Analyseer inzet per project en vergelijk met direct gefactureerde uren.',
-        termijn:'Deze maand',
-        k:'#C0392B'
-      });
+      neg.push({t:'Personeelskosten hoog',tx:`Personeelskosten zijn ${d.personeelskosten}% van omzet — boven de norm van 45–60%. Dat is ${extra?fmtEur(extra):''} meer dan het sectorgemiddelde.`,bedrag:extra,actie:'Analyseer inzet per project en vergelijk met direct gefactureerde uren.',termijn:'Deze maand',k:'#C0392B'});
     }
-
-    // Brutomarge te laag: gemiste marge = (norm 35% - werkelijk%) * omzet
     if(d.brutomarge!==null&&d.brutomarge<30){
       const gemist=d.omzet?Math.round((35-d.brutomarge)/100*d.omzet):null;
-      neg.push({
-        t:'Brutomarge laag',
-        tx:`Brutomarge is ${d.brutomarge}% — onder de norm van 30–40%. Bij sectornorm mis je ${gemist?fmt(gemist):''} aan brutowinst.`,
-        bedrag: gemist,
-        actie:'Heronderhandel inkoopprijzen bij de drie grootste leveranciers.',
-        termijn:'Deze maand',
-        k:'#C0392B'
-      });
+      neg.push({t:'Brutomarge laag',tx:`Brutomarge is ${d.brutomarge}% — onder de norm van 30–40%. Bij sectornorm mis je ${gemist?fmtEur(gemist):''} aan brutowinst.`,bedrag:gemist,actie:'Heronderhandel inkoopprijzen bij de drie grootste leveranciers.',termijn:'Deze maand',k:'#C0392B'});
     }
-
     const pos=[
-      {t:'Solvabiliteit gezond',    tx:`Solvabiliteit van ${d.solvabiliteit!=null?d.solvabiliteit+'%':'—'} valt binnen de sectornorm van 25–40%.`,    bedrag:null, actie:'Handhaaf winstinhouding om buffer te behouden.',  termijn:'Dit kwartaal', k:'#27AE60'},
-      {t:'Brutomarge op niveau',    tx:`Brutomarge van ${d.brutomarge!=null?d.brutomarge+'%':'—'} is gezond — inkoopbeheer en tariefstelling zijn sterk.`,                bedrag:null, actie:'Monitor inkoopprijzen bij leveranciersonderhandeling.', termijn:'Dit kwartaal', k:'#27AE60'},
-      {t:'Financiële basis stabiel',tx:'De overige indicatoren vallen binnen de sectornorm. Verdere optimalisatie is mogelijk via de Basisscan.', bedrag:null, actie:'Plan een voortgangsmeting over 6 maanden.',              termijn:'Dit kwartaal', k:'#27AE60'},
+      {t:'Solvabiliteit gezond',tx:`Solvabiliteit van ${d.solvabiliteit!=null?d.solvabiliteit+'%':'—'} valt binnen de sectornorm van 25–40%.`,bedrag:null,actie:'Handhaaf winstinhouding om buffer te behouden.',termijn:'Dit kwartaal',k:'#27AE60'},
+      {t:'Brutomarge op niveau',tx:`Brutomarge van ${d.brutomarge!=null?d.brutomarge+'%':'—'} is gezond — inkoopbeheer en tariefstelling zijn sterk.`,bedrag:null,actie:'Monitor inkoopprijzen bij leveranciersonderhandeling.',termijn:'Dit kwartaal',k:'#27AE60'},
+      {t:'Financiële basis stabiel',tx:'De overige indicatoren vallen binnen de sectornorm. Verdere optimalisatie is mogelijk via de Basisscan.',bedrag:null,actie:'Plan een voortgangsmeting over 6 maanden.',termijn:'Dit kwartaal',k:'#27AE60'},
     ];
-
     const res=neg.slice(0,3);
     let pi=0;
     while(res.length<3){ res.push(pos[pi%pos.length]); pi++; }
@@ -1358,40 +1087,26 @@ const Fin = {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 (function init(){
-  try{ emailjs.init(Config.pubkey()); }catch{}
-
+  try{emailjs.init(Config.pubkey());}catch{}
   Bestanden.koppelListeners();
-
-  // Boekjaar dropdown
   const jaarSel=$('f-jaar');
-  if(jaarSel){
-    const nu=new Date().getFullYear();
-    jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join('');
-  }
-
-  // Migreer oude keys EERST — zodat Config.herstelUI de gemigreerde data pakt
+  if(jaarSel){ const nu=new Date().getFullYear(); jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join(''); }
   Store.migreer();
   Config.herstelUI();
-
-  // Dedupliceer uploads — bewaar de NIEUWSTE per bedrijf+periode combinatie
+  // Dedupliceer uploads bij opstarten
   const alle=Store.getUploads();
-  // Sorteer nieuwste eerst op datum
-  const gesorteerd=[...alle].sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
-  const gezien=new Set();
-  const uniek=gesorteerd.filter(u=>{ const k=u.bedrijf+'|'+u.periode; if(gezien.has(k)) return false; gezien.add(k); return true; });
-  if(uniek.length!==alle.length){ console.log(`Deduplicatie: ${alle.length-uniek.length} dubbele upload(s) verwijderd`); Store.setUploads(uniek); }
-
+  const map=new Map();
+  [...alle].sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0)).forEach(u=>{ const k=u.bedrijf+'|'+u.periode; if(!map.has(k)) map.set(k,u); });
+  const uniek=[...map.values()];
+  if(uniek.length!==alle.length){ console.log(`Init dedup: ${alle.length-uniek.length} duplicaten verwijderd`); try{Store.setUploads(uniek);}catch{} }
   // Testklant
   const kl=Store.getKlanten();
   if(!kl.find(k=>k.code==='vandenberg2024')){
     kl.push({naam:'Installatiebedrijf Van der Berg B.V.',code:'vandenberg2024',klantType:'lead',email:'',sector:'Installatietechniek'});
     Store.setKlanten(kl);
   }
-
-  // Enter op loginveld
   const lc=$('login-code');
   if(lc) lc.addEventListener('keydown',e=>{ if(e.key==='Enter') Auth.login(); });
-
   Auth.herstelSessie();
 })();
 </script>
