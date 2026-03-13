@@ -1033,12 +1033,28 @@ function verwerkKlantLogin(klantData) {
   initSupabase();
 
   if (klantType === 'lead') {
-    document.querySelector('.nav-btn[onclick*="formulier"]').style.display = 'none';
-    document.getElementById('nav-lead-formulier').style.display = 'inline-flex';
-    document.getElementById('nav-lead-formulier').classList.add('active');
-    document.querySelector('.nav-btn[onclick*="rapport"]').classList.remove('active');
-    showView('lead', null);
-    loadRapportVoorKlant(naam);
+    // Controleer eerst of er al een gepubliceerde 1-pager is
+    supabaseClient.from('maandcijfers')
+      .select('eenpager_gepubliceerd')
+      .eq('bedrijf', naam)
+      .eq('eenpager_gepubliceerd', true)
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          // 1-pager gepubliceerd → toon rapport
+          showView('rapport', document.querySelector('.nav-btn[onclick*="rapport"]'));
+          loadRapportVoorKlant(naam);
+        } else {
+          // Nog geen 1-pager → toon aanleverbformulier
+          document.querySelector('.nav-btn[onclick*="formulier"]')?.style && (document.querySelector('.nav-btn[onclick*="formulier"]').style.display = 'none');
+          const lf = document.getElementById('nav-lead-formulier');
+          if (lf) { lf.style.display = 'inline-flex'; lf.classList.add('active'); }
+          document.querySelector('.nav-btn[onclick*="rapport"]')?.classList.remove('active');
+          showView('lead', null);
+          loadRapportVoorKlant(naam);
+        }
+      });
+    return;
   } else if (klantType === 'monitoring') {
     const nkBtn = document.getElementById('nav-klanten-formulier');
     if (nkBtn) nkBtn.textContent = 'Cijfers aanleveren';
@@ -2695,10 +2711,23 @@ function appInit() {
         }
       }, 100);
     } else {
-      const klantType = sessionStorage.getItem('gvt-type') || 'doorlichting';
-      if (klantType !== 'lead') {
-        loadRapportVoorKlant(savedUser);
-      }
+      // Wacht tot Supabase klaar is, laad dan klantdata opnieuw
+      let pogingen = 0;
+      const wachtKlant = setInterval(async () => {
+        pogingen++;
+        if (supabaseClient || pogingen > 30) {
+          clearInterval(wachtKlant);
+          // Haal klanttype op uit Supabase (niet sessionStorage — kan verlopen zijn)
+          const { data } = await supabaseClient.from('klanten').select('type').eq('inlogcode', savedUser).single();
+          if (data) {
+            sessionStorage.setItem('gvt-type', data.type || 'doorlichting');
+            const naamData = await supabaseClient.from('klanten').select('naam').eq('inlogcode', savedUser).single();
+            const naam = naamData?.data?.naam || savedUser;
+            sessionStorage.setItem('gvt-naam', naam);
+          }
+          loadRapportVoorKlant(savedUser);
+        }
+      }, 100);
     }
   }
 }
