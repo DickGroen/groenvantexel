@@ -2120,25 +2120,59 @@ function kopieerAnalyse() {
 let radarChartInstance = null;
 
 function parseAnalyseData(tekst) {
-  // Extraheer ratio's uit de analysetekst via patroonherkenning
   const data = {
     brutomarge: null, ebitda: null, personeelskosten: null,
     debiteurendagen: null, solvabiliteit: null, currentratio: null,
-    score: null,
-    totaal1pager: null, totaalbasiscan: null
+    omzet: null, score: null, totaal1pager: null, totaalbasiscan: null
   };
 
+  // Helper: pak eerste getal uit een string (behandelt punt als duizendtalscheider)
+  const getGetal = (str) => {
+    const m = str.match(/(\d+[,.]\d+|\d+)/);
+    if (!m) return null;
+    // Als getal >999 en geen komma/punt decimaal: waarschijnlijk duizendtal
+    let v = m[1].replace(/\.(\d{3})/g, '$1').replace(',', '.');
+    return parseFloat(v);
+  };
+
+  // Helper: zoek percentage patroon "Brutomarge % 49,7%"
+  const zoekPct = (tekst, ...keywords) => {
+    for (const kw of keywords) {
+      const re = new RegExp(kw + '[^\n]{0,30}?([\d]+[,.]?[\d]*)\s*%', 'i');
+      const m = tekst.match(re);
+      if (m) return parseFloat(m[1].replace(',', '.'));
+    }
+    return null;
+  };
+
+  // Probeer eerst Claude analyse-output (ratio-tabel)
   const regels = tekst.split('\n');
   for (const regel of regels) {
     const r = regel.toLowerCase();
-    const getGetal = (str) => { const m = str.match(/([\d,\.]+)/); return m ? parseFloat(m[1].replace(',', '.')) : null; };
-
-    if (r.includes('brutomarge') && data.brutomarge === null) data.brutomarge = getGetal(regel);
-    if ((r.includes('ebitda') || r.includes('ebita')) && data.ebitda === null) data.ebitda = getGetal(regel);
-    if (r.includes('personeelskost') && data.personeelskosten === null) data.personeelskosten = getGetal(regel);
-    if (r.includes('debiteurendag') && data.debiteurendagen === null) data.debiteurendagen = getGetal(regel);
-    if (r.includes('solvabiliteit') && data.solvabiliteit === null) data.solvabiliteit = getGetal(regel);
-    if ((r.includes('current ratio') || r.includes('current-ratio')) && data.currentratio === null) data.currentratio = getGetal(regel);
+    if (r.includes('brutomarge') && data.brutomarge === null) {
+      const v = zoekPct(regel, 'brutomarge') || getGetal(regel.replace(/brutomarge/i,''));
+      if (v && v < 100) data.brutomarge = v;
+    }
+    if ((r.includes('ebitda') || r.includes('nettoresultaat %')) && data.ebitda === null) {
+      const v = zoekPct(regel, 'ebitda', 'nettoresultaat') || getGetal(regel.replace(/ebitda|nettoresultaat %/gi,''));
+      if (v && v < 50) data.ebitda = v;
+    }
+    if (r.includes('personeelskost') && data.personeelskosten === null) {
+      const v = zoekPct(regel, 'personeelskost') || getGetal(regel.replace(/personeelskost\w*/i,''));
+      if (v && v < 100) data.personeelskosten = v;
+    }
+    if (r.includes('debiteurendag') && data.debiteurendagen === null) {
+      const v = getGetal(regel.replace(/debiteurendag\w*/i,''));
+      if (v) data.debiteurendagen = v;
+    }
+    if (r.includes('solvabiliteit') && data.solvabiliteit === null) {
+      const v = zoekPct(regel, 'solvabiliteit') || getGetal(regel.replace(/solvabiliteit/i,''));
+      if (v && v < 100) data.solvabiliteit = v;
+    }
+    if ((r.includes('current ratio') || r.includes('current-ratio')) && data.currentratio === null) {
+      const v = getGetal(regel.replace(/current.ratio/i,''));
+      if (v && v < 10) data.currentratio = v;
+    }
     if (r.includes('score') && r.includes('/100') && data.score === null) data.score = getGetal(regel);
     if (r.includes('totaal 1-pager') && data.totaal1pager === null) {
       const m = regel.match(/€\s*([\d\.,]+)/); if (m) data.totaal1pager = m[1];
@@ -2147,6 +2181,35 @@ function parseAnalyseData(tekst) {
       const m = regel.match(/€\s*([\d\.,]+)/); if (m) data.totaalbasiscan = m[1];
     }
   }
+
+  // Fallback: bereken direct uit ruwe PDF tekst als percentages ontbreken
+  if (data.brutomarge === null) {
+    const m = tekst.match(/brutomarge\s*%\s*([\d,]+)%/i);
+    if (m) data.brutomarge = parseFloat(m[1].replace(',','.'));
+  }
+  if (data.ebitda === null) {
+    const m = tekst.match(/nettoresultaat\s*%\s*([\d,]+)%/i);
+    if (m) data.ebitda = parseFloat(m[1].replace(',','.'));
+  }
+  if (data.solvabiliteit === null) {
+    const m = tekst.match(/solvabiliteit\s*%\s*([\d,]+)%/i);
+    if (m) data.solvabiliteit = parseFloat(m[1].replace(',','.'));
+  }
+  if (data.debiteurendagen === null) {
+    // Bereken: debiteuren / omzet * 365
+    const debM = tekst.match(/debiteuren\s+([\d.]+)/i);
+    const omzM = tekst.match(/netto-omzet\s+([\d.]+)/i);
+    if (debM && omzM) {
+      const deb = parseFloat(debM[1].replace('.',''));
+      const omz = parseFloat(omzM[1].replace('.',''));
+      if (omz > 0) data.debiteurendagen = Math.round(deb / omz * 365);
+    }
+  }
+  if (data.omzet === null) {
+    const m = tekst.match(/netto-omzet\s+([\d.]+)/i);
+    if (m) data.omzet = parseFloat(m[1].replace('.',''));
+  }
+
   return data;
 }
 
@@ -2555,7 +2618,8 @@ function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
           <td style="padding:7px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td>
           <td style="padding:7px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td>
         </tr>
-        <tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Brutomarge %</td><td style="padding:8px 10px;font-weight:700;color:${scores[0].kleur};text-align:right;border-bottom:1px solid #eef1ee;">${fmt(parsed.brutomarge)}</td><td style="padding:8px 10px;color:#888;text-align:right;border-bottom:1px solid #eef1ee;">30–40%</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${scores[0].signaal}</td></tr>
+        <tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;font-weight:700;text-align:right;border-bottom:1px solid #eef1ee;">${parsed.omzet ? '€ ' + parsed.omzet.toLocaleString('nl-NL') : '—'}</td><td style="padding:8px 10px;color:#888;text-align:right;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>
+        <tr><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Brutomarge %</td><td style="padding:8px 10px;font-weight:700;color:${scores[0].kleur};text-align:right;border-bottom:1px solid #eef1ee;">${fmt(parsed.brutomarge)}</td><td style="padding:8px 10px;color:#888;text-align:right;border-bottom:1px solid #eef1ee;">30–40%</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${scores[0].signaal}</td></tr>
         <tr><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Debiteurendagen</td><td style="padding:8px 10px;font-weight:700;color:${scores[3].kleur};text-align:right;border-bottom:1px solid #eef1ee;">${fmt(parsed.debiteurendagen,' dgn')}</td><td style="padding:8px 10px;color:#888;text-align:right;border-bottom:1px solid #eef1ee;">30–45 dgn</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${scores[3].signaal}</td></tr>
         <tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Solvabiliteit %</td><td style="padding:8px 10px;font-weight:700;color:${scores[4].kleur};text-align:right;border-bottom:1px solid #eef1ee;">${fmt(parsed.solvabiliteit)}</td><td style="padding:8px 10px;color:#888;text-align:right;border-bottom:1px solid #eef1ee;">25–40%</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${scores[4].signaal}</td></tr>
         <tr><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;font-weight:700;color:${scores[1].kleur};text-align:right;">${fmt(parsed.ebitda)}</td><td style="padding:8px 10px;color:#888;text-align:right;">6–12%</td><td style="padding:8px 10px;text-align:center;">${scores[1].signaal}</td></tr>
