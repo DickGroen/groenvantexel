@@ -1531,28 +1531,35 @@ async function submitLead() {
       }
     }
 
-    // Sla bestandstekst op in Supabase voor later gebruik door AI
+    // Sla bestandstekst op in Supabase — upsert voorkomt duplicate key fout
     if (supabaseClient && bestandenTekst) {
-      await supabaseClient.from('maandcijfers').insert([{
+      const { error: insertErr } = await supabaseClient.from('maandcijfers').upsert([{
         bedrijf, periode: 'lead-' + jaar,
         sector, omzet: 0, signaal: 'wacht', email: email || null,
         notities: bestandenTekst.substring(0, 50000)
-      }]);
+      }], { onConflict: 'bedrijf,periode' });
+      if (insertErr) console.warn('Supabase insert:', insertErr.message);
     }
 
-    const linksText = downloadLinks.length > 0
-      ? '\n\nDownloadlinks:\n' + downloadLinks.join('\n')
-      : '\n\nGeen bestanden opgeslagen in Supabase.';
-    await verstuurEmailNotificatie(
-      bedrijf,
-      'Gratis scan ' + jaar,
-      (geupload.join(', ') || 'geen bestanden') + ' | Sector: ' + sector + linksText
-    );
-
+    // Toon bevestiging DIRECT — onafhankelijk van e-mail
     const vandaag = new Date().toLocaleDateString('nl-NL', {day: 'numeric', month: 'long', year: 'numeric'});
     btn.textContent = '✔ Ontvangen op ' + vandaag + ' — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
     btn.style.background = 'var(--green)';
     showToast('✔ Cijfers ontvangen — 1-pager volgt binnen 3 werkdagen');
+
+    // E-mail op de achtergrond (fout heeft geen effect op bevestiging)
+    try {
+      const linksText = downloadLinks.length > 0
+        ? '\n\nDownloadlinks:\n' + downloadLinks.join('\n')
+        : '\n\nGeen bestanden opgeslagen in Supabase.';
+      await verstuurEmailNotificatie(
+        bedrijf,
+        'Gratis scan ' + jaar,
+        (geupload.join(', ') || 'geen bestanden') + ' | Sector: ' + sector + linksText
+      );
+    } catch(mailErr) {
+      console.warn('E-mail notificatie mislukt:', mailErr);
+    }
   } catch(e) {
     btn.disabled = false;
     btn.textContent = '▶ Versturen — uw gratis 1-pager volgt binnen 3 werkdagen';
