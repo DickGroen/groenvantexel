@@ -275,7 +275,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div style="font-size:12px;color:var(--light);margin-top:8px;">Vereist voor de AI-analyse functie. Uw sleutel wordt alleen lokaal opgeslagen.</div>
     </div>
     <div class="card" style="max-width:520px;margin-top:0;">
-      <div class="card-title">EmailJS configuratie</div>
+      <div class="card-title">Opslag beheer</div>
+      <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Verwijder dubbele uploads uit de opslag. Dit lost het probleem op als dezelfde periode meerdere keren in de dropdown staat.</p>
+      <button class="btn btn-danger" onclick="Config.opruimenUploads()">🧹 Dubbele uploads opruimen</button>
+    </div>
       <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Service ID</label><input id="cfg-service" class="form-input" value="service_oqgsajg"></div>
       <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Template ID</label><input id="cfg-template" class="form-input" value="template_q3aea4c"></div>
       <div class="form-group" style="margin-bottom:20px;"><label class="form-label">Public Key</label><input id="cfg-pubkey" class="form-input" value="ubJuLGAX11M-mSoIZ"></div>
@@ -388,7 +391,23 @@ const Config = {
   pubkey()   { return Store.getCfg('pubkey',   'ubJuLGAX11M-mSoIZ'); },
   apikey()   { return Store.getCfg('apikey',   ''); },
 
-  opslaan() {
+  opruimenUploads() {
+    const alle = Store.getUploads();
+    const map = new Map();
+    // Nieuwste eerst sorteren zodat we die bewaren
+    [...alle]
+      .sort((a,b) => new Date(b.datum||0) - new Date(a.datum||0))
+      .forEach(u => { const k = u.bedrijf+'|'+u.periode; if (!map.has(k)) map.set(k, u); });
+    const schoon = [...map.values()];
+    const aantalVerwijderd = alle.length - schoon.length;
+    if (aantalVerwijderd === 0) { UI.toast('✔ Geen duplicaten gevonden'); return; }
+    try {
+      Store.setUploads(schoon);
+      UI.toast(`✔ ${aantalVerwijderd} dubbele upload(s) verwijderd`);
+    } catch(e) {
+      UI.error('⚠ Opruimen mislukt: ' + e.message);
+    }
+  },
     ['service','template','pubkey','apikey'].forEach(k => {
       const el=$('cfg-'+k); if(el&&el.value.trim()) Store.setCfg(k,el.value.trim());
     });
@@ -630,8 +649,23 @@ const Rapport = {
     Rapport._reset(false);
     if (!_adminKlant) return;
 
-    const periodes=[...new Set(Store.getUploads().filter(u=>u.bedrijf===_adminKlant).map(u=>u.periode))]
-      .sort((a,b)=>b.localeCompare(a));
+    // Haal uploads op, dedupliceer direct in geheugen (ongeacht wat er in storage staat)
+    const alleUploads = Store.getUploads();
+    const uploadsVoorKlant = alleUploads.filter(u => u.bedrijf === _adminKlant);
+
+    // Dedupliceer: per bedrijf+periode de nieuwste bewaren
+    const periodesMap = new Map();
+    uploadsVoorKlant
+      .sort((a,b) => new Date(b.datum||0) - new Date(a.datum||0))
+      .forEach(u => { if (!periodesMap.has(u.periode)) periodesMap.set(u.periode, u); });
+
+    // Schrijf gededupliceerde versie terug naar storage
+    const andereKlanten = alleUploads.filter(u => u.bedrijf !== _adminKlant);
+    const schoon = [...andereKlanten, ...periodesMap.values()];
+    try { Store.setUploads(schoon); } catch(e) { console.warn('Dedup opslaan mislukt:', e.message); }
+
+    const periodes = [...periodesMap.keys()].sort((a,b) => b.localeCompare(a));
+
     if (pSel) pSel.innerHTML='<option value="">— Periode —</option>'+
       periodes.map(p=>`<option value="${UI.esc(p)}">${UI.esc(p)}</option>`).join('');
 
