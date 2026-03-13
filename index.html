@@ -290,7 +290,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Bedrijfsnaam *</label>
-              <input type="text" id="fd-bedrijf" placeholder="Uw bedrijfsnaam">
+              <input type="text" id="fd-bedrijf" placeholder="Uw bedrijfsnaam" autocomplete="off">
             </div>
             <div class="form-group">
               <label>Sector *</label>
@@ -378,7 +378,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Bedrijfsnaam *</label>
-              <input type="text" id="f-bedrijf" placeholder="Uw bedrijfsnaam">
+              <input type="text" id="f-bedrijf" placeholder="Uw bedrijfsnaam" autocomplete="off">
             </div>
             <div class="form-group">
               <label>Periode *</label>
@@ -463,7 +463,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Bedrijfsnaam *</label>
-              <input type="text" id="lead-bedrijf" placeholder="Uw bedrijfsnaam">
+              <input type="text" id="lead-bedrijf" placeholder="Uw bedrijfsnaam" autocomplete="off">
             </div>
             <div class="form-group">
               <label>Sector *</label>
@@ -567,7 +567,7 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
         <div>
           <label style="font-size:12px;font-weight:600;color:var(--mid);display:block;margin-bottom:4px;">E-mailadres klant</label>
-          <input type="email" id="nk-email" placeholder="klant@bedrijf.nl" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;box-sizing:border-box;">
+          <input type="email" id="nk-email" placeholder="klant@bedrijf.nl" autocomplete="off" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;box-sizing:border-box;">
         </div>
         <div>
           <label style="font-size:12px;font-weight:600;color:var(--mid);display:block;margin-bottom:4px;">Sector</label>
@@ -691,6 +691,7 @@
       <div style="background:var(--green); padding:14px 24px; display:flex; justify-content:space-between; align-items:center;">
         <div style="font-weight:700; color:#fff; font-size:15px;">📄 1-pager preview — controleer vóór publicatie</div>
         <div style="display:flex; gap:10px;">
+          <button onclick="reset1Pager()" style="background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.5); border-radius:7px; padding:9px 18px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;">🗑 Reset publicatie</button>
           <button onclick="publiceer1Pager()" style="background:#fff; color:var(--green); border:none; border-radius:7px; padding:9px 22px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">✅ Publiceer naar klant</button>
         </div>
       </div>
@@ -709,7 +710,7 @@
         <input type="file" id="pdf-file-input" accept=".pdf,.docx" style="font-size:13px; flex:1; min-width:200px;">
       </div>
       <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-        <input type="email" id="pdf-klant-email" placeholder="E-mailadres klant (voor notificatie)" style="font-size:13px; flex:1; min-width:220px; padding:8px 12px; border:1.5px solid var(--border); border-radius:6px; font-family:inherit;">
+        <input type="email" id="pdf-klant-email" autocomplete="off" placeholder="E-mailadres klant (voor notificatie)" style="font-size:13px; flex:1; min-width:220px; padding:8px 12px; border:1.5px solid var(--border); border-radius:6px; font-family:inherit;">
         <button class="action-btn primary" onclick="uploadPDF()" style="padding:10px 20px; font-size:13px;">⬆ Uploaden &amp; versturen</button>
       </div>
       <div id="pdf-upload-status" style="font-size:13px; margin-top:10px; color:var(--mid);"></div>
@@ -2559,6 +2560,26 @@ function genereer1Pager() {
 
 
 
+async function reset1Pager() {
+  const bedrijf = huidigeBedrijf || sessionStorage.getItem('eenpager-bedrijf');
+  const periode = huidigePeriode || sessionStorage.getItem('eenpager-periode');
+  if (!bedrijf || !periode) { showToast('⚠ Selecteer eerst klant en periode', '#E67E22'); return; }
+  if (!confirm(`1-pager publicatie wissen voor ${bedrijf} — ${periode}?`)) return;
+  try {
+    const { error } = await supabaseClient
+      .from('maandcijfers')
+      .update({ eenpager_html: null, eenpager_gepubliceerd: false })
+      .eq('bedrijf', bedrijf)
+      .eq('periode', periode);
+    if (error) throw error;
+    showToast('🗑 Publicatie gewist — genereer opnieuw', '#555');
+    document.getElementById('eenpager-preview-sectie').style.display = 'none';
+    sessionStorage.removeItem('eenpager-html');
+  } catch(e) {
+    showToast('⚠ Fout: ' + e.message, '#E67E22');
+  }
+}
+
 async function publiceer1Pager() {
   const html = sessionStorage.getItem('eenpager-html');
   const bedrijf = sessionStorage.getItem('eenpager-bedrijf');
@@ -2694,22 +2715,23 @@ function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
 
     <!-- Bevindingen -->
     <div style="padding:16px 24px 0;">
-      <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>
+      <div style="font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>
       ${bevindingen.map((bev, i) => `
-      <div style="display:flex;border-left:4px solid ${bev.kleur};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:2px;">
-        <div style="flex:1;padding:10px 14px;">
+      <div style="display:flex;align-items:flex-start;border-left:4px solid ${bev.kleur};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:4px;padding:11px 14px;border-radius:0 4px 4px 0;">
+        <div style="flex:1;">
           <div style="font-weight:700;color:#1F4E79;font-size:13px;">${bev.titel}</div>
-          <div style="color:#555;font-size:13px;margin-top:3px;">${bev.tekst}</div>
-        </div>
-        <div style="padding:10px 14px;text-align:right;min-width:90px;">
-          <div style="font-size:11px;color:#888;">Impact</div>
-          <div style="font-size:16px;font-weight:700;color:${bev.kleur};">${bev.impact}</div>
+          <div style="color:#444;font-size:12px;margin-top:3px;line-height:1.5;">${bev.tekst}</div>
         </div>
       </div>`).join('')}
-      <!-- Totaal -->
-      <div style="background:#D5F5E3;border-radius:6px;padding:14px 16px;margin-top:10px;">
-        <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;">Verbeterpotentieel</div>
-        <div style="font-size:13px;color:#1F4E79;margin-top:5px;line-height:1.6;">De bovenstaande aandachtspunten bevatten verbeterpotentieel voor uw bedrijf. In de <strong>Financiële Basisscan</strong> werken we dit volledig uit — met concrete bedragen en een actieplan.</div>
+      <!-- Totaal verbeterpotentieel -->
+      <div style="background:#1F4E79;border-radius:6px;padding:14px 16px;margin-top:10px;">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">Totaal verbeterpotentieel</div>
+        <div style="font-size:13px;color:#fff;margin-top:5px;line-height:1.6;">
+          De ${bevindingen.filter(b=>b.kleur!=='#27AE60').length} aandachtspunten hierboven — 
+          ${bevindingen.filter(b=>b.kleur!=='#27AE60').map(b=>b.titel).join(', ')} — 
+          bevatten concreet verbeterpotentieel voor uw bedrijf.<br>
+          <strong style="color:#9dc3e6;">In de Financiële Basisscan werken we elk punt volledig uit met concrete bedragen en een actieplan.</strong>
+        </div>
       </div>
     </div>
 
