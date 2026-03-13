@@ -1051,6 +1051,13 @@ function verwerkKlantLogin(klantData) {
           const lf = document.getElementById('nav-lead-formulier');
           if (lf) { lf.style.display = 'inline-flex'; lf.classList.add('active'); }
           document.querySelector('.nav-btn[onclick*="rapport"]')?.classList.remove('active');
+          // Reset knoptekst bij elke login
+          const submitBtn = document.getElementById('lead-submit-btn');
+          if (submitBtn) {
+            submitBtn.textContent = '▶ Versturen — uw gratis 1-pager volgt binnen 3 werkdagen';
+            submitBtn.style.background = '';
+            submitBtn.disabled = false;
+          }
           showView('lead', null);
           loadRapportVoorKlant(naam);
         }
