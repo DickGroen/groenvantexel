@@ -1197,7 +1197,7 @@ function updatePDFSectie(bedrijf, periode) {
     aiSectie.style.display = 'none';
   }
   
-  if (currentUser === 'admin' && bedrijf && periode) {
+  if (currentUser === 'admin' && bedrijf && periode && !periode.startsWith('lead-')) {
     document.getElementById('pdf-upload-sectie').style.display = 'block';
   }
 
@@ -2502,6 +2502,7 @@ async function publiceer1Pager() {
     if (error) throw error;
     showToast('✅ 1-pager gepubliceerd — klant ziet hem nu in zijn portaal');
     btn.textContent = '✅ Gepubliceerd';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch(e) {
     showToast('⚠ Fout bij publiceren: ' + e.message, '#E67E22');
     btn.textContent = '✅ Publiceer naar klant';
