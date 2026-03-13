@@ -1058,13 +1058,33 @@ function verwerkKlantLogin(klantData) {
           if (leadBedrijf) { leadBedrijf.value = naam; leadBedrijf.readOnly = true; }
           if (leadEmail && klantData.email) leadEmail.value = klantData.email;
           if (leadSector && klantData.sector) leadSector.value = klantData.sector;
-          // Reset knoptekst bij elke login
+
+          // Check of klant al eerder heeft geüpload
           const submitBtn = document.getElementById('lead-submit-btn');
-          if (submitBtn) {
-            submitBtn.textContent = '▶ Versturen — uw gratis 1-pager volgt binnen 3 werkdagen';
-            submitBtn.style.background = '';
-            submitBtn.disabled = false;
-          }
+          supabaseClient.from('maandcijfers')
+            .select('upload_datum, created_at')
+            .eq('bedrijf', naam)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .then(({ data: uploadData }) => {
+              if (submitBtn) {
+                if (uploadData && uploadData.length > 0) {
+                  // Gebruik upload_datum veld, anders created_at als fallback
+                  let datumTekst = uploadData[0].upload_datum;
+                  if (!datumTekst && uploadData[0].created_at) {
+                    datumTekst = new Date(uploadData[0].created_at).toLocaleDateString('nl-NL', {day: 'numeric', month: 'long', year: 'numeric'});
+                  }
+                  submitBtn.textContent = '✔ Ontvangen op ' + (datumTekst || '—') + ' — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
+                  submitBtn.style.background = 'var(--green)';
+                  submitBtn.disabled = true;
+                } else {
+                  submitBtn.textContent = '▶ Versturen — uw gratis 1-pager volgt binnen 3 werkdagen';
+                  submitBtn.style.background = '';
+                  submitBtn.disabled = false;
+                }
+              }
+            });
+
           showView('lead', null);
           loadRapportVoorKlant(naam);
         }
@@ -1547,10 +1567,13 @@ async function submitLead() {
 
     // Sla bestandstekst op in Supabase — upsert voorkomt duplicate key fout
     if (supabaseClient && bestandenTekst) {
+      const uploadDatum = new Date().toLocaleDateString('nl-NL', {day: 'numeric', month: 'long', year: 'numeric'});
       const { error: insertErr } = await supabaseClient.from('maandcijfers').upsert([{
         bedrijf, periode: 'lead-' + jaar,
         sector, omzet: 0, signaal: 'wacht', email: email || null,
-        notities: bestandenTekst.substring(0, 50000)
+        pdf_tekst: bestandenTekst.substring(0, 50000),
+        notities: bestandenTekst.substring(0, 50000),
+        upload_datum: uploadDatum
       }], { onConflict: 'bedrijf,periode' });
       if (insertErr) console.warn('Supabase insert:', insertErr.message);
     }
@@ -2185,13 +2208,16 @@ function parseAnalyseData(tekst) {
       if (v && v < 100) data.personeelskosten = v;
     }
     if (r.includes('debiteurendag') && data.debiteurendagen === null) {
-      // Zoek expliciet "= X dagen" patroon — negeer grote bedragen
+      // 1. Zoek "= X dagen" patroon
       const dagM = regel.match(/=\s*(\d{1,3})\s*dag/i);
       if (dagM) {
         data.debiteurendagen = parseFloat(dagM[1]);
       } else {
+        // 2. Zoek eerste getal in de regel
         const v = getGetal(regel.replace(/debiteurendag\w*/i,''));
-        if (v && v < 365) data.debiteurendagen = v; // max 365 dagen
+        // Alleen accepteren als het een dagentelling is (1-365), niet een bedrag (>999)
+        if (v && v >= 1 && v <= 365) data.debiteurendagen = v;
+        // Als v > 365 of v > 999: skip — de formule-fallback hieronder vangt het op
       }
     }
     if (r.includes('solvabiliteit') && data.solvabiliteit === null) {
@@ -2225,18 +2251,20 @@ function parseAnalyseData(tekst) {
     if (m) data.solvabiliteit = parseFloat(m[1].replace(',','.'));
   }
   if (data.debiteurendagen === null) {
-    // Zoek eerst "Debiteurendagen: X / Y x 365 = Z dagen" formule
-    const formuleM = tekst.match(/debiteurendagen[:\s]+[\d.,]+\s*\/\s*[\d.,]+\s*x\s*365\s*=\s*([\d]+)\s*dagen/i);
+    // 1. Zoek "= Z dagen" patroon in volledige tekst (formule of berekening)
+    const formuleM = tekst.match(/debiteurendagen[^=\n]{0,60}=\s*(\d{1,3})\s*dag/i);
     if (formuleM) {
       data.debiteurendagen = parseFloat(formuleM[1]);
     } else {
-      // Bereken: debiteuren / omzet * 365
-      const debM = tekst.match(/debiteuren\s+(\d{2,3}\.\d{3})/i);
-      const omzM = tekst.match(/netto-omzet\s+(\d+[.,]?\d*\.?\d*)/i);
+      // 2. Bereken zelf: debiteuren / omzet * 365
+      const debM = tekst.match(/debiteuren\s+([\d.]+)/i);
+      const omzM = tekst.match(/(?:netto-omzet|totaal netto-omzet)\s+([\d.]+)/i);
       if (debM && omzM) {
-        const deb = parseFloat(debM[1].replace('.',''));
-        const omz = parseFloat(omzM[1].replace(/\./g,'').replace(',','.'));
-        if (omz > 0) data.debiteurendagen = Math.round(deb / omz * 365);
+        const deb = parseFloat(debM[1].replace(/\./g,''));
+        const omz = parseFloat(omzM[1].replace(/\./g,''));
+        if (omz > 0 && deb > 0 && deb < omz) {
+          data.debiteurendagen = Math.round(deb / omz * 365);
+        }
       }
     }
   }
@@ -2570,26 +2598,32 @@ async function genereer1Pager() {
   let tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
 
   // Als sessionStorage leeg is, laad direct uit Supabase
-  if (!tekst && huidigePDFKlant && huidigePDFPeriode) {
+  // Laad altijd beide: pdf_tekst voor parser (exacte cijfers), notities voor bevindingen
+  let pdfTekst = '';
+  if (huidigePDFKlant && huidigePDFPeriode) {
     try {
       const { data } = await supabaseClient
         .from('maandcijfers')
-        .select('notities')
+        .select('notities, pdf_tekst')
         .eq('bedrijf', huidigePDFKlant)
         .eq('periode', huidigePDFPeriode)
         .single();
-      tekst = (data && data.notities) || '';
-      if (tekst) sessionStorage.setItem('ai-analyse-tekst', tekst);
+      if (data) {
+        pdfTekst = data.pdf_tekst || data.notities || '';
+        tekst = data.notities || pdfTekst;
+        if (tekst) sessionStorage.setItem('ai-analyse-tekst', tekst);
+      }
     } catch(e) {}
   }
 
-  if (!tekst) { showToast('\u26A0 Selecteer klant en periode, of voer eerst een AI-analyse uit', '#E67E22'); return; }
+  if (!tekst && !pdfTekst) { showToast('\u26A0 Selecteer klant en periode, of voer eerst een AI-analyse uit', '#E67E22'); return; }
 
   const bedrijf = huidigePDFKlant || '[BEDRIJF]';
   const periode = huidigePDFPeriode || '2024';
   const sector = document.getElementById('ai-sector')?.value || '\u2014';
 
-  const parsed = parseAnalyseData(tekst);
+  // Gebruik pdf_tekst voor parser zodat AI-tabelfouten (187300dgn) geen effect hebben
+  const parsed = parseAnalyseData(pdfTekst || tekst);
   const html = bouw1PagerHTML(bedrijf, periode, sector, parsed, tekst);
 
   const preview = document.getElementById('eenpager-preview-sectie');
@@ -2889,6 +2923,8 @@ function appInit() {
         pogingen++;
         if (supabaseClient || pogingen > 30) {
           clearInterval(wacht);
+          currentUser = 'admin';
+          document.getElementById('login-screen').classList.remove('active');
           showView('dashboard', document.querySelector('.nav-btn[onclick*="dashboard"]'));
           loadDashboard();
           const nkBtn = document.getElementById('nav-klanten-formulier');
