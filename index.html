@@ -1549,7 +1549,8 @@ async function submitLead() {
       (geupload.join(', ') || 'geen bestanden') + ' | Sector: ' + sector + linksText
     );
 
-    btn.textContent = '✔ Ontvangen — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
+    const vandaag = new Date().toLocaleDateString('nl-NL', {day: 'numeric', month: 'long', year: 'numeric'});
+    btn.textContent = '✔ Ontvangen op ' + vandaag + ' — uw 1-pager is binnen 3 werkdagen klaar in uw portaal';
     btn.style.background = 'var(--green)';
     showToast('✔ Cijfers ontvangen — 1-pager volgt binnen 3 werkdagen');
   } catch(e) {
@@ -1976,11 +1977,11 @@ async function startAIAnalyse() {
       // Opgeslagen analyse gevonden — direct tonen, geen API nodig
       const opgeslagen = cijferData.notities;
       resultaat.textContent = opgeslagen;
-      resultaat.style.display = 'block';
+      resultaat.style.display = 'none';
       acties.style.display = 'flex';
       status.textContent = '✔ Analyse gereed';
       sessionStorage.setItem('ai-analyse-tekst', opgeslagen);
-      toonVisualisatie(opgeslagen);
+      // toonVisualisatie(opgeslagen); — verborgen
       return; // stop hier — geen API aanroep nodig
     } else if (false) {
       // (nooit bereikt — placeholder voor else)
@@ -2085,7 +2086,7 @@ MKB Stresstest Methode™ | Vertrouwelijk — intern gebruik`;
     }
 
     resultaat.textContent = tekst;
-    resultaat.style.display = 'block';
+    resultaat.style.display = 'none';
     acties.style.display = 'flex';
     acties.style.visibility = 'visible';
     status.textContent = '✔ Analyse gereed';
@@ -2163,8 +2164,14 @@ function parseAnalyseData(tekst) {
       if (v && v < 100) data.personeelskosten = v;
     }
     if (r.includes('debiteurendag') && data.debiteurendagen === null) {
-      const v = getGetal(regel.replace(/debiteurendag\w*/i,''));
-      if (v) data.debiteurendagen = v;
+      // Zoek expliciet "= X dagen" patroon — negeer grote bedragen
+      const dagM = regel.match(/=\s*(\d{1,3})\s*dag/i);
+      if (dagM) {
+        data.debiteurendagen = parseFloat(dagM[1]);
+      } else {
+        const v = getGetal(regel.replace(/debiteurendag\w*/i,''));
+        if (v && v < 365) data.debiteurendagen = v; // max 365 dagen
+      }
     }
     if (r.includes('solvabiliteit') && data.solvabiliteit === null) {
       const v = zoekPct(regel, 'solvabiliteit') || getGetal(regel.replace(/solvabiliteit/i,''));
