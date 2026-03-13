@@ -637,7 +637,7 @@
           <option value="Schoonmaak & Facilitair">Schoonmaak & Facilitair</option>
           <option value="Anders">Anders</option>
         </select>
-        <button class="action-btn primary" onclick="startAIAnalyse()" style="padding:10px 24px; font-size:13px; background:var(--blue);">🚀 Analyseer & genereer 1-pager</button>
+        <button class="action-btn primary" onclick="startAIAnalyse()" style="padding:10px 24px; font-size:13px; background:var(--blue);">🚀 Analyseer gegevens</button>
       </div>
       <div id="ai-analyse-status" style="font-size:13px; margin-top:8px; color:var(--mid);"></div>
       <div id="ai-analyse-resultaat" style="display:none; margin-top:16px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px; font-size:13px; line-height:1.7; white-space:pre-wrap; max-height:600px; overflow-y:auto;"></div>
@@ -2636,12 +2636,16 @@ async function laadEenpagerKlant() {
     if (data?.eenpager_gepubliceerd && data?.eenpager_html) {
       document.getElementById('eenpager-klant-inhoud').innerHTML = data.eenpager_html;
       sectie.style.display = 'block';
-      if (leegTekst) leegTekst.parentElement.style.display = 'none';
+      // Verberg de standaard rapport-kaart — klant ziet alleen de 1-pager
+      const rapportContent = document.getElementById('rapport-content');
+      if (rapportContent) rapportContent.style.display = 'none';
+      const klantBar = document.getElementById('rapport-klant-bar');
+      if (klantBar) klantBar.style.display = 'none';
     } else {
       sectie.style.display = 'none';
       if (leegTekst) {
         leegTekst.parentElement.style.display = 'block';
-        leegTekst.textContent = 'Uw gratis 1-pager is nog niet klaar. U ontvangt een bericht zodra deze beschikbaar is — doorgaans binnen 3 werkdagen.';
+        leegTekst.textContent = 'Uw gratis 1-pager is binnen 3 werkdagen klaar. U ontvangt bericht zodra deze beschikbaar is.';
       }
     }
   } catch(e) {}
@@ -2725,6 +2729,7 @@ function appInit() {
             const naam = naamData?.data?.naam || savedUser;
             sessionStorage.setItem('gvt-naam', naam);
           }
+          showView('rapport', document.querySelector('.nav-btn[onclick*="rapport"]'));
           loadRapportVoorKlant(savedUser);
         }
       }, 100);
