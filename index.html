@@ -754,8 +754,24 @@ const Rapport = {
     if (!_adminKlant||!_adminPeriode) { UI.warn('⚠ Geen klant/periode geselecteerd'); return; }
     const uploads=Store.getUploads().filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
     if (!uploads.length) { UI.warn('⚠ Geen uploads gevonden'); return; }
-    const sector=$('ai-sector')?.value || Store.getKlanten().find(k=>k.naam===_adminKlant)?.sector || '—';
-    const html=Rapport._bouw1Pager(_adminKlant, _adminPeriode, sector, Fin.parseData(uploads[0].pdfTekst||''));
+
+    const klantObj = Store.getKlanten().find(k=>k.naam===_adminKlant);
+    // Sector: dropdown heeft voorrang, dan klantprofiel, dan upload, dan fallback
+    const sector = ($('ai-sector')?.value||'').trim()
+      || klantObj?.sector
+      || uploads[0].sector
+      || '—';
+
+    // Gebruik AI-analysetekst voor parsing — die bevat gestructureerde kengetallen.
+    // Valt terug op ruwe pdfTekst als er nog geen analyse is gedraaid.
+    const analyseTekst = Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
+    const parseTekst   = analyseTekst || uploads[0].pdfTekst || '';
+
+    if (!analyseTekst) {
+      UI.warn('⚠ Tip: draai eerst de AI-analyse voor nauwkeurigere kengetallen in de 1-pager.');
+    }
+
+    const html = Rapport._bouw1Pager(_adminKlant, _adminPeriode, sector, Fin.parseData(parseTekst));
     setHTML('prev-inhoud', html);
     show('prev-box');
     setTxt('btn-pub','✅ Publiceer naar klant');
@@ -915,11 +931,11 @@ const Formulier = {
     const email  =($('f-email')?.value||'').trim();
     const btn    =$('f-submit');
 
-    if (!bedrijf) { UI.warn('⚠ Vul bedrijfsnaam in'); return; }
-    if (!sector)  { UI.warn('⚠ Kies uw sector'); return; }
+    if (!bedrijf) { Formulier._bezig=false; UI.warn('⚠ Vul bedrijfsnaam in'); return; }
+    if (!sector)  { Formulier._bezig=false; UI.warn('⚠ Kies uw sector'); return; }
     const vw1   =$('f-vw1')?.files?.[0];
     const balans=$('f-balans1')?.files?.[0];
-    if (!vw1||!balans) { UI.warn('⚠ Upload minimaal V&W en balans'); return; }
+    if (!vw1||!balans) { Formulier._bezig=false; UI.warn('⚠ Upload minimaal V&W en balans'); return; }
 
     if(btn){ btn.textContent='⏳ Bezig met verwerken...'; btn.disabled=true; }
 
@@ -1135,8 +1151,8 @@ const Fin = {
       if((r.includes('nettoresultaat')||r.includes('ebitda'))&&d.ebitda===null){ const v=zoekPct(regel,'nettoresultaat','ebitda')||getN(regel.replace(/nettoresultaat\s*%|ebitda/gi,'')); if(v&&v<50) d.ebitda=v; }
       if(r.includes('personeelskost')&&d.personeelskosten===null){               const v=zoekPct(regel,'personeelskost')||getN(regel.replace(/personeelskost\w*/i,'')); if(v&&v<100) d.personeelskosten=v; }
       if(r.includes('debiteurendag')&&d.debiteurendagen===null){
-        const m=regel.match(/=\s*(\d{1,3})\s*dag/i);
-        if(m){ d.debiteurendagen=parseFloat(m[1]); }
+        const m=regel.match(/=\s*(\d{1,5})\s*dag/i);
+        if(m){ const v=parseFloat(m[1]); if(v>=1&&v<=365) d.debiteurendagen=v; }
         else{ const v=getN(regel.replace(/debiteurendag\w*/i,'')); if(v&&v>=1&&v<=365) d.debiteurendagen=v; }
       }
       if(r.includes('solvabiliteit')&&d.solvabiliteit===null){                  const v=zoekPct(regel,'solvabiliteit')||getN(regel.replace(/solvabiliteit/i,'')); if(v&&v<100) d.solvabiliteit=v; }
