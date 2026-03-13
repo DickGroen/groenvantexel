@@ -1618,6 +1618,27 @@ function toonFormulier(type) {
   tabM.style.background = isDoorlichting ? '#fff' : 'var(--blue)';
   tabM.style.color = isDoorlichting ? 'var(--mid)' : '#fff';
   tabM.style.fontWeight = isDoorlichting ? '600' : '700';
+
+  // Herstel knopstatus als klant al heeft geupload
+  if (isDoorlichting && supabaseClient && currentUser && currentUser !== 'admin') {
+    const btn = document.getElementById('submit-btn-doorlichting');
+    supabaseClient.from('maandcijfers')
+      .select('upload_datum, created_at')
+      .eq('bedrijf', currentUser)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (btn && data && data.length > 0) {
+          let datum = data[0].upload_datum;
+          if (!datum && data[0].created_at) {
+            datum = new Date(data[0].created_at).toLocaleDateString('nl-NL', {day:'numeric',month:'long',year:'numeric'});
+          }
+          btn.textContent = '✔ Ontvangen op ' + (datum||'—') + ' — u ontvangt binnen 3 werkdagen uw doorlichting';
+          btn.style.background = 'var(--green)';
+          btn.disabled = true;
+        }
+      });
+  }
 }
 
 async function submitDoorlichting() {
@@ -1669,7 +1690,8 @@ async function submitDoorlichting() {
       }]);
     }
 
-    btn.textContent = '✔ Verzonden — u ontvangt binnen 3 werkdagen uw doorlichting';
+    const vandaag = new Date().toLocaleDateString('nl-NL', {day: 'numeric', month: 'long', year: 'numeric'});
+    btn.textContent = '✔ Ontvangen op ' + vandaag + ' — u ontvangt binnen 3 werkdagen uw doorlichting';
     btn.style.background = 'var(--green)';
     const linksText = downloadLinks.length > 0
       ? '\n\nDownloadlinks:\n' + downloadLinks.join('\n')
