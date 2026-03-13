@@ -797,11 +797,17 @@ const Rapport = {
   },
 
   _bouw1Pager(bedrijf, periode, sector, d) {
-    const bev  = Fin.bevindingen(d);
-    const datum= UI.datumNL();
-    const jaar = (periode.match(/(\d{4})/)||[])[1] || periode;
-    const sig  = (n,v)=>Fin.signaal(n,v);
-    const fmt  = (v,e='%')=>(v!==null&&v!==undefined)?v+e:'—';
+    const bev   = Fin.bevindingen(d);
+    const datum = UI.datumNL();
+    const jaar  = (periode.match(/(\d{4})/)||[])[1] || periode;
+    const sig   = (n,v)=>Fin.signaal(n,v);
+    const fmt   = (v,e='%')=>(v!==null&&v!==undefined)?v+e:'—';
+    const fmtEur= v=>v!=null?'€ '+Math.round(v).toLocaleString('nl-NL'):'€ —';
+
+    // Omzet correct formatteren als heel getal
+    const omzetStr = d.omzet
+      ? '€ ' + Math.round(d.omzet).toLocaleString('nl-NL')
+      : '—';
 
     const rij=(lbl,veld,eenh,norm,alt)=>`
       <tr${alt?' style="background:#f9fbfa;"':''}>
@@ -811,10 +817,14 @@ const Rapport = {
         <td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${sig(veld,d[veld]).s}</td>
       </tr>`;
 
-    const ap=bev.filter(b=>b.k!=='#27AE60');
-    const verbeter=ap.length>0
-      ?`Uit de analyse komen <strong>${ap.length} aandachtspunten</strong> naar voren: ${ap.map(b=>'<em>'+b.t+'</em>').join(' en ')}. In de Basisscan werken we elk punt volledig uit.`
-      :'De financiële positie is stabiel. In de Basisscan werken we alle ratio\'s volledig uit.';
+    // Totaal verbeterpotentieel = som van alle berekende bedragen
+    const totaal = bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s, 0);
+    const totaalStr = totaal>0 ? fmtEur(totaal) : '€ —';
+
+    const ap = bev.filter(b=>b.k!=='#27AE60');
+    const verbeter = ap.length>0
+      ? `Uit de analyse komen <strong>${ap.length} aandachtspunten</strong> naar voren: ${ap.map(b=>'<em>'+UI.esc(b.t)+'</em>').join(' en ')}. In de Basisscan werken we elk punt volledig uit.`
+      : 'De financiële positie is stabiel. In de Basisscan werken we alle ratio\'s volledig uit.';
 
     return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;">
   <div style="background:#1F4E79;padding:22px 24px;">
@@ -823,6 +833,7 @@ const Rapport = {
     <div style="color:#9dc3e6;font-size:12px;margin-top:4px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div>
     <div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div>
   </div>
+
   <div style="padding:20px 24px 0;">
     <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div>
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
@@ -834,7 +845,7 @@ const Rapport = {
       </tr>
       <tr style="background:#f9fbfa;">
         <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td>
-        <td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${d.omzet?'€ '+d.omzet.toLocaleString('nl-NL'):'—'}</td>
+        <td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td>
         <td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td>
         <td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td>
       </tr>
@@ -849,17 +860,43 @@ const Rapport = {
       </tr>
     </table>
   </div>
+
   <div style="padding:16px 24px 0;">
     <div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>
-    ${bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;">
-      <div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div>
-      <div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div>
+    ${bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div style="flex:1;">
+        <div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div>
+        <div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div>
+      </div>
+      ${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}
     </div>`).join('')}
-    <div style="background:#1F4E79;border-radius:6px;padding:12px 16px;margin-top:10px;">
-      <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Verbeterpotentieel</div>
-      <div style="font-size:13px;color:#fff;line-height:1.7;">${verbeter}</div>
+    <div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div>
+        <div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div>
+      </div>
+      <div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div>
     </div>
   </div>
+
+  <div style="padding:16px 24px 0;">
+    <div style="font-size:10px;font-weight:700;color:#1F4E79;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D6E4F0;margin-bottom:12px;">3 &nbsp; De drie prioriteiten</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="background:#1F4E79;">
+        <td style="padding:8px 10px;color:#fff;font-weight:700;width:28px;">#</td>
+        <td style="padding:8px 10px;color:#fff;font-weight:700;">Termijn</td>
+        <td style="padding:8px 10px;color:#fff;font-weight:700;">Actie</td>
+        <td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Resultaat</td>
+      </tr>
+      ${bev.map((b,i)=>`<tr${i%2===0?' style="background:#f9fbfa;"':''}>
+        <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;font-weight:700;color:#1F4E79;">${i+1}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;color:#555;">${UI.esc(b.termijn||'—')}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${UI.esc(b.actie||'—')}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;text-align:right;font-weight:700;color:${b.k};">${fmtEur(b.bedrag)}</td>
+      </tr>`).join('')}
+    </table>
+  </div>
+
   <div style="padding:16px 24px 20px;">
     <div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;">
       <div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:6px;">Wilt u verder?</div>
@@ -869,6 +906,7 @@ const Rapport = {
       </div>
     </div>
   </div>
+
   <div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;">
     <div style="font-size:11px;color:#888;line-height:1.7;">
       <strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>
@@ -1132,41 +1170,99 @@ ${uploads[0].pdfTekst||''}`;
 // ─── FINANCIEEL ───────────────────────────────────────────────────────────────
 const Fin = {
   parseData(tekst) {
-    const d={ brutomarge:null,ebitda:null,personeelskosten:null,debiteurendagen:null,solvabiliteit:null,currentratio:null,omzet:null };
+    const d={ brutomarge:null,ebitda:null,personeelskosten:null,debiteurendagen:null,solvabiliteit:null,currentratio:null,omzet:null,debiteuren:null,balanstotaal:null };
     if(!tekst) return d;
 
     const getN=s=>{
       // Verwijder duizendpunten (NL: 1.234.567) maar bewaar decimalen
-      // Patroon: punt gevolgd door exact 3 cijfers én daarna niet-cijfer = duizendpunt
       const g=s.replace(/(\d)\.(\d{3})(?!\d)/g,'$1$2');
       const m=g.match(/(\d+[,.]?\d*)/);
       if(!m) return null;
       return parseFloat(m[1].replace(',','.'));
     };
     const zoekPct=(t,...kws)=>{ for(const kw of kws){ const m=t.match(new RegExp(kw+'[^\\n]{0,30}?([\\d]+[,.]?[\\d]*)\\s*%','i')); if(m) return parseFloat(m[1].replace(',','.')); } return null; };
+    // Getal uit regel halen waarbij NL-duizendpunten worden verwijderd
+    const getEuro=s=>{ const g=s.replace(/(\d)\.(\d{3})(?!\d)/g,'$1$2'); const m=g.match(/(\d[\d,]*)/); return m?parseFloat(m[1].replace(',','.')):null; };
 
     for(const regel of tekst.split('\n')){
       const r=regel.toLowerCase();
-      if(r.includes('brutomarge')&&d.brutomarge===null){                         const v=zoekPct(regel,'brutomarge')||getN(regel.replace(/brutomarge/i,'')); if(v&&v<100) d.brutomarge=v; }
-      if((r.includes('nettoresultaat')||r.includes('ebitda'))&&d.ebitda===null){ const v=zoekPct(regel,'nettoresultaat','ebitda')||getN(regel.replace(/nettoresultaat\s*%|ebitda/gi,'')); if(v&&v<50) d.ebitda=v; }
-      if(r.includes('personeelskost')&&d.personeelskosten===null){               const v=zoekPct(regel,'personeelskost')||getN(regel.replace(/personeelskost\w*/i,'')); if(v&&v<100) d.personeelskosten=v; }
-      if(r.includes('debiteurendag')&&d.debiteurendagen===null){
-        const m=regel.match(/=\s*(\d{1,5})\s*dag/i);
-        if(m){ const v=parseFloat(m[1]); if(v>=1&&v<=365) d.debiteurendagen=v; }
-        else{ const v=getN(regel.replace(/debiteurendag\w*/i,'')); if(v&&v>=1&&v<=365) d.debiteurendagen=v; }
+      if(r.includes('brutomarge')&&d.brutomarge===null){
+        const v=zoekPct(regel,'brutomarge')||getN(regel.replace(/brutomarge/i,''));
+        if(v&&v<100) d.brutomarge=v;
       }
-      if(r.includes('solvabiliteit')&&d.solvabiliteit===null){                  const v=zoekPct(regel,'solvabiliteit')||getN(regel.replace(/solvabiliteit/i,'')); if(v&&v<100) d.solvabiliteit=v; }
-      if(r.includes('current ratio')&&d.currentratio===null){                   const v=getN(regel.replace(/current.ratio/i,'')); if(v&&v<10) d.currentratio=v; }
+      if((r.includes('nettoresultaat')||r.includes('ebitda'))&&d.ebitda===null){
+        const v=zoekPct(regel,'nettoresultaat','ebitda')||getN(regel.replace(/nettoresultaat\s*%|ebitda/gi,''));
+        if(v&&v<50) d.ebitda=v;
+      }
+      if(r.includes('personeelskost')&&d.personeelskosten===null){
+        const v=zoekPct(regel,'personeelskost')||getN(regel.replace(/personeelskost\w*/i,''));
+        if(v&&v<100) d.personeelskosten=v;
+      }
+      if(r.includes('debiteurendag')&&d.debiteurendagen===null){
+        // Prioriteit 1: "= X dagen" of "= X dgn" — expliciet berekende waarde
+        const mEq=regel.match(/=\s*(\d{1,4})\s*dag/i);
+        if(mEq){ const v=parseFloat(mEq[1]); if(v>=1&&v<=365) d.debiteurendagen=v; }
+        else {
+          // Prioriteit 2: een los getal in de regel, maar alleen als het realistisch is
+          const v=getN(regel.replace(/debiteurendag\w*/i,''));
+          if(v&&v>=1&&v<=365) d.debiteurendagen=v;
+        }
+      }
+      if(r.includes('solvabiliteit')&&d.solvabiliteit===null){
+        const v=zoekPct(regel,'solvabiliteit')||getN(regel.replace(/solvabiliteit/i,''));
+        if(v&&v<100) d.solvabiliteit=v;
+      }
+      if(r.includes('current ratio')&&d.currentratio===null){
+        const v=getN(regel.replace(/current.ratio/i,''));
+        if(v&&v<10) d.currentratio=v;
+      }
+      // Balanstotaal
+      if((r.includes('totaal activa')||r.includes('totaal passiva'))&&d.balanstotaal===null){
+        const v=getEuro(regel.replace(/totaal\s+(activa|passiva)/i,''));
+        if(v&&v>1000) d.balanstotaal=v;
+      }
+      // Debiteuren (voor berekening debiteurendagen)
+      if(r.match(/^debiteuren\s/)&&d.debiteuren===null){
+        const v=getEuro(regel.replace(/debiteuren/i,''));
+        if(v&&v>0) d.debiteuren=v;
+      }
     }
 
     // Fallbacks
-    if(d.debiteurendagen===null){ const m=tekst.match(/debiteurendagen[^=\n]{0,60}=\s*(\d{1,3})\s*dag/i); if(m) d.debiteurendagen=parseFloat(m[1]); }
-    if(d.debiteurendagen===null){ const dM=tekst.match(/debiteuren\s+([\d.]+)/i),oM=tekst.match(/(?:totaal netto-omzet|netto-omzet)\s+([\d.]+)/i); if(dM&&oM){ const db=parseFloat(dM[1].replace(/\./g,'')),om=parseFloat(oM[1].replace(/\./g,'')); if(om>0&&db>0&&db<om) d.debiteurendagen=Math.round(db/om*365); } }
-    if(d.omzet===null){           const m=tekst.match(/(?:totaal netto-omzet|netto-omzet)\s+([\d.]+)/i); if(m) d.omzet=parseFloat(m[1].replace(/\./g,'')); }
-    if(d.personeelskosten===null&&d.omzet){ const m=tekst.match(/personeelskosten\s+([\d.]+)/i); if(m){ const pk=parseFloat(m[1].replace(/\./g,'')); d.personeelskosten=Math.round(pk/d.omzet*1000)/10; } }
-    if(d.brutomarge===null){      const m=tekst.match(/brutomarge\s*%?\s*([\d,]+)%/i); if(m) d.brutomarge=parseFloat(m[1].replace(',','.')); }
-    if(d.ebitda===null){          const m=tekst.match(/nettoresultaat\s*%?\s*([\d,]+)%/i); if(m) d.ebitda=parseFloat(m[1].replace(',','.')); }
-    if(d.solvabiliteit===null){   const m=tekst.match(/solvabiliteit\s*%?\s*([\d,]+)%/i); if(m) d.solvabiliteit=parseFloat(m[1].replace(',','.')); }
+    if(d.debiteurendagen===null){
+      // Zoek "Debiteurendagen: X / Y x 365 = Z dagen" patroon
+      const mCalc=tekst.match(/[Dd]ebiteurendag[^=\n]{0,80}=\s*(\d{1,4})\s*dag/i);
+      if(mCalc){ const v=parseFloat(mCalc[1]); if(v>=1&&v<=365) d.debiteurendagen=v; }
+    }
+    if(d.debiteurendagen===null&&d.debiteuren&&d.omzet&&d.omzet>0){
+      const calc=Math.round(d.debiteuren/d.omzet*365);
+      if(calc>=1&&calc<=365) d.debiteurendagen=calc;
+    }
+    if(d.omzet===null){
+      const m=tekst.match(/(?:totaal netto-omzet|netto-omzet)\s+([\d.]+)/i);
+      if(m) d.omzet=parseFloat(m[1].replace(/\./g,''));
+    }
+    if(d.balanstotaal===null){
+      const m=tekst.match(/totaal\s+(?:activa|passiva)\s+([\d.]+)/i);
+      if(m) d.balanstotaal=parseFloat(m[1].replace(/\./g,''));
+    }
+    if(d.debiteuren===null){
+      const m=tekst.match(/[Dd]ebiteuren\s+([\d.]+)/);
+      if(m) d.debiteuren=parseFloat(m[1].replace(/\./g,''));
+    }
+    if(d.personeelskosten===null&&d.omzet){
+      const m=tekst.match(/[Pp]ersoneelskosten\s+([\d.]+)/);
+      if(m){ const pk=parseFloat(m[1].replace(/\./g,'')); d.personeelskosten=Math.round(pk/d.omzet*1000)/10; }
+    }
+    if(d.brutomarge===null){
+      const m=tekst.match(/[Bb]rutomarge\s*%?\s*([\d,]+)%/i); if(m) d.brutomarge=parseFloat(m[1].replace(',','.'));
+    }
+    if(d.ebitda===null){
+      const m=tekst.match(/[Nn]ettoresultaat\s*%?\s*([\d,]+)%/i); if(m) d.ebitda=parseFloat(m[1].replace(',','.'));
+    }
+    if(d.solvabiliteit===null){
+      const m=tekst.match(/[Ss]olvabiliteit\s*%?\s*([\d,]+)%/i); if(m) d.solvabiliteit=parseFloat(m[1].replace(',','.'));
+    }
     return d;
   },
 
@@ -1179,25 +1275,83 @@ const Fin = {
   },
 
   bevindingen(d) {
+    const fmt=n=>n!=null?'€ '+Math.round(n).toLocaleString('nl-NL'):'€ —';
     const neg=[];
-    if(d.debiteurendagen&&d.debiteurendagen>45)    neg.push({t:'Debiteurenprobleem',    tx:`Uw klanten betalen gemiddeld na ${Math.round(d.debiteurendagen)} dagen — ${Math.round(d.debiteurendagen)-45} dagen boven de sectornorm van 30–45 dagen. Dit bindt onnodig werkkapitaal.`,k:'#C0392B'});
-    if(d.ebitda!==null&&d.ebitda<6)               neg.push({t:'Winstgevendheidsprobleem',tx:`Het nettoresultaat is ${d.ebitda}% — onder de norm van 6–12%. In de Basisscan analyseren we waar de marge weglekt.`,k:'#E67E22'});
-    if(d.solvabiliteit!==null&&d.solvabiliteit<25) neg.push({t:'Solvabiliteitsprobleem', tx:`De solvabiliteit bedraagt ${d.solvabiliteit}% — onder de norm van 25–40%. Het eigen vermogen is te laag.`,k:'#C0392B'});
-    if(d.personeelskosten&&d.personeelskosten>60)  neg.push({t:'Personeelskosten hoog',  tx:`Personeelskosten bedragen ${d.personeelskosten}% van de omzet — boven de norm van 45–60%.`,k:'#C0392B'});
-    if(d.brutomarge!==null&&d.brutomarge<30)       neg.push({t:'Brutomarge laag',         tx:`De brutomarge is ${d.brutomarge}% — onder de norm van 30–40%. Inkoop of tariefstelling verdienen aandacht.`,k:'#C0392B'});
+
+    // Debiteurenprobleem: extra gebonden kapitaal = (werkelijk - 45) / 365 * omzet
+    if(d.debiteurendagen&&d.debiteurendagen>45){
+      const extra=d.omzet?Math.round((d.debiteurendagen-45)/365*d.omzet):null;
+      neg.push({
+        t:'Debiteurenprobleem',
+        tx:`Klanten betalen gemiddeld na ${Math.round(d.debiteurendagen)} dagen — ${Math.round(d.debiteurendagen)-45} dagen boven de norm van 30–45 dagen. Dit bindt ${extra?fmt(extra):''} aan onnodig werkkapitaal.`,
+        bedrag: extra,
+        actie:'Stuur aanmaningen na 30 dagen en bied 2% korting bij betaling binnen 14 dagen.',
+        termijn:'Deze week',
+        k:'#C0392B'
+      });
+    }
+
+    // Winstgevendheidsprobleem: gemiste winst = (norm 9% - werkelijk) * omzet
+    if(d.ebitda!==null&&d.ebitda<6){
+      const gemist=d.omzet?Math.round((9-d.ebitda)/100*d.omzet):null;
+      neg.push({
+        t:'Winstgevendheidsprobleem',
+        tx:`Nettoresultaat is ${d.ebitda}% — onder de norm van 6–12%. Bij sectornorm van 9% loopt u ${gemist?fmt(gemist):''} aan winst mis.`,
+        bedrag: gemist,
+        actie:'Analyseer de vijf grootste kostenposten en stel tarieven bij met 3–5%.',
+        termijn:'Deze maand',
+        k:'#E67E22'
+      });
+    }
+
+    // Solvabiliteitsprobleem: vermogenstekort = (norm 32.5% - werkelijk%) * balanstotaal
+    if(d.solvabiliteit!==null&&d.solvabiliteit<25){
+      const tekort=d.balanstotaal?Math.round((32.5-d.solvabiliteit)/100*d.balanstotaal):null;
+      neg.push({
+        t:'Solvabiliteitsprobleem',
+        tx:`Solvabiliteit is ${d.solvabiliteit}% — onder de norm van 25–40%. Vermogenstekort t.o.v. sectornorm: ${tekort?fmt(tekort):'onbekend'}.`,
+        bedrag: tekort,
+        actie:'Reserveer minimaal 50% van de jaarwinst en bespreek herfinanciering met de bank.',
+        termijn:'Dit kwartaal',
+        k:'#C0392B'
+      });
+    }
+
+    // Personeelskosten te hoog: extra kosten = (werkelijk% - 52.5%) * omzet
+    if(d.personeelskosten&&d.personeelskosten>60){
+      const extra=d.omzet?Math.round((d.personeelskosten-52.5)/100*d.omzet):null;
+      neg.push({
+        t:'Personeelskosten hoog',
+        tx:`Personeelskosten zijn ${d.personeelskosten}% van omzet — boven de norm van 45–60%. Dat is ${extra?fmt(extra):''} meer dan het sectorgemiddelde.`,
+        bedrag: extra,
+        actie:'Analyseer inzet per project en vergelijk met direct gefactureerde uren.',
+        termijn:'Deze maand',
+        k:'#C0392B'
+      });
+    }
+
+    // Brutomarge te laag: gemiste marge = (norm 35% - werkelijk%) * omzet
+    if(d.brutomarge!==null&&d.brutomarge<30){
+      const gemist=d.omzet?Math.round((35-d.brutomarge)/100*d.omzet):null;
+      neg.push({
+        t:'Brutomarge laag',
+        tx:`Brutomarge is ${d.brutomarge}% — onder de norm van 30–40%. Bij sectornorm mis je ${gemist?fmt(gemist):''} aan brutowinst.`,
+        bedrag: gemist,
+        actie:'Heronderhandel inkoopprijzen bij de drie grootste leveranciers.',
+        termijn:'Deze maand',
+        k:'#C0392B'
+      });
+    }
 
     const pos=[
-      {t:'Solvabiliteit gezond',    tx:`De solvabiliteit van ${d.solvabiliteit!==null?d.solvabiliteit+'%':'—'} valt binnen de sectornorm van 25–40%.`,k:'#27AE60'},
-      {t:'Brutomarge op niveau',    tx:`De brutomarge van ${d.brutomarge!==null?d.brutomarge+'%':'—'} is gezond.`,k:'#27AE60'},
-      {t:'Financiële basis stabiel',tx:'De overige indicatoren vallen binnen de sectornorm. In de Basisscan werken we alle ratio\'s volledig uit.',k:'#27AE60'},
+      {t:'Solvabiliteit gezond',    tx:`Solvabiliteit van ${d.solvabiliteit!=null?d.solvabiliteit+'%':'—'} valt binnen de sectornorm van 25–40%.`,    bedrag:null, actie:'Handhaaf winstinhouding om buffer te behouden.',  termijn:'Dit kwartaal', k:'#27AE60'},
+      {t:'Brutomarge op niveau',    tx:`Brutomarge van ${d.brutomarge!=null?d.brutomarge+'%':'—'} is gezond — inkoopbeheer en tariefstelling zijn sterk.`,                bedrag:null, actie:'Monitor inkoopprijzen bij leveranciersonderhandeling.', termijn:'Dit kwartaal', k:'#27AE60'},
+      {t:'Financiële basis stabiel',tx:'De overige indicatoren vallen binnen de sectornorm. Verdere optimalisatie is mogelijk via de Basisscan.', bedrag:null, actie:'Plan een voortgangsmeting over 6 maanden.',              termijn:'Dit kwartaal', k:'#27AE60'},
     ];
 
     const res=neg.slice(0,3);
     let pi=0;
-    while(res.length<3){
-      res.push(pos[pi % pos.length]);
-      pi++;
-    }
+    while(res.length<3){ res.push(pos[pi%pos.length]); pi++; }
     return res;
   },
 };
