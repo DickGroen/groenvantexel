@@ -2545,13 +2545,28 @@ function kopieerStripoHTML() {
 
 // ── 1-PAGER GENEREREN (admin preview) ────────────────────────────────────────
 
-function genereer1Pager() {
-  const tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
-  if (!tekst) { showToast('⚠ Voer eerst een AI-analyse uit', '#E67E22'); return; }
+async function genereer1Pager() {
+  let tekst = sessionStorage.getItem('ai-analyse-tekst') || '';
+
+  // Als sessionStorage leeg is, laad direct uit Supabase
+  if (!tekst && huidigePDFKlant && huidigePDFPeriode) {
+    try {
+      const { data } = await supabaseClient
+        .from('maandcijfers')
+        .select('notities')
+        .eq('bedrijf', huidigePDFKlant)
+        .eq('periode', huidigePDFPeriode)
+        .single();
+      tekst = (data && data.notities) || '';
+      if (tekst) sessionStorage.setItem('ai-analyse-tekst', tekst);
+    } catch(e) {}
+  }
+
+  if (!tekst) { showToast('\u26A0 Selecteer klant en periode, of voer eerst een AI-analyse uit', '#E67E22'); return; }
 
   const bedrijf = huidigePDFKlant || '[BEDRIJF]';
   const periode = huidigePDFPeriode || '2024';
-  const sector = document.getElementById('ai-sector')?.value || '—';
+  const sector = document.getElementById('ai-sector')?.value || '\u2014';
 
   const parsed = parseAnalyseData(tekst);
   const html = bouw1PagerHTML(bedrijf, periode, sector, parsed, tekst);
@@ -2568,8 +2583,8 @@ function genereer1Pager() {
 
 
 async function reset1Pager() {
-  const bedrijf = huidigeBedrijf || sessionStorage.getItem('eenpager-bedrijf');
-  const periode = huidigePeriode || sessionStorage.getItem('eenpager-periode');
+  const bedrijf = huidigePDFKlant || sessionStorage.getItem('eenpager-bedrijf');
+  const periode = huidigePDFPeriode || sessionStorage.getItem('eenpager-periode');
   if (!bedrijf || !periode) { showToast('⚠ Selecteer eerst klant en periode', '#E67E22'); return; }
   if (!confirm(`1-pager publicatie wissen voor ${bedrijf} — ${periode}?`)) return;
   try {
@@ -2620,36 +2635,10 @@ function berekenBevindingen(parsed, omzet) {
 
   // Debiteurendagen: norm 30-45 dgn
   if (parsed.debiteurendagen && parsed.debiteurendagen > 45) {
+    const extra = Math.round(parsed.debiteurendagen) - 45;
     bevindingen.push({
       titel: 'Debiteurenprobleem',
-      tekst: `Klanten betalen gemiddeld ${Math.round(parsed.debiteurendagen)} dagen — de norm is 30–45 dagen. Dit bindt onnodig werkkapitaal.`,
-      kleur: '#C0392B'
-    });
-  }
-
-  // Personeelskosten: norm 45-60%
-  if (parsed.personeelskosten && parsed.personeelskosten > 60) {
-    bevindingen.push({
-      titel: 'Personeelskostenprobleem',
-      tekst: `Personeelskosten bedragen ${parsed.personeelskosten}% van de omzet — de norm is 45–60%. Dit drukt de winstgevendheid.`,
-      kleur: '#C0392B'
-    });
-  }
-
-  // Nettoresultaat: norm 6-12%
-  if (parsed.ebitda !== null && parsed.ebitda < 6) {
-    bevindingen.push({
-      titel: 'Winstgevendheidsprobleem',
-      tekst: `Nettoresultaat is ${parsed.ebitda}% — de norm is 6–12%. De volledige uitwerking volgt in de Basisscan.`,
-      kleur: '#E67E22'
-    });
-  }
-
-  // Brutomarge te laag
-  if (parsed.brutomarge !== null && parsed.brutomarge < 30) {
-    bevindingen.push({
-      titel: 'Brutomarge onder de norm',
-      tekst: `Brutomarge is ${parsed.brutomarge}% — de norm is 30–40%. Inkoop of tarieven verdienen aandacht.`,
+      tekst: `Uw klanten betalen gemiddeld na ${Math.round(parsed.debiteurendagen)} dagen — ${extra} dagen boven de sectornorm van 30–45 dagen. Dit bindt onnodig werkkapitaal en vergroot het risico op liquiditeitsproblemen.`,
       kleur: '#C0392B'
     });
   }
@@ -2658,18 +2647,46 @@ function berekenBevindingen(parsed, omzet) {
   if (parsed.solvabiliteit !== null && parsed.solvabiliteit < 25) {
     bevindingen.push({
       titel: 'Solvabiliteitsprobleem',
-      tekst: `Solvabiliteit is ${parsed.solvabiliteit}% — de norm is 25–40%. Het eigen vermogen is te laag ten opzichte van de schulden.`,
+      tekst: `De solvabiliteit bedraagt ${parsed.solvabiliteit}% — onder de norm van 25–40%. Het eigen vermogen is te laag ten opzichte van het totale vermogen. Dit verhoogt de financiële kwetsbaarheid.`,
       kleur: '#C0392B'
     });
   }
 
-  // Vul aan tot 3
-  while (bevindingen.length < 3) {
+  // Nettoresultaat: norm 6-12%
+  if (parsed.ebitda !== null && parsed.ebitda < 6) {
     bevindingen.push({
-      titel: 'Financiële positie stabiel',
-      tekst: 'Dit onderdeel valt binnen de sectornorm. In de Basisscan werken we alle ratio's volledig uit.',
-      kleur: '#27AE60'
+      titel: 'Winstgevendheidsprobleem',
+      tekst: `Het nettoresultaat is ${parsed.ebitda}% — onder de norm van 6–12% voor deze sector. De winstgevendheid staat onder druk. In de Basisscan analyseren we waar de marge weglekt.`,
+      kleur: '#E67E22'
     });
+  }
+
+  // Personeelskosten te hoog
+  if (parsed.personeelskosten && parsed.personeelskosten > 60) {
+    bevindingen.push({
+      titel: 'Personeelskostenprobleem',
+      tekst: `Personeelskosten bedragen ${parsed.personeelskosten}% van de omzet — boven de norm van 45–60%. Dit drukt structureel de winstmarge.`,
+      kleur: '#C0392B'
+    });
+  }
+
+  // Brutomarge te laag
+  if (parsed.brutomarge !== null && parsed.brutomarge < 30) {
+    bevindingen.push({
+      titel: 'Brutomarge onder de norm',
+      tekst: `De brutomarge is ${parsed.brutomarge}% — onder de norm van 30–40%. Inkoop of tariefstelling verdienen aandacht.`,
+      kleur: '#C0392B'
+    });
+  }
+
+  // Vul aan tot 3 met positieve bevinding
+  while (bevindingen.length < 3) {
+    const positief = [
+      { titel: 'Solvabiliteit binnen norm', tekst: `De solvabiliteit van ${parsed.solvabiliteit || '—'}% valt binnen de sectornorm van 25–40%. Het eigen vermogen is solide.`, kleur: '#27AE60' },
+      { titel: 'Brutomarge gezond', tekst: `De brutomarge van ${parsed.brutomarge || '—'}% is ${parsed.brutomarge > 40 ? 'boven' : 'binnen'} de sectornorm. Een sterk fundament.`, kleur: '#27AE60' },
+      { titel: 'Financiële basis stabiel', tekst: 'De overige indicatoren vallen binnen de sectornorm. In de Basisscan werken we alle ratio's volledig uit.', kleur: '#27AE60' }
+    ];
+    bevindingen.push(positief[bevindingen.length] || positief[2]);
   }
 
   return bevindingen.slice(0, 3);
@@ -2724,20 +2741,18 @@ function bouw1PagerHTML(bedrijf, periode, sector, parsed, analyseTekst) {
     <div style="padding:16px 24px 0;">
       <div style="font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>
       ${bevindingen.map((bev, i) => `
-      <div style="display:flex;align-items:flex-start;border-left:4px solid ${bev.kleur};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:4px;padding:11px 14px;border-radius:0 4px 4px 0;">
-        <div style="flex:1;">
-          <div style="font-weight:700;color:#1F4E79;font-size:13px;">${bev.titel}</div>
-          <div style="color:#444;font-size:12px;margin-top:3px;line-height:1.5;">${bev.tekst}</div>
-        </div>
+      <div style="border-left:4px solid ${bev.kleur};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:12px 14px;border-radius:0 4px 4px 0;">
+        <div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:4px;">${bev.titel}</div>
+        <div style="color:#444;font-size:13px;line-height:1.6;">${bev.tekst}</div>
       </div>`).join('')}
-      <!-- Totaal verbeterpotentieel -->
-      <div style="background:#1F4E79;border-radius:6px;padding:14px 16px;margin-top:10px;">
-        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">Totaal verbeterpotentieel</div>
-        <div style="font-size:13px;color:#fff;margin-top:5px;line-height:1.6;">
-          De ${bevindingen.filter(b=>b.kleur!=='#27AE60').length} aandachtspunten hierboven — 
-          ${bevindingen.filter(b=>b.kleur!=='#27AE60').map(b=>b.titel).join(', ')} — 
-          bevatten concreet verbeterpotentieel voor uw bedrijf.<br>
-          <strong style="color:#9dc3e6;">In de Financiële Basisscan werken we elk punt volledig uit met concrete bedragen en een actieplan.</strong>
+      <!-- Verbeterpotentieel -->
+      <div style="background:#1F4E79;border-radius:6px;padding:14px 16px;margin-top:12px;">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Verbeterpotentieel</div>
+        <div style="font-size:13px;color:#fff;line-height:1.7;">
+          ${bevindingen.filter(b=>b.kleur!=='#27AE60').length > 0
+            ? `Uit de analyse komen <strong>${bevindingen.filter(b=>b.kleur!=='#27AE60').length} aandachtspunten</strong> naar voren: ${bevindingen.filter(b=>b.kleur!=='#27AE60').map(b=>'<em>'+b.titel+'</em>').join(' en ')}. In de Basisscan werken we elk punt uit met concrete bedragen en een actieplan.`
+            : `De financiële positie van uw bedrijf is stabiel. In de Basisscan werken we alle ratio's volledig uit.`
+          }
         </div>
       </div>
     </div>
