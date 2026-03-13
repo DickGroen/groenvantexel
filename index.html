@@ -1958,12 +1958,17 @@ async function startAIAnalyse() {
       .single();
 
     if (cijferData?.notities) {
-      bestandenTekst = cijferData.notities;
-      status.textContent = '✅ Jaarcijfers gevonden — analyse starten...';
-      // Toon knoppen direct als er al een opgeslagen analyse is
-      resultaat.textContent = bestandenTekst;
+      // Opgeslagen analyse gevonden — direct tonen, geen API nodig
+      const opgeslagen = cijferData.notities;
+      resultaat.textContent = opgeslagen;
       resultaat.style.display = 'block';
       acties.style.display = 'flex';
+      status.textContent = '✔ Analyse gereed';
+      sessionStorage.setItem('ai-analyse-tekst', opgeslagen);
+      toonVisualisatie(opgeslagen);
+      return; // stop hier — geen API aanroep nodig
+    } else if (false) {
+      // (nooit bereikt — placeholder voor else)
     } else {
       // Fallback: bestandsnamen uit Storage
       const { data: files } = await supabaseClient.storage
