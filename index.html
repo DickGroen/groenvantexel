@@ -1051,6 +1051,13 @@ function verwerkKlantLogin(klantData) {
           const lf = document.getElementById('nav-lead-formulier');
           if (lf) { lf.style.display = 'inline-flex'; lf.classList.add('active'); }
           document.querySelector('.nav-btn[onclick*="rapport"]')?.classList.remove('active');
+          // Vul formulier automatisch in met klantdata
+          const leadBedrijf = document.getElementById('lead-bedrijf');
+          const leadEmail = document.getElementById('lead-email');
+          const leadSector = document.getElementById('lead-sector');
+          if (leadBedrijf) { leadBedrijf.value = naam; leadBedrijf.readOnly = true; }
+          if (leadEmail && klantData.email) leadEmail.value = klantData.email;
+          if (leadSector && klantData.sector) leadSector.value = klantData.sector;
           // Reset knoptekst bij elke login
           const submitBtn = document.getElementById('lead-submit-btn');
           if (submitBtn) {
