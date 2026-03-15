@@ -17,7 +17,7 @@
   --bg:#F7F9F8; --white:#fff; --border:#E2E8E4;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;display:flex;flex-direction:column;}
 .login-overlay{display:none;position:fixed;inset:0;background:var(--blue);z-index:500;align-items:center;justify-content:center;}
 .login-overlay.active{display:flex;}
 .login-box{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:400px;text-align:center;}
@@ -28,17 +28,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 .login-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;}
 .login-btn:hover{background:var(--blue-mid);}
 .login-error{color:var(--red);font-size:13px;margin-top:8px;display:none;}
-.topbar{background:var(--blue);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(31,78,121,.25);}
+.topbar{background:var(--blue);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:1000;box-shadow:0 2px 12px rgba(31,78,121,.25);}
 .logo{display:flex;align-items:center;gap:12px;}
 .logo-icon{width:38px;height:38px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
 .logo-text strong{display:block;font-family:'DM Serif Display',serif;font-size:16px;color:#fff;}
 .logo-text span{font-size:11px;color:var(--blue-pale);font-weight:300;}
 .topbar-nav{display:flex;gap:4px;align-items:center;}
-.nav-btn{padding:8px 16px;border:none;background:transparent;color:var(--blue-pale);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;transition:all .15s;}
+.nav-btn{padding:8px 16px;border:none;background:transparent;color:rgba(255,255,255,0.8);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;transition:all .15s;}
 .nav-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
 .nav-btn.active{background:rgba(255,255,255,.15);color:#fff;}
 .view{display:none;}.view.active{display:block;}
-.page{max-width:920px;margin:0 auto;padding:32px 24px;}
+.page{max-width:920px;margin:0 auto;padding:32px 24px;min-height:calc(100vh - 64px);}
 .card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:24px;margin-bottom:20px;}
 .card-title{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--green-pale);}
 .form-row{display:grid;gap:16px;margin-bottom:16px;}
@@ -475,7 +475,7 @@ const Nav = {
       nav.innerHTML=`
         <button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button>
         <button class="nav-btn" id="nb-rapport"    onclick="Nav.ga('rapport')">📄 Mijn rapport</button>
-        <button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;
+        <button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;
     }
   },
 
