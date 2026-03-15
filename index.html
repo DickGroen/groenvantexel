@@ -421,14 +421,9 @@ const Auth = {
     sessie=null;
     sessionStorage.removeItem('gvt_sessie');
     sessionStorage.removeItem('gvt-user');
-    Formulier.reset();
-    setVal('login-code','');
-    // Verberg alle views
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    // Toon login overlay
-    const ov=$('login-overlay'); if(ov) ov.classList.add('active');
-    // Leeg navigatie
-    setHTML('topnav','');
+    // Simpelste en meest betrouwbare oplossing: herlaad de pagina
+    // sessie is gewist uit sessionStorage dus loginscherm verschijnt
+    window.location.href = window.location.pathname;
   },
 
   _open(s) {
