@@ -268,12 +268,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 
   <div id="view-instellen" class="view">
     <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:24px;">Instellingen</h2>
-    <div class="card" style="max-width:520px;">
-      <div class="card-title">Anthropic AI configuratie</div>
-      <div class="form-group" style="margin-bottom:20px;"><label class="form-label">Anthropic API Key <span class="req">*</span></label><input id="cfg-apikey" type="password" class="form-input" placeholder="sk-ant-..."></div>
-      <button class="btn btn-primary" style="margin-bottom:4px;" onclick="Config.opslaan()">Opslaan</button>
-      <div style="font-size:12px;color:var(--light);margin-top:8px;">Vereist voor de AI-analyse functie. Uw sleutel wordt alleen lokaal opgeslagen.</div>
-    </div>
+
     <div class="card" style="max-width:520px;margin-top:0;">
       <div class="card-title">Opslag beheer</div>
       <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Verwijder dubbele uploads uit de opslag. Dit lost het probleem op als dezelfde periode meerdere keren in de dropdown staat.</p>
@@ -946,12 +941,10 @@ Eindig met: Score: ___/100
 JAARCIJFERS:
 ${uploads[0].pdfTekst||''}`;
     try {
-      const apiKey=Config.apikey();
-      if(!apiKey) throw new Error('Geen API-sleutel ingesteld — voeg je Anthropic API-sleutel toe via ⚙ Instellen');
-      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      const resp=await fetch('/api/analyse',{
         method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-iab-override':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]}),
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({prompt}),
       });
       if(!resp.ok){ let msg='API fout '+resp.status; try{const d=await resp.json();msg=d?.error?.message||msg;}catch{} throw new Error(msg); }
       const data=await resp.json();
