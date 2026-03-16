@@ -491,7 +491,6 @@ const Nav = {
 };
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
- 
 const Dashboard = {
   laad() {
     const klanten=Store.getKlanten();
@@ -507,11 +506,7 @@ const Dashboard = {
       const status=heeftUpload?'<span class="badge badge-ok">✓ Upload ontvangen</span>':'<span class="badge badge-wacht">Wacht op aanlevering</span>';
       return `<tr>
         <td><span class="link" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">${UI.esc(k.naam)}</span></td>
-       <td><select onchange="Klanten.wijzigType('${UI.esc(k.naam)}',this.value)" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;background:#fff;">
-  <option value="lead" ${k.klantType==='lead'?'selected':''}>🎯 Lead</option>
-  <option value="doorlichting" ${k.klantType==='doorlichting'?'selected':''}>📋 Doorlichting</option>
-  <option value="monitoring" ${k.klantType==='monitoring'?'selected':''}>📊 Monitoring</option>
-</select></td><td>${UI.esc(k.sector||'—')}</td><td>${status}</td>
+        <td>${UI.typeBadge(k.klantType)}</td><td>${UI.esc(k.sector||'—')}</td><td>${status}</td>
         <td><button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">Rapport →</button></td>
       </tr>`;
     }).join('');
@@ -550,16 +545,11 @@ const Klanten = {
     UI.toast('✔ Klant '+naam+' toegevoegd');
   },
 
- verwijder(code) {
+  verwijder(code) {
     if (!confirm('Klant verwijderen?')) return;
     Store.setKlanten(Store.getKlanten().filter(k=>k.code!==code));
     Klanten.laadTabel();
     UI.toast('Klant verwijderd');
-  },
-  wijzigType(naam, type) {
-    const kl = Store.getKlanten();
-    const k = kl.find(k => k.naam === naam);
-    if (k) { k.klantType = type; Store.setKlanten(kl); Dashboard.laad(); Klanten.laadTabel(); }
   },
 };
 
