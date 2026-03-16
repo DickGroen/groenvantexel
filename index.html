@@ -556,11 +556,16 @@ const Klanten = {
     UI.toast('✔ Klant '+naam+' toegevoegd');
   },
 
-  verwijder(code) {
+ verwijder(code) {
     if (!confirm('Klant verwijderen?')) return;
     Store.setKlanten(Store.getKlanten().filter(k=>k.code!==code));
     Klanten.laadTabel();
     UI.toast('Klant verwijderd');
+  },
+  wijzigType(naam, type) {
+    const kl = Store.getKlanten();
+    const k = kl.find(k => k.naam === naam);
+    if (k) { k.klantType = type; Store.setKlanten(kl); Dashboard.laad(); Klanten.laadTabel(); }
   },
 };
 
