@@ -1039,11 +1039,11 @@ const Fin = {
     const neg=[];
     if(d.debiteurendagen&&d.debiteurendagen>45){
       const extra=d.omzet?Math.round((d.debiteurendagen-45)/365*d.omzet):null;
-      neg.push({t:'Debiteurenprobleem',tx:`Klanten betalen gemiddeld na ${Math.round(d.debiteurendagen)} dagen — ${Math.round(d.debiteurendagen)-45} dagen boven de norm van 30–45 dagen. Dit bindt ${extra?fmtEur(extra):''} aan onnodig werkkapitaal.`,bedrag:extra,actie:'Stuur aanmaningen na 30 dagen en bied 2% korting bij betaling binnen 14 dagen.',termijn:'Deze week',k:'#C0392B'});
+      neg.push({t:'Debiteurenprobleem',tx:`Debiteurenbeheer ligt boven de sectornorm. Dit bindt onnodig werkkapitaal.`,bedrag:extra,actie:'Stuur aanmaningen na 30 dagen en bied 2% korting bij betaling binnen 14 dagen.',termijn:'Deze week',k:'#C0392B'});
     }
     if(d.ebitda!==null&&d.ebitda<6){
       const gemist=d.omzet?Math.round((9-d.ebitda)/100*d.omzet):null;
-      neg.push({t:'Winstgevendheidsprobleem',tx:`Nettoresultaat is ${d.ebitda}% — onder de norm van 6–12%. Bij sectornorm van 9% loopt u ${gemist?fmtEur(gemist):''} aan winst mis.`,bedrag:gemist,actie:'Analyseer de vijf grootste kostenposten en stel tarieven bij met 3–5%.',termijn:'Deze maand',k:'#E67E22'});
+      neg.push({t:'Winstgevendheidsprobleem',tx:`Winstgevendheid ligt onder de sectornorm. Er blijft omzetpotentieel onbenut.`,bedrag:gemist,actie:'Analyseer de vijf grootste kostenposten en stel tarieven bij met 3–5%.',termijn:'Deze maand',k:'#E67E22'});
     }
     if(d.solvabiliteit!==null&&d.solvabiliteit<25){
       const tekort=d.balanstotaal?Math.round((32.5-d.solvabiliteit)/100*d.balanstotaal):null;
