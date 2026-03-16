@@ -491,13 +491,7 @@ const Nav = {
 };
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
-  const Klanten = {
-  wijzigType(naam, type) {
-    const kl = Store.getKlanten();
-    const k = kl.find(k => k.naam === naam);
-    if (k) { k.klantType = type; Store.setKlanten(kl); Dashboard.laad(); }
-  },
-};
+ 
 const Dashboard = {
   laad() {
     const klanten=Store.getKlanten();
