@@ -688,7 +688,7 @@ const Rapport = {
     var jaar=(periode.match(/(\d{4})/)||[])[1]||periode;
     var sig=function(n,v){return Fin.signaal(n,v);};
     var fmt=function(v,e){e=e||'%';return (v!==null&&v!==undefined)?v+e:'--';};
-    var fmtEur=function(v){return v!=null?'EUR '+Math.round(v).toLocaleString('nl-NL'):'EUR --';};
+    var fmtEur=function(v){return v!=null?'&#8364; '+Math.round(v).toLocaleString('nl-NL'):'&#8364; --'; 
     var omzetStr=d.omzet?'EUR '+Math.round(d.omzet).toLocaleString('nl-NL'):'--';
     var totaal=bev.reduce(function(s,b){return b.bedrag!=null?s+b.bedrag:s;},0);
     var totaalStr=totaal>0?fmtEur(totaal):'EUR --';
