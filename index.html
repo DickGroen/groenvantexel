@@ -1022,7 +1022,7 @@ const Fin = {
     var r=n[naam]; if(!r||waarde===null||waarde===undefined) return{s:'--',k:'#9CA3AF'};
     var ok=waarde>=r.min&&waarde<=r.max;
     var ver=r.inv?waarde>r.max*1.2:waarde<r.min*0.8;
-    return ok?{s:'OK',k:'#16A34A'}:ver?{s:'!',k:'#DC2626'}:{s:'~',k:'#D97706'};
+return ok?{s:'&#10003;',k:'#16A34A'}:ver?{s:'&#9679;',k:'#DC2626'}:{s:'&#9651;',k:'#D97706'};
   },
   bevindingen(d) {
     var fmtEur=function(n){return n!=null?'EUR '+Math.round(n).toLocaleString('nl-NL'):'EUR --';};
