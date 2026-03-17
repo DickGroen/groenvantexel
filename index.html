@@ -691,7 +691,7 @@ const Rapport = {
     var fmtEur=function(v){return v!=null?'&#8364; '+Math.round(v).toLocaleString('nl-NL'):'&#8364; --'; 
     var omzetStr=d.omzet?'&#8364; '+Math.round(d.omzet).toLocaleString('nl-NL'):'--';
     var totaal=bev.reduce(function(s,b){return b.bedrag!=null?s+b.bedrag:s;},0);
-    var totaalStr=totaal>0?fmtEur(totaal):'EUR --';
+    var totaalStr=totaal>0?fmtEur(totaal):'&#8364; --';
     var rij=function(lbl,veld,eenh,norm,alt){
       return '<tr'+(alt?' style="background:#f9fbfa;"':'')+'>'
         +'<td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">'+lbl+'</td>'
