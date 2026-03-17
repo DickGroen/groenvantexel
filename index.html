@@ -585,12 +585,15 @@ verwijder(code) {
     UI.toast('✔ Klant '+naam+' toegevoegd');
   },
 
- wijzigType(code, type) {
+wijzigType(el) {
+    const code=el.dataset.code;
+    const type=el.value;
     const kl=Store.getKlanten();
     const k=kl.find(k=>k.code===code);
-    if(k){ k.klantType=type; Store.setKlanten(kl); Klanten.laadTabel(); Dashboard.laad(); UI.toast('✔ Type gewijzigd'); }
+    if(k){ k.klantType=type; Store.setKlanten(kl); Dashboard.laad(); UI.toast('✔ Type gewijzigd'); }
   },
-  verwijder(code) {
+  verwijder(el) {
+    const code=el.dataset.code;
     if (!confirm('Klant verwijderen?')) return;
     Store.setKlanten(Store.getKlanten().filter(k=>k.code!==code));
     Klanten.laadTabel();
