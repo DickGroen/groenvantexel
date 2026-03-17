@@ -556,14 +556,7 @@ laadTabel() {
         +'</tr>';
     }).join('');
   },
-    if (!klanten.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px;">Nog geen klanten.</td></tr>'; return; }
-    tbody.innerHTML=klanten.map(k=>`<tr>
-      <td style="font-weight:600;">${UI.esc(k.naam)}</td>
-      <td style="font-family:monospace;font-size:13px;">${UI.esc(k.code)}</td>
-      <td><select onchange="Klanten.wijzigType('${UI.esc(k.code)}',this.value)" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;background:#fff;"><option value="lead" ${k.klantType==='lead'?'selected':''}>🎯 Lead</option><option value="doorlichting" ${k.klantType==='doorlichting'?'selected':''}>📋 Doorlichting</option><option value="monitoring" ${k.klantType==='monitoring'?'selected':''}>📅 Monitoring</option></select></td><td>${UI.esc(k.sector||'—')}</td><td>${UI.esc(k.email||'—')}</td>
-```
-
-En zoek naar:
+   
 ```
 verwijder(code) {
       <td><button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="Klanten.verwijder('${UI.esc(k.code)}')">✕</button></td>
