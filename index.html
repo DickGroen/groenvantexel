@@ -832,7 +832,7 @@ const Formulier = {
 
   async bestelBasiscan() {
     if (!sessie||sessie.type!=='klant') { UI.warn('⚠ Deze knop is alleen voor ingelogde klanten'); return; }
-    UI.toast('✔ Aanvraag ontvangen — u ontvangst u Basisscan binnen 5 werkdagen);
+    UI.toast('✔ Aanvraag ontvangen — u ontvangt de Basisscan binnen 5 werkdagen');
     try { await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Basisscan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft de Basisscan aangevraagd.'}); }
     catch(e){ console.warn('bestelBasiscan fout (niet fataal):',e.message||e); }
   },
