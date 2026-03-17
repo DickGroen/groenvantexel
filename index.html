@@ -517,12 +517,31 @@ const Klanten = {
         +'</tr>';
     }).join('');
   },
-  wijzigType(el) {
+wijzigType(el) {
     var code=el.dataset.code;
     var type=el.value;
     var kl=Store.getKlanten();
     var k=kl.find(function(k){return k.code===code;});
-    if(k){ k.klantType=type; Store.setKlanten(kl); Dashboard.laad(); UI.toast('Type gewijzigd naar '+type); }
+    if(k){
+      var oud=k.klantType;
+      k.klantType=type;
+      Store.setKlanten(kl);
+      Dashboard.laad();
+      UI.toast('Type gewijzigd naar '+type);
+      if(oud!==type&&type==='doorlichting'&&k.email){
+        Email.stuur({
+          bedrijf:k.naam,
+          periode:'Basisscan bevestiging',
+          name:k.naam,
+          time:UI.datumNL(),
+          message:'Beste '+k.naam+',\n\nUw Financiele Basisscan is gestart. U ontvangt het rapport binnen 5 werkdagen.\n\nMet vriendelijke groet,\nDick Groen\nGroen van Texel\n06 4215 2499'
+        }).then(function(){
+          UI.toast('Bevestigingsmail verstuurd naar '+k.email);
+        }).catch(function(e){
+          console.warn('E-mail fout:',e);
+        });
+      }
+    }
   },
   toevoegen() {
     var naam=($('nk-naam')?$('nk-naam').value||'':'').trim();
