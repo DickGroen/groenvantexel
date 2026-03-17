@@ -136,6 +136,13 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
+    // ── UPLOAD VERWIJDEREN ───────────────────────────────────────────────────
+    if (actie === 'delUpload') {
+      const { bedrijf, periode } = body;
+      await sb(`uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`, 'DELETE');
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
     // ── BASISSCANS ────────────────────────────────────────────────────────
     if (actie === 'getBasisscans') {
       const data = await sb('basisscans?order=bijgewerkt.desc');
@@ -173,4 +180,3 @@ export async function onRequestOptions() {
     },
   });
 }
-
