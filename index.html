@@ -770,16 +770,17 @@ const KlantApp = {
     setTxt('form-intro',intro[kt]||'');
     setTxt('form-wat',  wat[kt]  ||'');
     const uploads=Store.getUploads().filter(u=>u.bedrijf===sessie.naam).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
-   if (uploads.length) {
+if (uploads.length) {
       Formulier._ontvangenStaat(uploads[0].datum||'');
       const pager=Store.get1Pagers()[sessie.naam+'-'+uploads[0].periode];
       const stap=pager?.gepubliceerd?3:2;
-      const s1='<div style="flex:1;padding:12px 10px;text-align:center;background:#1F4E79;border-right:1px solid #e2e8e4;"><div style="font-size:18px;">✅</div><div style="font-size:11px;font-weight:700;color:#fff;margin-top:4px;">Aanvraag ontvangen</div></div>';
-      const s2='<div style="flex:1;padding:12px 10px;text-align:center;background:#1F4E79;border-right:1px solid #e2e8e4;"><div style="font-size:18px;">✅</div><div style="font-size:11px;font-weight:700;color:#fff;margin-top:4px;">Analyse in uitvoering</div></div>';
-      const s2w='<div style="flex:1;padding:12px 10px;text-align:center;background:#f5f5f5;border-right:1px solid #e2e8e4;"><div style="font-size:18px;">⏳</div><div style="font-size:11px;font-weight:700;color:#888;margin-top:4px;">Analyse in uitvoering</div></div>';
-      const s3='<div style="flex:1;padding:12px 10px;text-align:center;background:#1E8449;"><div style="font-size:18px;">📄</div><div style="font-size:11px;font-weight:700;color:#fff;margin-top:4px;">Rapport klaar</div></div>';
-      const s3w='<div style="flex:1;padding:12px 10px;text-align:center;background:#f5f5f5;"><div style="font-size:18px;">⏳</div><div style="font-size:11px;font-weight:700;color:#888;margin-top:4px;">Rapport klaar</div></div>';
-      const html='<div style="display:flex;gap:0;margin:0 0 20px;border-radius:8px;overflow:hidden;border:1px solid #e2e8e4;">'+s1+(stap>=2?s2:s2w)+(stap>=3?s3:s3w)+'</div>';
+      const ok='background:#1F4E79;color:#fff;';
+      const wacht='background:#f5f5f5;color:#888;';
+      const html='<div style="display:flex;margin:0 0 20px;border-radius:8px;overflow:hidden;border:1px solid #e2e8e4;">'
+        +'<div style="flex:1;padding:12px;text-align:center;'+ok+'border-right:1px solid #e2e8e4;font-size:11px;font-weight:700;">1. Aanvraag ontvangen</div>'
+        +'<div style="flex:1;padding:12px;text-align:center;'+(stap>=2?ok:wacht)+'border-right:1px solid #e2e8e4;font-size:11px;font-weight:700;">2. Analyse in uitvoering</div>'
+        +'<div style="flex:1;padding:12px;text-align:center;'+(stap>=3?ok:wacht)+'font-size:11px;font-weight:700;">3. Rapport klaar</div>'
+        +'</div>';
       const card=document.querySelector('#view-aanleveren .card');
       if(card) card.insertAdjacentHTML('afterbegin',html);
     }
