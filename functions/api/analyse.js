@@ -136,6 +136,27 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
+    // ── SUBSIDIESCANS ─────────────────────────────────────────────────────────
+    if (actie === 'getSubsidiescans') {
+      const data = await sb('subsidiescans?order=bijgewerkt.desc');
+      return new Response(JSON.stringify(data), { headers: cors });
+    }
+    if (actie === 'setSubsidiescan') {
+      const { sleutel, html, gepubliceerd, datum } = body;
+      const bestaand = await sb(`subsidiescans?sleutel=eq.${encodeURIComponent(sleutel)}`);
+      if (bestaand.length > 0) {
+        await sb(`subsidiescans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', { html, gepubliceerd, datum, bijgewerkt: new Date().toISOString() });
+      } else {
+        await sb('subsidiescans', 'POST', { sleutel, html, gepubliceerd, datum });
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delSubsidiescan') {
+      const { sleutel } = body;
+      await sb(`subsidiescans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'DELETE');
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
     // ── UPLOAD VERWIJDEREN ───────────────────────────────────────────────────
     if (actie === 'delUpload') {
       const { bedrijf, periode } = body;
