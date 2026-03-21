@@ -1238,22 +1238,13 @@ const Nav={
       const heeftVerzekeringsScans=uploads.some(u=>allVerzekeringsScans[sessie.naam+'-'+u.periode]?.gepubliceerd);
       const heeftInkoopanalyses=uploads.some(u=>allInkoopanalyses[sessie.naam+'-'+u.periode]?.gepubliceerd);
       const heeftFiscaleScans=uploads.some(u=>allFiscaleScans[sessie.naam+'-'+u.periode]?.gepubliceerd);
-      const bsBtn=heeftBs?`<button class="nav-btn" id="nb-basisscan-klant" onclick="Nav.gaRapport('basisscan')">🔍 Basisscan</button>`:'';
-      const subBtn=heeftSub?`<button class="nav-btn" id="nb-subsidie-klant" onclick="Nav.gaRapport('subsidie')">🎯 Subsidiescan</button>`:'';
-      const csBtn=heeftCs?`<button class="nav-btn" id="nb-cashflow-klant" onclick="Nav.gaRapport('cashflow')">💸 Cashflow</button>`:'';
-      const dsBtn=heeftDs?`<button class="nav-btn" id="nb-debiteuren-klant" onclick="Nav.gaRapport('debiteuren')">📋 Debiteuren</button>`:'';
-      const omBtn=heeftOm?`<button class="nav-btn" id="nb-offerte-klant" onclick="Nav.gaRapport('offerte')">📐 Offerte &amp; Marge</button>`:''
-      const fiscaalBtn=heeftFiscaleScans?`<button class="nav-btn" id="nb-fiscaal-klant" onclick="Nav.gaRapport('fiscaal')">🧾 Fiscaal</button>`:'';
-      const inkoopBtn=heeftInkoopanalyses?`<button class="nav-btn" id="nb-inkoop-klant" onclick="Nav.gaRapport('inkoop')">🛒 Inkoop</button>`:'';
-      const verzekerBtn=heeftVerzekeringsScans?`<button class="nav-btn" id="nb-verzeker-klant" onclick="Nav.gaRapport('verzeker')">🛡 Verzekering</button>`:'';
-      const personeelBtn=heeftPersoneelsScans?`<button class="nav-btn" id="nb-personeel-klant" onclick="Nav.gaRapport('personeel')">👥 Personeel</button>`:'';
-      const exitBtn=heeftExitScans?`<button class="nav-btn" id="nb-exit-klant" onclick="Nav.gaRapport('exit')">🏷 Exit</button>`:'';;
-      const monBtn=kt==='monitoring'?`<button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button>`:'';
       const allPagers1=await Store.get1Pagers();
       const heeftPager=uploads.some(u=>allPagers1[sessie.naam+'-'+u.periode]?.gepubliceerd);
-      const pagerBtn=heeftPager?`<button class="nav-btn" id="nb-rapport" onclick="Nav.gaRapport('eenpager')">📄 1-Pager</button>`:'';
-      // Volledige nav nu beschikbaar — vervang de minimale versie
-      Nav._setVolledigeNav(nav, pagerBtn+bsBtn+csBtn+dsBtn+omBtn+fiscaalBtn+inkoopBtn+verzekerBtn+personeelBtn+exitBtn+subBtn+monBtn);
+      const heeftEnigRapport=heeftPager||heeftBs||heeftCs||heeftDs||heeftOm||heeftFiscaleScans||heeftInkoopanalyses||heeftVerzekeringsScans||heeftPersoneelsScans||heeftExitScans||heeftSub;
+      const rappBtn=heeftEnigRapport?`<button class="nav-btn" id="nb-rapporten-klant" onclick="Nav.ga('rapporten-klant')">📋 Mijn rapporten</button>`:'';
+      const monBtn=kt==='monitoring'?`<button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button>`:'';
+      // Volledige nav — één rapport-knop
+      Nav._setVolledigeNav(nav, rappBtn+monBtn);
     }
   },
   gaRapport(tabNaam){
@@ -3073,9 +3064,28 @@ const KlantApp={
       if(heroEl){heroEl.style.padding='24px 28px';heroEl.style.marginBottom='16px';}
 
       // Tel beschikbare rapporten
+      // Haal alle scan-maps op voor welkomoverzicht
+      const csMap2=await Store.getCashflowStresstests().catch(()=>({}));
+      const dsMap2=await Store.getDebiteurenStresstests().catch(()=>({}));
+      const omMap2=await Store.getOfferteMargescans().catch(()=>({}));
+      const fiscaalMap2=await Store.getFiscaleScans().catch(()=>({}));
+      const inkoopMap2=await Store.getInkoopanalyses().catch(()=>({}));
+      const verzekerMap2=await Store.getVerzekeringsScans().catch(()=>({}));
+      const personeelMap2=await Store.getPersoneelsScans().catch(()=>({}));
+      const exitMap2=await Store.getExitScans().catch(()=>({}));
+      const subMap2=await Store.getSubsidiescans().catch(()=>({}));
       const alleRapportTypes=[
-        {naam:'1-Pager',map:pagerMap,icon:'📄',kleur:'#1E8449'},
-        {naam:'Basisscan',map:bsMap,icon:'🔍',kleur:'#5B21B6'},
+        {naam:'1-Pager',           map:pagerMap,      icon:'📄', kleur:'#1E8449', tab:'eenpager'},
+        {naam:'Basisscan',         map:bsMap,         icon:'🔍', kleur:'#5B21B6', tab:'basisscan'},
+        {naam:'Cashflow Stresstest',map:csMap2,        icon:'💸', kleur:'#0E7490', tab:'cashflow'},
+        {naam:'Debiteuren Stresstest',map:dsMap2,      icon:'📋', kleur:'#7C3AED', tab:'debiteuren'},
+        {naam:'Offerte & Marge',   map:omMap2,        icon:'📐', kleur:'#B45309', tab:'offerte'},
+        {naam:'Fiscale Scan',      map:fiscaalMap2,   icon:'🧾', kleur:'#065F46', tab:'fiscaal'},
+        {naam:'Inkoopanalyse',     map:inkoopMap2,    icon:'🛒', kleur:'#1D4ED8', tab:'inkoop'},
+        {naam:'Verzekerings Scan', map:verzekerMap2,  icon:'🛡', kleur:'#7F1D1D', tab:'verzeker'},
+        {naam:'Personeelskosten',  map:personeelMap2, icon:'👥', kleur:'#831843', tab:'personeel'},
+        {naam:'Exit & Waardering', map:exitMap2,      icon:'🏷', kleur:'#1E3A5F', tab:'exit'},
+        {naam:'Subsidie Scan',     map:subMap2,       icon:'🎯', kleur:'#D97706', tab:'subsidie'},
       ];
       const beschikbaar=alleRapportTypes.filter(r=>sl&&r.map[sl]?.gepubliceerd);
       const inBehandeling=heeftUploads&&!heeftRapport;
@@ -3093,18 +3103,23 @@ const KlantApp={
             </div>
           </div>`:''}
 
+          ${kt==='monitoring'?`
+          <div style="background:#E8F5E9;border:1px solid #1E8449;border-radius:8px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="Nav.ga('monitoring')">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">📅</span><span style="font-size:13px;font-weight:700;color:#1E8449;">Maandelijkse Monitoring</span></div>
+            <span style="font-size:11px;font-weight:700;color:#1E8449;background:#1E844915;padding:3px 10px;border-radius:20px;">Actief →</span>
+          </div>`:''}
           ${beschikbaar.length?`
           <div style="font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Beschikbare rapporten</div>
           <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-            ${beschikbaar.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;background:#f8faf9;border:1px solid #e2e8e4;border-radius:8px;padding:12px 16px;">
+            ${beschikbaar.map(r=>`<div onclick="Nav.gaRapport('${r.tab}')" style="display:flex;align-items:center;justify-content:space-between;background:#f8faf9;border:1px solid #e2e8e4;border-radius:8px;padding:12px 16px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f0f4f2'" onmouseout="this.style.background='#f8faf9'">
               <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">${r.icon}</span><span style="font-size:13px;font-weight:700;color:#1a1a1a;">${r.naam}</span></div>
-              <span style="font-size:11px;font-weight:700;color:${r.kleur};background:${r.kleur}15;padding:3px 10px;border-radius:20px;">Beschikbaar</span>
+              <span style="font-size:11px;font-weight:700;color:${r.kleur};background:${r.kleur}15;padding:3px 10px;border-radius:20px;">Bekijken →</span>
             </div>`).join('')}
           </div>`:''}
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            ${heeftRapport?`<button onclick="Nav.gaRapport('eenpager')" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">📄 Bekijk rapport</button>`:''}
-            ${kt==='monitoring'?`<button onclick="Nav.ga('monitoring')" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">📅 Naar monitoring</button>`:''}
+            ${beschikbaar.length?`<button onclick="Nav.ga('rapporten-klant')" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">📋 Bekijk rapporten</button>`:''}
+            ${kt==='monitoring'?`<button onclick="Nav.ga('monitoring')" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">📅 Monitoring</button>`:''}
             <button onclick="Nav.ga('aanleveren')" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;">📤 Nieuwe aanlevering</button>
             <button onclick="Nav.ga('diensten')" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;">💡 Meer diensten</button>
           </div>
