@@ -155,7 +155,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div class="form-group"><label class="form-label">Sector</label>
           <select id="nk-sector" class="form-select"><option value="">— Kies —</option><option>Installatietechniek</option><option>Bouw &amp; Aannemerij</option><option>Groothandel</option><option>Detailhandel</option><option>Zakelijke dienstverlening</option><option>Horeca</option><option>Transport &amp; Logistiek</option><option>Zorg</option><option>ICT</option><option>Overig</option></select>
         </div>
-        <div class="form-group" style="justify-content:flex-end;"><button class="btn btn-primary" onclick="Klanten.toevoegen()" style="height:42px;">+ Klant toevoegen</button></div>
+        <div class="form-group" style="justify-content:flex-end;gap:10px;display:flex;align-items:flex-end;">
+          <button class="btn btn-ghost" onclick="Klanten.toevoegenEnWelkom()" style="height:42px;">+ Toevoegen &amp; welkomsmail</button>
+          <button class="btn btn-primary" onclick="Klanten.toevoegen()" style="height:42px;">+ Klant toevoegen</button>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -175,7 +178,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         </select>
         <span id="kb-aantal" style="font-size:12px;color:var(--mid);white-space:nowrap;"></span>
       </div>
-      <table class="tbl"><thead><tr><th>Bedrijf</th><th>Inlogcode</th><th>Type</th><th>Sector</th><th>E-mail</th><th></th></tr></thead>
+      <table class="tbl"><thead><tr><th>Bedrijf</th><th>Inlogcode</th><th>Type</th><th>Sector</th><th>E-mail</th><th>Login</th><th></th></tr></thead>
       <tbody id="kb-tbody"></tbody></table>
     </div>
   </div>
@@ -947,6 +950,12 @@ const Store = {
   async setNotitie(klantNaam, tekst) {
     await API.call({actie:'setAnalyse',sleutel:'notitie-'+klantNaam,tekst});
   },
+  async getLoginData(klantNaam) {
+    try{const d=await API.call({actie:'getAnalyse',sleutel:'login-'+klantNaam});return d.tekst?JSON.parse(d.tekst):{};}catch{return {};}
+  },
+  async setLoginData(klantNaam, data) {
+    try{await API.call({actie:'setAnalyse',sleutel:'login-'+klantNaam,tekst:JSON.stringify(data)});}catch{}
+  },
 
   async getUploads() {
     if (this._uploads) return this._uploads;
@@ -1254,7 +1263,21 @@ const Auth={
     if(code===adminCode){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
     Store.getKlanten().then(kl=>{
       const k=kl.find(k=>k.code===code);
-      if(k){Auth._open({type:'klant',...k});KlantApp.init();return;}
+      if(k){
+        Auth._open({type:'klant',...k});
+        // Registreer login in database
+        const nu=new Date();
+        const loginDatum=nu.toLocaleDateString('nl-NL');
+        const loginTijd=nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+        const loginTs=loginDatum+' '+loginTijd;
+        Store.getLoginData(k.naam).then(data=>{
+          const teller=(data.teller||0)+1;
+          Store.setLoginData(k.naam,{teller,laatste:loginTs,eersteLogin:data.eersteLogin||loginTs});
+        }).catch(()=>{
+          Store.setLoginData(k.naam,{teller:1,laatste:loginTs,eersteLogin:loginTs});
+        });
+        KlantApp.init();return;
+      }
       show('login-error');
     }).catch(()=>show('login-error'));
     return;
@@ -1467,6 +1490,11 @@ const Dashboard={
     const up=await Store.getUploads();
     const pagers=await Store.get1Pagers();
     const bss=await Store.getBasisscans();
+    // Haal login data op voor alle klanten
+    const loginMap={};
+    await Promise.all(kl.map(async k=>{
+      try{loginMap[k.naam]=await Store.getLoginData(k.naam);}catch{loginMap[k.naam]={};}
+    }));
     setTxt('s-totaal',kl.length);
     setTxt('s-leads',kl.filter(k=>k.klantType==='lead').length);
     setTxt('s-doorl',kl.filter(k=>k.klantType==='doorlichting').length);
@@ -1497,15 +1525,20 @@ const Dashboard={
       }
     }
 
-    tb.innerHTML=kl.map(k=>{
+    const rows=[];
+    for(const k of kl){
       const uploads=up.filter(u=>u.bedrijf===k.naam).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
       const sl=uploads.length?k.naam+'-'+uploads[0].periode:'';
       const heeftUpload=uploads.length>0;
       const heeftPager=sl&&!!pagers[sl]?.gepubliceerd;
       const heeftBs=sl&&!!bss[sl]?.gepubliceerd;
-      let badge, actieKnop='';
+      const ld=loginMap[k.naam]||{};
+      const heeftIngelogd=ld.teller>0;
+      let badge, actieKnop='', loginBadge='';
       if(!heeftUpload){
-        badge='<span class="badge badge-wacht">Wacht op aanlevering</span>';
+        badge=heeftIngelogd
+          ?'<span class="badge" style="background:#FEF3C7;color:#92400E;">Ingelogd — geen upload</span>'
+          :'<span class="badge badge-wacht">Nog niet ingelogd</span>';
       } else if(!heeftPager&&!heeftBs){
         badge='<span class="badge" style="background:#FEF3C7;color:#92400E;">⚡ Rapport maken</span>';
         actieKnop=`<button class="btn btn-primary" style="padding:5px 12px;font-size:11px;background:#D97706;" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">Maak rapport</button>`;
@@ -1513,11 +1546,16 @@ const Dashboard={
         const aantRapporten=[heeftPager,heeftBs].filter(Boolean).length;
         badge=`<span class="badge badge-ok">✓ ${aantRapporten} rapport${aantRapporten>1?'en':''} gepubliceerd</span>`;
       }
+      if(heeftIngelogd){
+        loginBadge=`<div style="font-size:10px;color:var(--mid);margin-top:3px;">🔑 ${ld.teller}× ingelogd · laatste: ${ld.laatste||'?'}</div>`;
+      } else {
+        loginBadge='<div style="font-size:10px;color:#bbb;margin-top:3px;">Nog nooit ingelogd</div>';
+      }
       return `<tr>
         <td><span class="link" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">${UI.esc(k.naam)}</span></td>
         <td>${UI.typeBadge(k.klantType)}</td>
         <td>${UI.esc(k.sector||'—')}</td>
-        <td>${badge}</td>
+        <td>${badge}${loginBadge}</td>
         <td>${actieKnop||`<button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">Open →</button>`}</td>
       </tr>`;
     }).join('');
@@ -1546,15 +1584,22 @@ const Klanten={
         + '<button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="Klanten.stuurMail(\'' + c + '\')">✉</button>'
         + '<button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="Klanten.verwijder(\'' + c + '\')">✕</button>'
         + '</td>';
-      return '<tr data-naam="' + UI.esc(k.naam) + '" data-type="' + (k.klantType || 'lead') + '" data-sector="' + UI.esc(k.sector || '') + '" data-email="' + UI.esc(k.email || '') + '">'
+      // Login data ophalen
+      const ld2=await Store.getLoginData(k.naam).catch(()=>({}));
+      const loginTd=ld2.teller
+        ?'<td style="font-size:11px;color:var(--mid);">🔑 '+ld2.teller+'&times;<br><span style="font-size:10px;color:#888;">'+UI.esc(ld2.laatste||'')+'</span></td>'
+        :'<td style="font-size:11px;color:#ccc;">—</td>';
+      rows.push('<tr data-naam="' + UI.esc(k.naam) + '" data-type="' + (k.klantType || 'lead') + '" data-sector="' + UI.esc(k.sector || '') + '" data-email="' + UI.esc(k.email || '') + '">'
         + '<td style="font-weight:600;">' + UI.esc(k.naam) + '</td>'
         + '<td>' + codeCell + '</td>'
         + '<td>' + sel + '</td>'
         + '<td>' + UI.esc(k.sector || '—') + '</td>'
         + '<td>' + UI.esc(k.email || '—') + '</td>'
+        + loginTd
         + actieTd
         + '</tr>';
-    }).join('');
+    }
+    tb.innerHTML=rows.join('');
     const aantalEl=$('kb-aantal');
     if(aantalEl)aantalEl.textContent=kl.length+' klant'+(kl.length!==1?'en':'');
   },
@@ -1681,10 +1726,46 @@ Groen van Texel
     if(!naam||!code){UI.warn('Vul naam en inlogcode in');return;}
     if(!/^[a-zA-Z0-9_\-]+$/.test(code)){UI.warn('Inlogcode mag alleen letters, cijfers, - en _ bevatten');return;}
     try{
-    const kl=await Store.getKlanten();if(kl.find(k=>k.code===code)){UI.warn('Inlogcode al in gebruik');return;}
-    await Store.addKlant({naam,code,klantType:type,email,sector:sect});
-    ['nk-naam','nk-code','nk-email'].forEach(id=>setVal(id,''));setVal('nk-sector','');
-    Klanten.laadTabel();UI.toast('Klant '+naam+' toegevoegd');
+      const kl=await Store.getKlanten();if(kl.find(k=>k.code===code)){UI.warn('Inlogcode al in gebruik');return;}
+      await Store.addKlant({naam,code,klantType:type,email,sector:sect});
+      ['nk-naam','nk-code','nk-email'].forEach(id=>setVal(id,''));setVal('nk-sector','');
+      Klanten.laadTabel();UI.toast('Klant '+naam+' toegevoegd');
+    }catch(e){UI.error('Fout: '+e.message);}
+  },
+
+  async toevoegenEnWelkom(){
+    const naam=($('nk-naam')?.value||'').trim();const code=($('nk-code')?.value||'').trim();
+    const type=$('nk-type')?.value||'lead';const email=($('nk-email')?.value||'').trim();const sect=$('nk-sector')?.value||'';
+    if(!naam||!code){UI.warn('Vul naam en inlogcode in');return;}
+    if(!email){UI.warn('Vul een e-mailadres in om de welkomsmail te kunnen sturen');return;}
+    if(!/^[a-zA-Z0-9_\-]+$/.test(code)){UI.warn('Inlogcode mag alleen letters, cijfers, - en _ bevatten');return;}
+    try{
+      const kl=await Store.getKlanten();if(kl.find(k=>k.code===code)){UI.warn('Inlogcode al in gebruik');return;}
+      await Store.addKlant({naam,code,klantType:type,email,sector:sect});
+      ['nk-naam','nk-code','nk-email'].forEach(id=>setVal(id,''));setVal('nk-sector','');
+      Klanten.laadTabel();
+      // Stuur welkomsmail
+      const url='https://groenvantexel.pages.dev';
+      const typeNaam=type==='monitoring'?'maandelijkse monitoring':type==='doorlichting'?'financiële doorlichting':'gratis financieel overzicht';
+      const msg=`Beste ${naam},
+
+Welkom bij Groen van Texel — fijn dat u voor ons heeft gekozen.
+
+Zoals besproken starten wij met uw ${typeNaam}. U kunt direct aan de slag via uw persoonlijke portaal:
+
+${url}
+
+Uw inlogcode: ${code}
+
+Na het inloggen kunt u uw jaarcijfers aanleveren. Wij hebben de V&W-rekening en balans nodig als PDF of Excel, te exporteren vanuit uw boekhoudprogramma.
+
+Heeft u vragen? Bel of mail ons gerust.
+
+Met vriendelijke groet,
+Groen van Texel
+06 4215 2499`;
+      await Email.stuur({bedrijf:naam,periode:'Welkom',name:naam,time:UI.datumNL(),message:msg,to_email:email});
+      UI.toast('Klant '+naam+' toegevoegd en welkomsmail verstuurd naar '+email);
     }catch(e){UI.error('Fout: '+e.message);}
   },
   async verwijder(code){
@@ -3456,7 +3537,7 @@ const Formulier={
       const klArr=await Store.getKlanten();
       const periode=jaar;const datum=UI.datumNL();
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
-      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')});}catch(e){console.warn('EmailJS:',e.message||e);}
+      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')+(sessie?.code?`\nInlogcode: ${sessie.code}`:'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
     }catch(e){
       Formulier._bezig=false;
