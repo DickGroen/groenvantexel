@@ -1911,16 +1911,32 @@ const Rapport={
 
   async resetUpload(){
     if(!_adminKlant||!_adminPeriode){UI.warn('Geen klant/periode geselecteerd');return;}
-    if(!confirm('Upload verwijderen voor '+_adminKlant+' ('+_adminPeriode+')? De klant kan dan opnieuw aanleveren.'))return;
+    if(!confirm('Upload verwijderen voor '+_adminKlant+' ('+_adminPeriode+')? Dit verwijdert ook alle gegenereerde rapporten. De klant kan daarna opnieuw aanleveren.'))return;
     try{
+      UI.toast('Bezig met opruimen...');
+      const sl=_adminKlant+'-'+_adminPeriode;
       await API.call({actie:'delUpload',bedrijf:_adminKlant,periode:_adminPeriode});
       Store._uploads=null;
-      UI.toast('Upload verwijderd — klant kan opnieuw aanleveren');
+      try{await API.call({actie:'setAnalyse',sleutel:sl,tekst:''});}catch{}
+      const dels=[
+        ()=>Store.del1Pager(sl),
+        ()=>Store.delBasisscan(sl),
+        ()=>Store.delSubsidiescan(sl),
+        ()=>Store.delCashflowStresstest(sl),
+        ()=>Store.delDebiteurenStresstest(sl),
+        ()=>Store.delOfferteMargescan(sl),
+        ()=>Store.delFiscaleScan(sl),
+        ()=>Store.delInkoopanalyse(sl),
+        ()=>Store.delVerzekeringsScan(sl),
+        ()=>Store.delPersoneelsScan(sl),
+        ()=>Store.delExitScan(sl),
+      ];
+      for(const d of dels){try{await d();}catch{}}
       Rapport._reset();setHTML('r-header','');
       const pSel=$('r-periode');if(pSel)pSel.innerHTML='<option value="">— Periode —</option>';
+      UI.toast('Upload en alle rapporten verwijderd — klant kan opnieuw aanleveren');
     }catch(e){UI.error('Fout: '+e.message);}
   },
-
   _downloadEenpager(){
     const el = $('rapport-tab-inhoud');
     if(!el) return;
