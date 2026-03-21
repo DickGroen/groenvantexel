@@ -1386,19 +1386,24 @@ const Nav={
     const nav=$('topnav');if(!nav||!sessie)return;
     if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-subsidie" onclick="Nav.ga('subsidie')">🎯 Subsidie</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
     else{
+      // Toon minimale nav direct — uitloggen altijd zichtbaar
+      nav.innerHTML='<button class="nav-btn" id="nb-welkom" onclick="Nav.ga('welkom')">🏠 Start</button>'
+        +'<button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button>'
+        +'<button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">💡 Meer diensten</button>'
+        +'<button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>';
       const kt=sessie?.klanttype||sessie?.klantType||'lead';
-      const alleUpl=await Store.getUploads();
+      const alleUpl=await Store.getUploads().catch(()=>[]);
       const uploads=alleUpl.filter(u=>u.bedrijf===sessie.naam);
-      const allBs=await Store.getBasisscans();
-      const allSub=await Store.getSubsidiescans();
-      const allCs=await Store.getCashflowStresstests();
-      const allDs=await Store.getDebiteurenStresstests();
-      const allOm=await Store.getOfferteMargescans();
-      const allFiscaleScans=await Store.getFiscaleScans();
-      const allInkoopanalyses=await Store.getInkoopanalyses();
-      const allVerzekeringsScans=await Store.getVerzekeringsScans();
-      const allPersoneelsScans=await Store.getPersoneelsScans();
-      const allExitScans=await Store.getExitScans();
+      const allBs=await Store.getBasisscans().catch(()=>({}));
+      const allSub=await Store.getSubsidiescans().catch(()=>({}));
+      const allCs=await Store.getCashflowStresstests().catch(()=>({}));
+      const allDs=await Store.getDebiteurenStresstests().catch(()=>({}));
+      const allOm=await Store.getOfferteMargescans().catch(()=>({}));
+      const allFiscaleScans=await Store.getFiscaleScans().catch(()=>({}));
+      const allInkoopanalyses=await Store.getInkoopanalyses().catch(()=>({}));
+      const allVerzekeringsScans=await Store.getVerzekeringsScans().catch(()=>({}));
+      const allPersoneelsScans=await Store.getPersoneelsScans().catch(()=>({}));
+      const allExitScans=await Store.getExitScans().catch(()=>({}));
       const heeftBs=uploads.some(u=>allBs[sessie.naam+'-'+u.periode]?.gepubliceerd);
       const heeftSub=uploads.some(u=>allSub[sessie.naam+'-'+u.periode]?.gepubliceerd);
       const heeftCs=uploads.some(u=>allCs[sessie.naam+'-'+u.periode]?.gepubliceerd);
@@ -1423,7 +1428,12 @@ const Nav={
       const allPagers1=await Store.get1Pagers();
       const heeftPager=uploads.some(u=>allPagers1[sessie.naam+'-'+u.periode]?.gepubliceerd);
       const pagerBtn=heeftPager?`<button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">📄 1-Pager</button>`:'';
-      nav.innerHTML=`<button class="nav-btn" id="nb-welkom" onclick="Nav.ga('welkom')">🏠 Start</button><button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button>${pagerBtn}${bsBtn}${csBtn}${dsBtn}${omBtn}${fiscaalBtn}${inkoopBtn}${verzekerBtn}${personeelBtn}${exitBtn}${subBtn}${monBtn}<button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">💡 Meer diensten</button><button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;
+      // Volledige nav nu beschikbaar — vervang de minimale versie
+      nav.innerHTML='<button class="nav-btn" id="nb-welkom" onclick="Nav.ga('welkom')">🏠 Start</button>'
+        +'<button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button>'
+        +pagerBtn+bsBtn+csBtn+dsBtn+omBtn+fiscaalBtn+inkoopBtn+verzekerBtn+personeelBtn+exitBtn+subBtn+monBtn
+        +'<button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">💡 Meer diensten</button>'
+        +'<button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>';
     }
   },
   ga(naam){
@@ -3060,8 +3070,8 @@ Deadline: [Doorlopend / Specifieke datum / Op=op]
 const KlantApp={
   async init(){
     Nav.ga('welkom');
-    // Bouw nav en laad klantdata parallel
-    const navPromise=Nav.bouw();
+    // Bouw nav eerst, daarna content laden
+    try{await Nav.bouw();}catch(e){console.warn('Nav.bouw fout:',e);}
     try{const kl=await Store.getKlanten();const k=kl.find(k=>k.code===sessie.code||k.naam===sessie.naam);if(k)sessie={...sessie,...k};}catch{}
     const naam=sessie.naam||'';
     const kt=sessie.klanttype||sessie.klantType||'lead';
