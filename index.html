@@ -352,246 +352,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     </div>
   </div>
 
-  <!-- Aparte view voor Basisscan -->
-  <div id="view-basisscan-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-basisscan">
-        <div id="klant-basisscan-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="Basisscan.downloadPDF()" style="background:var(--purple);color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Basisscan als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Gecombineerde rapporten view met tabbladen -->
+  <div id="view-rapporten-klant" class="view">
+    <div style="max-width:760px;margin:0 auto;padding-bottom:48px;">
 
-  <!-- Aparte view voor Cashflow Stresstest -->
-  <div id="view-cashflow-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-cashflow">
-        <div style="background:#ECFEFF;border:1px solid #0E7490;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#0E7490;font-weight:700;margin-bottom:4px;">💸 Uw Cashflow Stresstest</div>
-          <div style="font-size:12px;color:#155E75;line-height:1.6;">Hieronder vindt u uw persoonlijke Cashflow Stresstest — een diepgaande analyse van uw kasstromen, liquiditeitsrisico's en overlevingscapaciteit.</div>
-        </div>
-        <div id="klant-cashflow-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="CashflowStresstest.downloadPDF()" style="background:#0E7490;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Cashflow Stresstest als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
+      <!-- Tabbladen -->
+      <div id="rapport-tabs" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;border-bottom:2px solid var(--border);padding-bottom:12px;"></div>
 
-  <!-- Aparte view voor Debiteuren Stresstest -->
-  <div id="view-debiteuren-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-debiteuren">
-        <div style="background:#F5F3FF;border:1px solid #7C3AED;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#7C3AED;font-weight:700;margin-bottom:4px;">📋 Uw Debiteuren Stresstest</div>
-          <div style="font-size:12px;color:#4C1D95;line-height:1.6;">Hieronder vindt u uw persoonlijke Debiteuren Stresstest — een diepgaande analyse van wie niet betaalt, wat dat kost en hoe u het oplost.</div>
-        </div>
-        <div id="klant-debiteuren-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="DebiteurenStresstest.downloadPDF()" style="background:#7C3AED;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Debiteuren Stresstest als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Aparte view voor Offerte & Marge Stresstest -->
-  <div id="view-offerte-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-offerte">
-        <div style="background:#FEF3C7;border:1px solid #B45309;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#B45309;font-weight:700;margin-bottom:4px;">📐 Uw Offerte &amp; Marge Stresstest</div>
-          <div style="font-size:12px;color:#78350F;line-height:1.6;">Hieronder vindt u uw persoonlijke Offerte &amp; Marge Stresstest — wat verdient u werkelijk per klus, waar lekt de marge en hoe lost u het op?</div>
-        </div>
-        <div id="klant-offerte-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="OfferteMargeScan.downloadPDF()" style="background:#B45309;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Offerte &amp; Marge Stresstest als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Aparte view voor Fiscale Optimalisatie Scan -->
-  <div id="view-fiscaal-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-fiscaal">
-        <div style="background:#FEF9C3;border:1px solid #065F46;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#065F46;font-weight:700;margin-bottom:4px;">🧾 Uw Fiscale Optimalisatie Scan</div>
-          <div style="font-size:12px;color:#065F46;line-height:1.6;">Hieronder vindt u uw persoonlijke Fiscale Optimalisatie Scan — DGA-salaris, investeringsaftrek en directe fiscale voordelen inzichtelijk gemaakt.</div>
-        </div>
-        <div id="klant-fiscaal-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="FiscaleScan.downloadPDF()" style="background:#065F46;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Fiscale Optimalisatie Scan als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Aparte view voor Inkoopanalyse -->
-  <div id="view-inkoop-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-inkoop">
-        <div style="background:#DBEAFE;border:1px solid #1D4ED8;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#1D4ED8;font-weight:700;margin-bottom:4px;">🛒 Uw Inkoopanalyse</div>
-          <div style="font-size:12px;color:#1D4ED8;line-height:1.6;">Hieronder vindt u uw persoonlijke Inkoopanalyse — welke leveranciers heronderhandelen oplevert en hoeveel.</div>
-        </div>
-        <div id="klant-inkoop-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="InkoopScan.downloadPDF()" style="background:#1D4ED8;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Inkoopanalyse als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Aparte view voor Verzekerings Scan -->
-  <div id="view-verzeker-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-verzeker">
-        <div style="background:#FEE2E2;border:1px solid #7F1D1D;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#7F1D1D;font-weight:700;margin-bottom:4px;">🛡 Uw Verzekerings Scan</div>
-          <div style="font-size:12px;color:#7F1D1D;line-height:1.6;">Hieronder vindt u uw persoonlijke Verzekerings Scan — bent u over- of onderverzekerd en wat kost dat?</div>
-        </div>
-        <div id="klant-verzeker-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="VerzekeringsScan.downloadPDF()" style="background:#7F1D1D;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Verzekerings Scan als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Aparte view voor Personeelskosten Stresstest -->
-  <div id="view-personeel-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-personeel">
-        <div style="background:#FCE7F3;border:1px solid #831843;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#831843;font-weight:700;margin-bottom:4px;">👥 Uw Personeelskosten Stresstest</div>
-          <div style="font-size:12px;color:#831843;line-height:1.6;">Hieronder vindt u uw persoonlijke Personeelskosten Stresstest — wat kosten uw medewerkers werkelijk en wat levert het op?</div>
-        </div>
-        <div id="klant-personeel-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="PersoneelsScan.downloadPDF()" style="background:#831843;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Personeelskosten Stresstest als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Aparte view voor Exit & Waardering Scan -->
-  <div id="view-exit-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-exit">
-        <div style="background:#DBEAFE;border:1px solid #1E3A5F;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#1E3A5F;font-weight:700;margin-bottom:4px;">🏷 Uw Exit & Waardering Scan</div>
-          <div style="font-size:12px;color:#1E3A5F;line-height:1.6;">Hieronder vindt u uw persoonlijke Exit & Waardering Scan — wat is uw bedrijf waard en hoe verhoogt u die waarde?</div>
-        </div>
-        <div id="klant-exit-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="ExitScan.downloadPDF()" style="background:#1E3A5F;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Exit & Waardering Scan als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Aparte view voor Subsidie Scan -->
-  <div id="view-subsidie-klant" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-      <div id="klant-subsidiescan">
-        <div style="background:#FFFBEB;border:1px solid #F59E0B;border-radius:8px;padding:14px 20px;margin-bottom:16px;">
-          <div style="font-size:13px;color:#92400E;font-weight:700;margin-bottom:4px;">🎯 Uw Subsidie Scan</div>
-          <div style="font-size:12px;color:#78350F;line-height:1.6;">Hieronder vindt u uw persoonlijke Subsidie Scan. Groen van Texel verzorgt de aanvraag — u hoeft zelf niets te doen.</div>
-        </div>
-        <div id="klant-subsidiescan-inhoud"></div>
-        <div style="text-align:center;margin-top:20px;padding-bottom:32px;">
-          <button onclick="Subsidie.downloadPDF()" style="background:#D97706;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">⬇ Download Subsidie Scan als PDF</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- View: Meer diensten -->
-  <div id="view-diensten" class="view">
-    <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
-
-      <div style="margin-bottom:24px;">
-        <div style="font-size:22px;font-weight:700;color:var(--blue-dark);margin-bottom:6px;">💡 Wat kunnen wij nog meer voor u doen?</div>
-        <div style="font-size:14px;color:var(--mid);line-height:1.7;">Groen van Texel biedt financiële analyses en scans voor het MKB. Hieronder een overzicht afgestemd op uw bedrijfsgrootte. Bel of mail ons voor meer informatie.</div>
-      </div>
-
-      <!-- Klein MKB -->
-      <div class="card" style="margin-bottom:20px;padding:0;">
-        <div style="background:var(--green);color:#fff;padding:14px 20px;border-radius:8px 8px 0 0;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.8;margin-bottom:2px;">Klein MKB</div>
-          <div style="font-size:15px;font-weight:700;">Top 10 voor bedrijven met 5–10 medewerkers</div>
-        </div>
-
-        <div style="padding:16px 20px 16px;">
-          <div style="display:grid;gap:10px;">
-            <div style="border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-              <div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:14px;margin-bottom:2px;">🔍 Financiële Basisscan</div><div style="font-size:12px;color:var(--mid);">Ratio's vs sectornorm — verbeterpotentieel in euro's — concreet actieplan</div><div style="font-size:11px;color:var(--mid);margin-top:3px;">⏱ Binnen 5 werkdagen</div></div>
-              <div style="text-align:right;flex-shrink:0;"><div style="font-size:15px;font-weight:700;color:var(--green);">€397</div><div style="font-size:10px;color:var(--mid);margin-bottom:6px;">excl. BTW</div><button onclick="Nav.ga('rapport')" style="background:var(--green);color:#fff;border:none;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">Aanvragen</button></div>
-            </div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-              <div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:14px;margin-bottom:2px;">🎯 Subsidie Scan</div><div style="font-size:12px;color:var(--mid);">ISDE, KIA, WBSO — veel laaghangend fruit onbenut</div><div style="font-size:11px;color:var(--mid);margin-top:3px;">⏱ Binnen 5 werkdagen</div></div>
-              <div style="text-align:right;flex-shrink:0;"><div style="font-size:15px;font-weight:700;color:#D97706;">20%</div><div style="font-size:10px;color:var(--mid);margin-bottom:6px;">succes fee</div><button onclick="Formulier.bestelSubsidiescan(this)" style="background:#D97706;color:#fff;border:none;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">Aanvragen</button></div>
-            </div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-              <div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:14px;margin-bottom:2px;">📅 Maandelijkse Monitoring</div><div style="font-size:12px;color:var(--mid);">Doorlopende bewaking kerncijfers — maandrapport — KPI scorecard</div><div style="font-size:11px;color:var(--mid);margin-top:3px;">⏱ Elke maand</div></div>
-              <div style="text-align:right;flex-shrink:0;"><div style="font-size:15px;font-weight:700;color:var(--blue-mid);">€249</div><div style="font-size:10px;color:var(--mid);margin-bottom:6px;">/mnd excl. BTW</div><button onclick="Formulier.bestelMonitoring(this)" style="background:var(--blue-mid);color:#fff;border:none;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">Aanvragen</button></div>
-            </div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">💸 Cashflow Stresstest</div><div style="font-size:12px;color:var(--mid);">Overleven en plannen — de grootste nachtmerrie voor klein MKB</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€297</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelCashflowStresstest(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">📋 Debiteuren Stresstest</div><div style="font-size:12px;color:var(--mid);">Wie betaalt niet, wat kost dat, hoe lost u het op?</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€247</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelDebiteurenStresstest(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">📐 Offerte &amp; Marge Stresstest</div><div style="font-size:12px;color:var(--mid);">Weet u wat u werkelijk verdient per klus?</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€347</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelOfferteMarge(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">🧾 Fiscale Optimalisatie Scan</div><div style="font-size:12px;color:var(--mid);">DGA-salaris, investeringsaftrek — direct voordeel</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€297</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelFiscaleScan(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">🛒 Inkoopanalyse</div><div style="font-size:12px;color:var(--mid);">3 leveranciers heronderhandelen levert direct marge</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€347</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelInkoopanalyse(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">🛡 Verzekerings Scan</div><div style="font-size:12px;color:var(--mid);">Vaak over- of onderverzekerd zonder het te weten</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€247</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelVerzekeringsScan(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">👥 Personeelskosten Stresstest</div><div style="font-size:12px;color:var(--mid);">Eerste medewerkers zijn relatief duur — wat levert het op?</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€347</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelPersoneelsstresstest(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">🏷 Exit &amp; Waardering Scan</div><div style="font-size:12px;color:var(--mid);">Nog niet urgent, maar bewustwording loont vroeg</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€697</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelExitScan(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Middelgroot MKB -->
-      <div class="card" style="margin-bottom:20px;padding:0;">
-        <div style="background:var(--blue-mid);color:#fff;padding:14px 20px;border-radius:8px 8px 0 0;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.8;margin-bottom:2px;">Middelgroot MKB</div>
-          <div style="font-size:15px;font-weight:700;">Top 11 voor bedrijven met 25–50 medewerkers</div>
-        </div>
-        <div style="padding:16px 20px 16px;">
-          <div style="display:grid;gap:10px;">
-            <div style="border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-              <div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:14px;margin-bottom:2px;">🔍 Financiële Basisscan</div><div style="font-size:12px;color:var(--mid);">Ratio's vs sectornorm — verbeterpotentieel in euro's — concreet actieplan</div><div style="font-size:11px;color:var(--mid);margin-top:3px;">⏱ Binnen 5 werkdagen</div></div>
-              <div style="text-align:right;flex-shrink:0;"><div style="font-size:15px;font-weight:700;color:var(--green);">€397</div><div style="font-size:10px;color:var(--mid);margin-bottom:6px;">excl. BTW</div><button onclick="Nav.ga('rapport')" style="background:var(--green);color:#fff;border:none;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">Aanvragen</button></div>
-            </div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-              <div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:14px;margin-bottom:2px;">🎯 Subsidie Scan</div><div style="font-size:12px;color:var(--mid);">WBSO en MIA worden relevanter bij grotere investeringen</div><div style="font-size:11px;color:var(--mid);margin-top:3px;">⏱ Binnen 5 werkdagen</div></div>
-              <div style="text-align:right;flex-shrink:0;"><div style="font-size:15px;font-weight:700;color:#D97706;">20%</div><div style="font-size:10px;color:var(--mid);margin-bottom:6px;">succes fee</div><button onclick="Formulier.bestelSubsidiescan(this)" style="background:#D97706;color:#fff;border:none;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">Aanvragen</button></div>
-            </div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-              <div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:14px;margin-bottom:2px;">📅 Maandelijkse Monitoring</div><div style="font-size:12px;color:var(--mid);">Doorlopende bewaking kerncijfers — maandrapport — KPI scorecard</div><div style="font-size:11px;color:var(--mid);margin-top:3px;">⏱ Elke maand</div></div>
-              <div style="text-align:right;flex-shrink:0;"><div style="font-size:15px;font-weight:700;color:var(--blue-mid);">€249</div><div style="font-size:10px;color:var(--mid);margin-bottom:6px;">/mnd excl. BTW</div><button onclick="Formulier.bestelMonitoring(this)" style="background:var(--blue-mid);color:#fff;border:none;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">Aanvragen</button></div>
-            </div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">👥 Personeelskosten Stresstest</div><div style="font-size:12px;color:var(--mid);">Loonkosten domineren — verzuim en inleen zijn groot lek</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€347</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelPersoneelsstresstest(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">📐 Offerte &amp; Marge Stresstest</div><div style="font-size:12px;color:var(--mid);">Projecten worden complexer — margelekken groter</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€347</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelOfferteMarge(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">💸 Cashflow Stresstest</div><div style="font-size:12px;color:var(--mid);">Overleven en plannen — de grootste nachtmerrie voor klein MKB</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€297</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelCashflowStresstest(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">🛒 Inkoopanalyse</div><div style="font-size:12px;color:var(--mid);">Volumes zijn groot genoeg om serieus te heronderhandelen</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€347</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelInkoopanalyse(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">🧾 Fiscale Optimalisatie Scan</div><div style="font-size:12px;color:var(--mid);">Bedragen zijn nu groot genoeg om echt te tellen</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€297</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelFiscaleScan(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">🏷 Exit &amp; Waardering Scan</div><div style="font-size:12px;color:var(--mid);">Ondernemer denkt aan toekomst — waardering verhogen kost tijd</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€697</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelExitScan(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">📋 Debiteuren Stresstest</div><div style="font-size:12px;color:var(--mid);">Meer klanten, meer risico, meer te winnen</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€247</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelDebiteurenStresstest(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;margin-bottom:1px;">🛡 Verzekerings Scan</div><div style="font-size:12px;color:var(--mid);">Risicoprofiel is complexer — polis loopt vaak achter op de groei</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:var(--blue-dark);">€247</div><div style="font-size:10px;color:var(--mid);margin-bottom:4px;">excl. BTW</div><button onclick="Formulier.bestelVerzekeringsScan(this)" style="background:none;border:1px solid var(--blue-dark);border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;">Aanvragen</button></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contact CTA -->
-      <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:10px;padding:28px;text-align:center;">
-        <div style="color:#FDE68A;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Interesse in een van deze diensten?</div>
-        <div style="color:#fff;font-size:16px;font-weight:700;margin-bottom:6px;">Neem contact op met Groen van Texel</div>
-        <div style="color:#9dc3e6;font-size:14px;margin-bottom:16px;">06 4215 2499 &nbsp;·&nbsp; groenvantexel.pages.dev</div>
-        <a href="tel:0642152499" style="display:inline-block;background:#fff;color:#1F4E79;font-weight:700;font-size:14px;border-radius:8px;padding:12px 28px;text-decoration:none;">📞 Bel direct</a>
-      </div>
+      <!-- Rapport inhoud -->
+      <div id="rapport-tab-inhoud"></div>
 
     </div>
   </div>
+
+
 
   <div id="view-welkom" class="view">
     <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
@@ -1437,7 +1211,7 @@ const Nav={
 
   async bouw(){
     const nav=$('topnav');if(!nav||!sessie)return;
-    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-subsidie" onclick="Nav.ga('subsidie')">🎯 Subsidie</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
+    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.gaRapport('eenpager')">Rapport</button><button class="nav-btn" id="nb-subsidie" onclick="Nav.ga('subsidie')">🎯 Subsidie</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
     else{
       // Toon minimale nav direct — uitloggen altijd zichtbaar
       Nav._setMinimaleNav(nav);
@@ -1464,24 +1238,30 @@ const Nav={
       const heeftVerzekeringsScans=uploads.some(u=>allVerzekeringsScans[sessie.naam+'-'+u.periode]?.gepubliceerd);
       const heeftInkoopanalyses=uploads.some(u=>allInkoopanalyses[sessie.naam+'-'+u.periode]?.gepubliceerd);
       const heeftFiscaleScans=uploads.some(u=>allFiscaleScans[sessie.naam+'-'+u.periode]?.gepubliceerd);
-      const bsBtn=heeftBs?`<button class="nav-btn" id="nb-basisscan-klant" onclick="Nav.ga('basisscan-klant')">🔍 Basisscan</button>`:'';
-      const subBtn=heeftSub?`<button class="nav-btn" id="nb-subsidie-klant" onclick="Nav.ga('subsidie-klant')">🎯 Subsidiescan</button>`:'';
-      const csBtn=heeftCs?`<button class="nav-btn" id="nb-cashflow-klant" onclick="Nav.ga('cashflow-klant')">💸 Cashflow</button>`:'';
-      const dsBtn=heeftDs?`<button class="nav-btn" id="nb-debiteuren-klant" onclick="Nav.ga('debiteuren-klant')">📋 Debiteuren</button>`:'';
-      const omBtn=heeftOm?`<button class="nav-btn" id="nb-offerte-klant" onclick="Nav.ga('offerte-klant')">📐 Offerte &amp; Marge</button>`:''
-      const fiscaalBtn=heeftFiscaleScans?`<button class="nav-btn" id="nb-fiscaal-klant" onclick="Nav.ga('fiscaal-klant')">🧾 Fiscaal</button>`:'';
-      const inkoopBtn=heeftInkoopanalyses?`<button class="nav-btn" id="nb-inkoop-klant" onclick="Nav.ga('inkoop-klant')">🛒 Inkoop</button>`:'';
-      const verzekerBtn=heeftVerzekeringsScans?`<button class="nav-btn" id="nb-verzeker-klant" onclick="Nav.ga('verzeker-klant')">🛡 Verzekering</button>`:'';
-      const personeelBtn=heeftPersoneelsScans?`<button class="nav-btn" id="nb-personeel-klant" onclick="Nav.ga('personeel-klant')">👥 Personeel</button>`:'';
-      const exitBtn=heeftExitScans?`<button class="nav-btn" id="nb-exit-klant" onclick="Nav.ga('exit-klant')">🏷 Exit</button>`:'';;
+      const bsBtn=heeftBs?`<button class="nav-btn" id="nb-basisscan-klant" onclick="Nav.gaRapport('basisscan')">🔍 Basisscan</button>`:'';
+      const subBtn=heeftSub?`<button class="nav-btn" id="nb-subsidie-klant" onclick="Nav.gaRapport('subsidie')">🎯 Subsidiescan</button>`:'';
+      const csBtn=heeftCs?`<button class="nav-btn" id="nb-cashflow-klant" onclick="Nav.gaRapport('cashflow')">💸 Cashflow</button>`:'';
+      const dsBtn=heeftDs?`<button class="nav-btn" id="nb-debiteuren-klant" onclick="Nav.gaRapport('debiteuren')">📋 Debiteuren</button>`:'';
+      const omBtn=heeftOm?`<button class="nav-btn" id="nb-offerte-klant" onclick="Nav.gaRapport('offerte')">📐 Offerte &amp; Marge</button>`:''
+      const fiscaalBtn=heeftFiscaleScans?`<button class="nav-btn" id="nb-fiscaal-klant" onclick="Nav.gaRapport('fiscaal')">🧾 Fiscaal</button>`:'';
+      const inkoopBtn=heeftInkoopanalyses?`<button class="nav-btn" id="nb-inkoop-klant" onclick="Nav.gaRapport('inkoop')">🛒 Inkoop</button>`:'';
+      const verzekerBtn=heeftVerzekeringsScans?`<button class="nav-btn" id="nb-verzeker-klant" onclick="Nav.gaRapport('verzeker')">🛡 Verzekering</button>`:'';
+      const personeelBtn=heeftPersoneelsScans?`<button class="nav-btn" id="nb-personeel-klant" onclick="Nav.gaRapport('personeel')">👥 Personeel</button>`:'';
+      const exitBtn=heeftExitScans?`<button class="nav-btn" id="nb-exit-klant" onclick="Nav.gaRapport('exit')">🏷 Exit</button>`:'';;
       const monBtn=kt==='monitoring'?`<button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button>`:'';
       const allPagers1=await Store.get1Pagers();
       const heeftPager=uploads.some(u=>allPagers1[sessie.naam+'-'+u.periode]?.gepubliceerd);
-      const pagerBtn=heeftPager?`<button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">📄 1-Pager</button>`:'';
+      const pagerBtn=heeftPager?`<button class="nav-btn" id="nb-rapport" onclick="Nav.gaRapport('eenpager')">📄 1-Pager</button>`:'';
       // Volledige nav nu beschikbaar — vervang de minimale versie
       Nav._setVolledigeNav(nav, pagerBtn+bsBtn+csBtn+dsBtn+omBtn+fiscaalBtn+inkoopBtn+verzekerBtn+personeelBtn+exitBtn+subBtn+monBtn);
     }
   },
+  gaRapport(tabNaam){
+    // Navigeer naar rapporten-view en activeer het juiste tabblad
+    Nav.ga('rapporten-klant');
+    RapportTabs.toon(tabNaam);
+  },
+
   ga(naam){
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -1819,7 +1599,7 @@ Groen van Texel
 let _adminKlant=null,_adminPeriode=null;
 
 const Rapport={
-  adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.ga('rapport');},
+  adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.gaRapport('eenpager');},
   async laadVoorAdmin(){Rapport._reset();show('admin-selectie');await Rapport._vulKlantDropdown();if(_adminKlant)await Rapport.onKlantSelect();},
   async _vulKlantDropdown(){
     const sel=$('r-klant');if(!sel)return;
@@ -1970,6 +1750,12 @@ const Rapport={
     }catch(e){UI.error('Fout: '+e.message);}
   },
 
+  _downloadEenpager(){
+    const el = $('rapport-tab-inhoud');
+    if(!el) return;
+    downloadAlsPDF('rapport-tab-inhoud', '1-Pager ' + (sessie?.naam||''));
+  },
+
   async slaNotitieOp(){
     if(!_adminKlant)return;
     const ta=document.getElementById('admin-notitie-tekst');
@@ -1993,8 +1779,7 @@ const Rapport={
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
       if(allBs[sl]?.gepubliceerd&&allBs[sl].html){
-        setHTML('klant-basisscan-inhoud',allBs[sl].html);
-        show('klant-basisscan');return;
+        RapportTabs._renderInhoud(allBs[sl].html, '🔍 Uw Financiële Basisscan', '#5B21B6', 'Basisscan.downloadPDF()');return;
       }
     }
   },
@@ -2006,8 +1791,7 @@ const Rapport={
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
       if(allSub[sl]?.gepubliceerd&&allSub[sl].html){
-        setHTML('klant-subsidiescan-inhoud',allSub[sl].html);
-        show('klant-subsidiescan');return;
+        RapportTabs._renderInhoud(allSub[sl].html, '🎯 Uw Subsidie Scan', '#D97706', 'Subsidie.downloadPDF()');return;
       }
     }
   },
@@ -2018,7 +1802,7 @@ const Rapport={
     const allX=await Store.getFiscaleScans();
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
-      if(allX[sl]?.gepubliceerd&&allX[sl].html){setHTML('klant-fiscaal-inhoud',allX[sl].html);show('klant-fiscaal');return;}
+      if(allX[sl]?.gepubliceerd&&allX[sl].html){RapportTabs._renderInhoud(allX[sl].html, '🧾 Uw Fiscale Optimalisatie Scan', '#065F46', 'FiscaleScan.downloadPDF()');return;}
     }
   },
   async laadInkoopanalyseKlant(){
@@ -2028,7 +1812,7 @@ const Rapport={
     const allX=await Store.getInkoopanalyses();
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
-      if(allX[sl]?.gepubliceerd&&allX[sl].html){setHTML('klant-inkoop-inhoud',allX[sl].html);show('klant-inkoop');return;}
+      if(allX[sl]?.gepubliceerd&&allX[sl].html){RapportTabs._renderInhoud(allX[sl].html, '🛒 Uw Inkoopanalyse', '#1D4ED8', 'InkoopScan.downloadPDF()');return;}
     }
   },
   async laadVerzekeringsScanKlant(){
@@ -2038,7 +1822,7 @@ const Rapport={
     const allX=await Store.getVerzekeringsScans();
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
-      if(allX[sl]?.gepubliceerd&&allX[sl].html){setHTML('klant-verzeker-inhoud',allX[sl].html);show('klant-verzeker');return;}
+      if(allX[sl]?.gepubliceerd&&allX[sl].html){RapportTabs._renderInhoud(allX[sl].html, '🛡 Uw Verzekerings Scan', '#7F1D1D', 'VerzekeringsScan.downloadPDF()');return;}
     }
   },
   async laadPersoneelsScanKlant(){
@@ -2048,7 +1832,7 @@ const Rapport={
     const allX=await Store.getPersoneelsScans();
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
-      if(allX[sl]?.gepubliceerd&&allX[sl].html){setHTML('klant-personeel-inhoud',allX[sl].html);show('klant-personeel');return;}
+      if(allX[sl]?.gepubliceerd&&allX[sl].html){RapportTabs._renderInhoud(allX[sl].html, '👥 Uw Personeelskosten Stresstest', '#831843', 'PersoneelsScan.downloadPDF()');return;}
     }
   },
   async laadExitScanKlant(){
@@ -2058,7 +1842,7 @@ const Rapport={
     const allX=await Store.getExitScans();
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
-      if(allX[sl]?.gepubliceerd&&allX[sl].html){setHTML('klant-exit-inhoud',allX[sl].html);show('klant-exit');return;}
+      if(allX[sl]?.gepubliceerd&&allX[sl].html){RapportTabs._renderInhoud(allX[sl].html, '🏷 Uw Exit &amp; Waardering Scan', '#1E3A5F', 'ExitScan.downloadPDF()');return;}
     }
   },
   async laadOfferteKlant(){
@@ -2069,8 +1853,7 @@ const Rapport={
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
       if(allOm[sl]?.gepubliceerd&&allOm[sl].html){
-        setHTML('klant-offerte-inhoud',allOm[sl].html);
-        show('klant-offerte');return;
+        RapportTabs._renderInhoud(allOm[sl].html, '📐 Uw Offerte &amp; Marge Stresstest', '#B45309', 'OfferteMargeScan.downloadPDF()');return;
       }
     }
   },
@@ -2082,8 +1865,7 @@ const Rapport={
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
       if(allDs[sl]?.gepubliceerd&&allDs[sl].html){
-        setHTML('klant-debiteuren-inhoud',allDs[sl].html);
-        show('klant-debiteuren');return;
+        RapportTabs._renderInhoud(allDs[sl].html, '📋 Uw Debiteuren Stresstest', '#7C3AED', 'DebiteurenStresstest.downloadPDF()');return;
       }
     }
   },
@@ -2095,8 +1877,7 @@ const Rapport={
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
       if(allCs[sl]?.gepubliceerd&&allCs[sl].html){
-        setHTML('klant-cashflow-inhoud',allCs[sl].html);
-        show('klant-cashflow');return;
+        RapportTabs._renderInhoud(allCs[sl].html, '💸 Uw Cashflow Stresstest', '#0E7490', 'CashflowStresstest.downloadPDF()');return;
       }
     }
   },
@@ -2121,7 +1902,7 @@ const Rapport={
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
       if(allPagers[sl]?.gepubliceerd&&allPagers[sl].html){
-        setHTML('klant-eenpager-inhoud',allPagers[sl].html);show('klant-eenpager');gevonden=true;break;
+        RapportTabs._renderInhoud(allPagers[sl].html, '📄 Uw Financieel Overzicht (1-Pager)', '#1E8449', 'Rapport._downloadEenpager()');gevonden=true;break;
       }
     }
     if(!gevonden){
@@ -3113,6 +2894,115 @@ Deadline: [Doorlopend / Specifieke datum / Op=op]
     downloadAlsPDF('subsidiescan-content','Subsidie Scan '+klant);
   },};
 
+
+// ─── RAPPORT TABS ─────────────────────────────────────────────────────────────
+const RapportTabs = {
+  _actief: null,
+  _beschikbaar: [],
+
+  // Definitie van alle mogelijke tabs
+  _defs: [
+    {id:'eenpager',   lbl:'📄 1-Pager',              kleur:'#1E8449', laad:'Rapport.laadVoorKlant'},
+    {id:'basisscan',  lbl:'🔍 Basisscan',             kleur:'#5B21B6', laad:'Rapport.laadBasisscanKlant'},
+    {id:'cashflow',   lbl:'💸 Cashflow',              kleur:'#0E7490', laad:'Rapport.laadCashflowKlant'},
+    {id:'debiteuren', lbl:'📋 Debiteuren',            kleur:'#7C3AED', laad:'Rapport.laadDebiteurenKlant'},
+    {id:'offerte',    lbl:'📐 Offerte & Marge',       kleur:'#B45309', laad:'Rapport.laadOfferteKlant'},
+    {id:'fiscaal',    lbl:'🧾 Fiscaal',               kleur:'#065F46', laad:'Rapport.laadFiscaleScanKlant'},
+    {id:'inkoop',     lbl:'🛒 Inkoop',                kleur:'#1D4ED8', laad:'Rapport.laadInkoopanalyseKlant'},
+    {id:'verzeker',   lbl:'🛡 Verzekering',           kleur:'#7F1D1D', laad:'Rapport.laadVerzekeringsScanKlant'},
+    {id:'personeel',  lbl:'👥 Personeel',             kleur:'#831843', laad:'Rapport.laadPersoneelsScanKlant'},
+    {id:'exit',       lbl:'🏷 Exit & Waardering',     kleur:'#1E3A5F', laad:'Rapport.laadExitScanKlant'},
+    {id:'subsidie',   lbl:'🎯 Subsidie',              kleur:'#D97706', laad:'Rapport.laadSubsidiescanKlant'},
+  ],
+
+  // Bouw de tabbar op basis van beschikbare rapporten
+  bouw(beschikbaar){
+    this._beschikbaar = beschikbaar;
+    const tabsEl = $('rapport-tabs');
+    if(!tabsEl) return;
+    tabsEl.innerHTML = '';
+    this._defs.filter(d => beschikbaar.includes(d.id)).forEach(d => {
+      const btn = document.createElement('button');
+      btn.id = 'tab-btn-' + d.id;
+      btn.textContent = d.lbl;
+      btn.style.cssText = 'padding:8px 16px;border:2px solid '+d.kleur+';border-radius:8px;'
+        + 'background:#fff;color:'+d.kleur+';font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;';
+      btn.setAttribute('onclick', 'RapportTabs.toon("'+d.id+'")');
+      tabsEl.appendChild(btn);
+    });
+  },
+
+
+  _renderInhoud(inhoudHtml, titel, kleur, downloadFn){
+    const el = $('rapport-tab-inhoud');
+    if(!el) return;
+    const container = document.createElement('div');
+    container.style.cssText = 'max-width:720px;margin:0 auto;';
+
+    // Header banner
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:'+kleur+'15;border:1px solid '+kleur+';border-radius:8px;padding:12px 18px;margin-bottom:16px;';
+    banner.innerHTML = '<div style="font-size:13px;color:'+kleur+';font-weight:700;">'+titel+'</div>';
+    container.appendChild(banner);
+
+    // Rapport inhoud
+    const inhoudDiv = document.createElement('div');
+    inhoudDiv.innerHTML = inhoudHtml;
+    container.appendChild(inhoudDiv);
+
+    // Download knop
+    const dlDiv = document.createElement('div');
+    dlDiv.style.cssText = 'text-align:center;margin-top:20px;padding-bottom:32px;';
+    const dlBtn = document.createElement('button');
+    dlBtn.style.cssText = 'background:'+kleur+';color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;';
+    dlBtn.textContent = '⬇ Download als PDF';
+    dlBtn.setAttribute('onclick', downloadFn);
+    dlDiv.appendChild(dlBtn);
+    container.appendChild(dlDiv);
+
+    el.innerHTML = '';
+    el.appendChild(container);
+  },
+  // Activeer een specifiek tabblad
+  async toon(tabId){
+    const def = this._defs.find(d => d.id === tabId);
+    if(!def) return;
+    this._actief = tabId;
+
+    // Update tab-knop stijlen
+    this._defs.forEach(d => {
+      const btn = $('tab-btn-' + d.id);
+      if(!btn) return;
+      if(d.id === tabId){
+        btn.style.background = d.kleur;
+        btn.style.color = '#fff';
+      } else {
+        btn.style.background = '#fff';
+        btn.style.color = d.kleur;
+      }
+    });
+
+    // Laad inhoud
+    const inhoudEl = $('rapport-tab-inhoud');
+    if(inhoudEl) inhoudEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--mid);">Laden...</div>';
+
+    try {
+      // Roep de juiste laad-functie aan
+      const parts = def.laad.split('.');
+      const obj = window[parts[0]];
+      if(obj && typeof obj[parts[1]] === 'function'){
+        await obj[parts[1]]();
+      } else {
+        console.warn('Laad-functie niet gevonden:', def.laad);
+        if(inhoudEl) inhoudEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--mid);">Rapport niet beschikbaar.</div>';
+      }
+    } catch(e) {
+      console.error('Tab laden mislukt:', e);
+      if(inhoudEl) inhoudEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--red);">Rapport kon niet worden geladen.</div>';
+    }
+  },
+};
+
 const KlantApp={
   async init(){
     Nav.ga('welkom');
@@ -3213,7 +3103,7 @@ const KlantApp={
           </div>`:''}
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            ${heeftRapport?`<button onclick="Nav.ga('rapport')" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">📄 Bekijk rapport</button>`:''}
+            ${heeftRapport?`<button onclick="Nav.gaRapport('eenpager')" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">📄 Bekijk rapport</button>`:''}
             ${kt==='monitoring'?`<button onclick="Nav.ga('monitoring')" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;">📅 Naar monitoring</button>`:''}
             <button onclick="Nav.ga('aanleveren')" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;">📤 Nieuwe aanlevering</button>
             <button onclick="Nav.ga('diensten')" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;">💡 Meer diensten</button>
@@ -3228,6 +3118,31 @@ const KlantApp={
 
     // ── PUNT 5: Dienstenpagina filteren op sector ──
     KlantApp._bouwDiensten(sessie.sector||'',kt);
+
+    // ── Bouw rapport-tabs op basis van beschikbare rapporten ──
+    const beschikbareTabs = [];
+    if(heeftPager) beschikbareTabs.push('eenpager');
+    if(heeftBs) beschikbareTabs.push('basisscan');
+    // Check overige scans
+    const scanChecks = [
+      ['cashflow',   ()=>Store.getCashflowStresstests()],
+      ['debiteuren', ()=>Store.getDebiteurenStresstests()],
+      ['offerte',    ()=>Store.getOfferteMargescans()],
+      ['fiscaal',    ()=>Store.getFiscaleScans()],
+      ['inkoop',     ()=>Store.getInkoopanalyses()],
+      ['verzeker',   ()=>Store.getVerzekeringsScans()],
+      ['personeel',  ()=>Store.getPersoneelsScans()],
+      ['exit',       ()=>Store.getExitScans()],
+      ['subsidie',   ()=>Store.getSubsidiescans()],
+    ];
+    for(const [naam, getter] of scanChecks){
+      try{
+        const map = await getter();
+        const heeft = uploads.some(u=>map[sessie.naam+'-'+u.periode]?.gepubliceerd);
+        if(heeft) beschikbareTabs.push(naam);
+      }catch{}
+    }
+    RapportTabs.bouw(beschikbareTabs);
   },
 
   _bouwDiensten(sector, kt){
