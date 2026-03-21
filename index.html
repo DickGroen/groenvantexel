@@ -1296,7 +1296,25 @@ const Nav={
 
   async bouw(){
     const nav=$('topnav');if(!nav||!sessie)return;
-    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.gaRapport('eenpager')">Rapport</button><button class="nav-btn" id="nb-subsidie" onclick="Nav.ga('subsidie')">🎯 Subsidie</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
+    if(sessie.type==='admin'){
+      var an=nav;an.innerHTML='';
+      [
+        {id:'nb-dashboard', lbl:'Dashboard',    act:'Nav.ga("dashboard")'},
+        {id:'nb-klanten',   lbl:'Klanten',       act:'Nav.ga("klanten")'},
+        {id:'nb-rapport',   lbl:'Rapport',       act:'Nav.ga("rapport")'},
+        {id:'nb-subsidie',  lbl:'🎯 Subsidie',   act:'Nav.ga("subsidie")'},
+        {id:'nb-monitoring',lbl:'📅 Monitoring', act:'Nav.ga("monitoring")'},
+        {id:'nb-instellen', lbl:'⚙ Instellen',  act:'Nav.ga("instellen")'},
+      ].forEach(function(it){
+        var btn=document.createElement('button');
+        btn.className='nav-btn';btn.id=it.id;btn.textContent=it.lbl;
+        btn.setAttribute('onclick',it.act);an.appendChild(btn);
+      });
+      var uit=document.createElement('button');
+      uit.className='nav-btn';uit.style.color='#fca5a5';
+      uit.textContent='↩ Uitloggen';uit.setAttribute('onclick','Auth.uitloggen()');
+      an.appendChild(uit);
+    }
     else{
       // Toon minimale nav direct — uitloggen altijd zichtbaar
       Nav._setMinimaleNav(nav);
