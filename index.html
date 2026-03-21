@@ -1556,7 +1556,7 @@ const Dashboard={
         <td>${UI.typeBadge(k.klantType)}</td>
         <td>${UI.esc(k.sector||'—')}</td>
         <td>${badge}${loginBadge}</td>
-        <td>${actieKnop||`<button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">Open →</button>`}</td>
+        <td>${actieKnop||('<button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="Rapport.adminNaar(\'' + UI.esc(k.naam) + '\')">Open →</button>')}</td>
       </tr>`;
     }
     tb.innerHTML=rows.join('');
