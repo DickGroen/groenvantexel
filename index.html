@@ -6972,9 +6972,21 @@ const Monitoring = {
       const maandNaam=new Date(this._maand+'-01').toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
 
       const bsRefTekst=bsRef?'BASISSCAN REFERENTIE:\n'+bsRef.replace(/<[^>]+>/g,' ').substring(0,3000):'';
+
+      // Historische data voor trendvergelijking
+      const alleOverzichten=await Store.getMaandoverzichten(this._klant);
+      const gepubOverzichten=alleOverzichten.filter(o=>o.gepubliceerd&&o.periode!==this._maand).sort((a,b)=>b.periode.localeCompare(a.periode));
+      const isEersteMaand=gepubOverzichten.length===0;
+      const vorigeData=gepubOverzichten[0]||null;
+      const trendContext=isEersteMaand
+        ? 'DIT IS DE EERSTE MONITORINGMAAND — geen vorige maand beschikbaar. Gebruik uitsluitend startmetingen ("Startmeting: X — doel: Y"). Schrijf GEEN vergelijkingen met vorige maand. De voortgangssectie beschrijft het startpunt van het traject.'
+        : ('VORIGE MAAND ('+gepubOverzichten[0].periode+'): omzet €'+(vorigeData.omzet||'?')+' | brutomarge '+(vorigeData.brutomarge||'?')+'% | debiteurendagen '+(vorigeData.debiteurendagen||'?')+' dgn | nettoresultaat '+(vorigeData.nettoresultaat||'?')+'% | solvabiliteit '+(vorigeData.solvabiliteit||'?')+'%. Gebruik deze voor CONCRETE trends: "Debiteurendagen daalden van X naar Y."');
+
       const prompt=`Je bent een onafhankelijk financieel adviseur voor MKB. Genereer een professioneel maandrapport — dit is een betaalde dienst van €249/maand. Het rapport moet voelen als een mini-bestuursrapportage, niet als een samenvatting.
 
 KLANT: ${this._klant} | SECTOR: ${sector} | MAAND: ${maandNaam}
+
+TRENDCONTEXT: ${trendContext}
 
 MAANDCIJFERS:
 ${tekst}
@@ -6984,7 +6996,7 @@ ${bsRefTekst}
 Genereer het maandrapport EXACT in dit formaat:
 
 ==SAMENVATTING==
-[3-4 zinnen: financiële positie deze maand, trend t.o.v. vorige maand, meest urgente aandachtspunt]
+[3-4 zinnen: begin met wat goed gaat, dan wat aandacht vraagt, dan het meest urgente punt met eurobedrag. Schrijf als adviseur die begeleidt — niet als controller die beoordeelt.]
 
 ==DASHBOARD==
 REGEL_1: Netto-omzet | € [waarde] | € [vorige maand of jaarnorm] | [▲/▼/=] [%verschil] | [✅/⚠/🔴]
@@ -7005,7 +7017,7 @@ KPI2: [KPI naam] | Streef: [waarde] | Huidig: [waarde] | Status: [Op koers/Aanda
 KPI3: [KPI naam] | Streef: [waarde] | Huidig: [waarde] | Status: [Op koers/Aandacht/Kritiek]
 
 ==VOORTGANG==
-[2-3 zinnen: staan de actiepunten uit de Basisscan op schema? Wat is er al gerealiseerd, wat loopt nog?]
+[2-3 zinnen als begeleider, niet als beoordelaar. Erken wat al is opgestart. Gebruik getallen: "Debiteurendagen daalden van X naar Y". Schrijf NOOIT "de voortgang is te traag" of "toont geen verbetering". Benoem wat al bereikt is, wat nog open staat, en wat het oplevert.]
 
 ==ACTIE==
 Actie: [concrete actie voor komende maand — specifiek, meetbaar]
@@ -7014,7 +7026,7 @@ Deadline: [datum of termijn]
 Verwacht resultaat: € [bedrag of omschrijving]
 
 ==VERWACHTING==
-[2 zinnen in de derde persoon — NOOIT "ik verwacht" of "verwacht ik". Schrijf als: "De verwachting is dat...", "Op basis van de huidige trend ligt het voor de hand dat...". Waar moet op worden gelet volgende maand?]
+[2 zinnen in de derde persoon. Koppel altijd een verwacht resultaat aan een concrete actie: "Als de debiteurenactie effect heeft, verbetert de cashpositie naar €X." Sluit positief maar realistisch af. NOOIT alleen negatieve voorspellingen zonder handelingsperspectief.]
 
 ==MONITORING==
 KPI1: [naam] | Streef: [waarde]
