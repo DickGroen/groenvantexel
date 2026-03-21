@@ -541,6 +541,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <p id="form-intro" style="color:var(--blue-pale);font-size:13px;"></p>
       </div>
       <div id="upload-status-box"></div>
+      <!-- Uitleg V&W en Balans -->
+      <div style="background:#f8faf9;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:18px;">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:10px;">📂 Welke bestanden heeft u nodig?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:3px;">Verlies- &amp; Winstrekening (V&amp;W)</div>
+            <div style="font-size:11px;color:var(--mid);line-height:1.7;">Overzicht van uw omzet, kosten en winst over het jaar. In uw boekhoudprogramma ook wel "resultatenrekening" of "winst- en verliesrekening" genoemd.</div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:3px;">Balans</div>
+            <div style="font-size:11px;color:var(--mid);line-height:1.7;">Overzicht van uw bezittingen, schulden en eigen vermogen op een peildatum. Laat zien wat uw bedrijf heeft en wat het verschuldigd is.</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--light);margin-top:10px;">Exporteer beide uit uw boekhoudprogramma (Exact, AFAS, Snelstart, Twinfield, e.a.) als PDF of Excel.</div>
+      </div>
       <div style="border:1px solid #2E75B6;border-radius:8px;margin-bottom:20px;overflow:hidden;">
         <button onclick="(function(){var c=document.getElementById('handleiding-inhoud');var i=document.getElementById('handleiding-icon');var open=c.style.display!=='none';c.style.display=open?'none':'block';i.textContent=open?'▸':'▾';})()" style="width:100%;background:#EAF4FB;border:none;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left;">
           <div>
@@ -633,21 +648,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div class="form-row cols2">
         <div class="form-group"><label class="form-label">Boekjaar <span class="req">*</span></label><select id="f-jaar" class="form-select"></select></div>
         <div class="form-group"><label class="form-label">E-mailadres</label><input id="f-email" type="email" class="form-input" autocomplete="off"></div>
-      </div>
-      <!-- Uitleg V&W en Balans -->
-      <div style="background:#f8faf9;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:18px;">
-        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:10px;">📂 Welke bestanden heeft u nodig?</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div>
-            <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:3px;">Verlies- &amp; Winstrekening (V&amp;W)</div>
-            <div style="font-size:11px;color:var(--mid);line-height:1.7;">Overzicht van uw omzet, kosten en winst over het jaar. In uw boekhoudprogramma ook wel "resultatenrekening" of "winst- en verliesrekening" genoemd.</div>
-          </div>
-          <div>
-            <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:3px;">Balans</div>
-            <div style="font-size:11px;color:var(--mid);line-height:1.7;">Overzicht van uw bezittingen, schulden en eigen vermogen op een peildatum. Laat zien wat uw bedrijf heeft en wat het verschuldigd is.</div>
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--light);margin-top:10px;">Exporteer beide uit uw boekhoudprogramma (Exact, AFAS, Snelstart, Twinfield, e.a.) als PDF of Excel.</div>
       </div>
       <div style="margin-bottom:14px;">
         <div class="form-label" style="margin-bottom:7px;">Verlies- &amp; Winstrekening (V&amp;W) — laatste jaar <span class="req">*</span></div>
@@ -2337,7 +2337,7 @@ Impact: € [bedrag of leeg]`;
     const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
     const totaalStr=totaal>0?fmtEur(totaal):'€ —';
     const rij=(lbl,veld,eenh,norm,alt)=>`<tr${alt?' style="background:#f9fbfa;"':''}><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${lbl}</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig(veld,d[veld]).k};border-bottom:1px solid #eef1ee;">${fmt(d[veld],eenh)}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">${norm}</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${sig(veld,d[veld]).s}</td></tr>`;
-    return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;">${UI.esc(bedrijf)}</div><div style="color:#9dc3e6;font-size:12px;margin-top:4px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%','30–40%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn','30–45 dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%','25–40%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">6–12%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr></table></div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>${bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div><div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div></div>${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}</div>`).join('')}<div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div><div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div></div><div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div></div></div><div style="padding:16px 24px 20px;"><div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">U laat nu geld liggen — dat hoeft niet.</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. De Financiële Basisscan (€397 excl. BTW) laat u exact zien waar dit geld weglekt en geeft u een concreet actieplan om het terug te halen.</p><p style="font-size:12px;color:#2E75B6;margin:0 0 14px;">✓ Alle ratio's volledig onderbouwd &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Binnen 5 werkdagen</p><div style="text-align:center;"><button onclick="Formulier.bestelBasiscan()" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">✓ Ja, ik wil de Basisscan — €397</button></div></div></div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;">Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
+    return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;">${UI.esc(bedrijf)}</div><div style="color:#9dc3e6;font-size:12px;margin-top:4px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%','30–40%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn','30–45 dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%','25–40%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">6–12%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr></table></div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>${bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div><div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div></div>${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}</div>`).join('')}<div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div><div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div></div><div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div></div></div><div style="padding:16px 24px 20px;"><div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">U laat nu geld liggen — dat hoeft niet.</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. De Financiële Basisscan (€397 excl. BTW) laat u exact zien waar dit geld weglekt en geeft u een concreet actieplan om het terug te halen.</p><p style="font-size:12px;color:#2E75B6;margin:0 0 14px;">✓ Alle ratio's volledig onderbouwd &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Binnen 5 werkdagen</p><div style="text-align:center;"><button onclick="Formulier.bestelBasiscan()" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">✓ Ja, ik wil de Basisscan — €397</button></div></div></div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;text-align:center;">Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
   },
 };
 
@@ -3558,7 +3558,7 @@ const Formulier={
       const klArr=await Store.getKlanten();
       const periode=jaar;const datum=UI.datumNL();
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
-      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,to_email:'dickgroen2@gmail.com',message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')+(sessie?.code?`\nInlogcode: ${sessie.code}`:'')});}catch(e){console.warn('EmailJS:',e.message||e);}
+      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,to_email:'dickgroen2@gmail.com',message:`Nieuwe upload van ${bedrijf} (${periode}) voor de 1-pager\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')+(sessie?.code?`\nInlogcode: ${sessie.code}`:'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
     }catch(e){
       Formulier._bezig=false;
@@ -3594,7 +3594,7 @@ const Formulier={
   async bestelBasiscan(){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     UI.toast('Aanvraag ontvangen — u ontvangt de Basisscan binnen 5 werkdagen');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Basisscan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft de Basisscan aangevraagd.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Basisscan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft de Basisscan aangevraagd (€397 excl. BTW).'});}catch(e){console.warn(e);}
   },
 
   async bestelDienst(knop, dienst){
@@ -3605,63 +3605,63 @@ const Formulier={
   },
   async bestelSubsidiescan(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Subsidie Scan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Subsidie Scan aangevraagd via de welkomstpagina.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Subsidie Scan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Subsidie Scan aangevraagd via de welkomstpagina.'});}catch(e){console.warn(e);}
   },
 
   async bestelCashflowStresstest(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op over de Cashflow Stresstest');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Cashflow Stresstest aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Cashflow Stresstest (€297 excl. BTW) aangevraagd. Overleven en plannen — analyseer cashflowpieken en -dalen en stel een liquiditeitsplan op.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Cashflow Stresstest aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Cashflow Stresstest (€297 excl. BTW) aangevraagd. Overleven en plannen — analyseer cashflowpieken en -dalen en stel een liquiditeitsplan op.'});}catch(e){console.warn(e);}
   },
   async bestelDebiteurenStresstest(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op over de Debiteuren Stresstest');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Debiteuren Stresstest aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Debiteuren Stresstest (€247 excl. BTW) aangevraagd. Analyseer openstaande debiteuren, betalingsgedrag en risico\'s en geef een concreet actieplan.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Debiteuren Stresstest aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Debiteuren Stresstest (€247 excl. BTW) aangevraagd. Analyseer openstaande debiteuren, betalingsgedrag en risico\'s en geef een concreet actieplan.'});}catch(e){console.warn(e);}
   },
   async bestelOfferteMarge(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op over de Offerte & Marge Stresstest');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Offerte & Marge Stresstest aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Offerte & Marge Stresstest (€347 excl. BTW) aangevraagd. Analyseer marge per klus/project, offerteproces en margelekken.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Offerte & Marge Stresstest aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Offerte & Marge Stresstest (€347 excl. BTW) aangevraagd. Analyseer marge per klus/project, offerteproces en margelekken.'});}catch(e){console.warn(e);}
   },
   async bestelFiscaleScan(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op over de Fiscale Optimalisatie Scan');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Fiscale Optimalisatie Scan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Fiscale Optimalisatie Scan (€297 excl. BTW) aangevraagd. Bekijk DGA-salaris, investeringsaftrek en fiscale optimalisatiemogelijkheden.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Fiscale Optimalisatie Scan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Fiscale Optimalisatie Scan (€297 excl. BTW) aangevraagd. Bekijk DGA-salaris, investeringsaftrek en fiscale optimalisatiemogelijkheden.'});}catch(e){console.warn(e);}
   },
   async bestelInkoopanalyse(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op over de Inkoopanalyse');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Inkoopanalyse aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Inkoopanalyse (€347 excl. BTW) aangevraagd. Analyseer inkoopvolumes en heronderhandelingsmogelijkheden met leveranciers om direct marge te verbeteren.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Inkoopanalyse aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Inkoopanalyse (€347 excl. BTW) aangevraagd. Analyseer inkoopvolumes en heronderhandelingsmogelijkheden met leveranciers om direct marge te verbeteren.'});}catch(e){console.warn(e);}
   },
   async bestelVerzekeringsScan(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op over de Verzekerings Scan');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Verzekerings Scan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Verzekerings Scan (€247 excl. BTW) aangevraagd. Beoordeel huidig verzekeringsbeleid op over- of onderverzekering.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Verzekerings Scan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Verzekerings Scan (€247 excl. BTW) aangevraagd. Beoordeel huidig verzekeringsbeleid op over- of onderverzekering.'});}catch(e){console.warn(e);}
   },
   async bestelPersoneelsstresstest(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op over de Personeelskosten Stresstest');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Personeelskosten Stresstest aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Personeelskosten Stresstest (€347 excl. BTW) aangevraagd. Analyseer loonkosten, verzuim en inhuur — wat kost elke medewerker werkelijk?'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Personeelskosten Stresstest aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Personeelskosten Stresstest (€347 excl. BTW) aangevraagd. Analyseer loonkosten, verzuim en inhuur — wat kost elke medewerker werkelijk?'});}catch(e){console.warn(e);}
   },
   async bestelExitScan(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op over de Exit & Waardering Scan');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Exit & Waardering Scan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft een Exit & Waardering Scan (€697 excl. BTW) aangevraagd. Bepaal huidige bedrijfswaardering en verbeterpunten om de waarde richting exit te verhogen.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Exit & Waardering Scan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft een Exit & Waardering Scan (€697 excl. BTW) aangevraagd. Bepaal huidige bedrijfswaardering en verbeterpunten om de waarde richting exit te verhogen.'});}catch(e){console.warn(e);}
   },
   async bestelMonitoring(knop){
     if(!sessie||sessie.type!=='klant'){return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen — ingaande komende maand begint de monitoring';knop.style.opacity='0.8';knop.style.cursor='default';}
     UI.toast('Aanvraag ontvangen — wij nemen zo snel mogelijk contact met u op over maandelijkse monitoring');
     try{await Store.updateKlantType(sessie.code,'monitoring');sessie.klanttype='monitoring';sessie.klantType='monitoring';}catch(e){console.warn('Type update mislukt:',e);}
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Monitoring aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft maandelijkse monitoring aangevraagd via de Basisscan. Klanttype is automatisch gewijzigd naar Monitoring.'});}catch(e){console.warn(e);}
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Monitoring aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft maandelijkse monitoring aangevraagd via de Basisscan. Klanttype is automatisch gewijzigd naar Monitoring.'});}catch(e){console.warn(e);}
   },
 
   async opzegMonitoring(knop){
