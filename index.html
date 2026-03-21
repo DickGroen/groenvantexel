@@ -3171,16 +3171,17 @@ const KlantApp={
     if(bestaand)bestaand.remove();
 
     const sectorAanbeveling={
-      'Installatietechniek': {titel:'Voor installatiebedrijven is cashflow het #1 risico',tekst:'Projectfacturen lopen weken achter, materiaalkosten zijn hoog en opdrachtgevers betalen laat. De Cashflow Stresstest en Offerte & Marge Stresstest zijn het meest relevant voor uw situatie.',icoon:'💸'},
-      'Bouw & Aannemerij': {titel:'In de bouw zit de marge in de calculatie',tekst:'Meerwerk niet factureren en kostenoverschrijdingen zijn de grootste lekken. De Offerte & Marge Stresstest en Debiteuren Stresstest zijn het meest relevant.',icoon:'📐'},
-      'Groothandel': {titel:'In de groothandel zit de winst in de inkoop',tekst:'Leveranciersmarges en voorraadkosten bepalen uw resultaat. De Inkoopanalyse en Cashflow Stresstest zijn het meest relevant voor uw situatie.',icoon:'🛒'},
-      'Detailhandel': {titel:'In de detailhandel telt elke euro marge',tekst:'Assortiment, inkoopprijs en vaste lasten bepalen uw resultaat. De Inkoopanalyse en Fiscale Optimalisatie Scan zijn het meest relevant.',icoon:'🛒'},
-      'Zakelijke dienstverlening': {titel:'Uw marge zit in uw uurtarief en scope',tekst:'Scope creep en te laat betaalde facturen zijn de grootste cashflow-risico\u2019s. De Offerte & Marge Stresstest en Debiteuren Stresstest zijn het meest relevant.',icoon:'📐'},
-      'Horeca': {titel:'In de horeca is cashflow dagelijkse zorg',tekst:'Hoge vaste lasten en seizoensschommelingen vragen om strakke bewaking. De Cashflow Stresstest en Personeelskosten Stresstest zijn het meest relevant.',icoon:'💸'},
-      'Transport & Logistiek': {titel:'Brandstof en personeel bepalen uw marge',tekst:'Stijgende variabele kosten en krappe marges vragen om actief beheer. De Personeelskosten Stresstest en Cashflow Stresstest zijn het meest relevant.',icoon:'👥'},
-      'Zorg': {titel:'In de zorg zijn declarabele uren de basis',tekst:'Productiviteit per medewerker en zorgverzekeraar-debiteuren zijn de kritische KPIs. De Personeelskosten Stresstest en Debiteuren Stresstest zijn het meest relevant.',icoon:'👥'},
-      'ICT': {titel:'Recurring revenue bepaalt uw waarde',tekst:'Contractverlenging en marge per project zijn kritisch. De Offerte & Marge Stresstest en Exit & Waardering Scan zijn het meest relevant voor uw situatie.',icoon:'🏷'},
-    };
+      "Installatietechniek": {titel:"Voor installatiebedrijven is cashflow het grootste risico",tekst:"Projectfacturen lopen weken achter, materiaalkosten zijn hoog en opdrachtgevers betalen laat. De Cashflow Stresstest en Offerte & Marge Stresstest zijn het meest relevant.",icoon:"💸"},
+      "Bouw & Aannemerij": {titel:"In de bouw zit de marge in de calculatie",tekst:"Meerwerk niet factureren en kostenoverschrijdingen zijn de grootste lekken. De Offerte & Marge Stresstest en Debiteuren Stresstest zijn het meest relevant.",icoon:"📐"},
+      "Groothandel": {titel:"In de groothandel zit de winst in de inkoop",tekst:"Leveranciersmarges en voorraadkosten bepalen uw resultaat. De Inkoopanalyse en Cashflow Stresstest zijn het meest relevant.",icoon:"🛒"},
+      "Detailhandel": {titel:"In de detailhandel telt elke euro marge",tekst:"Assortiment, inkoopprijs en vaste lasten bepalen uw resultaat. De Inkoopanalyse en Fiscale Optimalisatie Scan zijn het meest relevant.",icoon:"🛒"},
+      "Zakelijke dienstverlening": {titel:"Uw marge zit in uw uurtarief en scope",tekst:"Scope creep en te laat betaalde facturen zijn de grootste cashflow-risico’s. De Offerte & Marge Stresstest en Debiteuren Stresstest zijn het meest relevant.",icoon:"📐"},
+      "Horeca": {titel:"In de horeca is cashflow dagelijkse zorg",tekst:"Hoge vaste lasten en seizoensschommelingen vragen om strakke bewaking. De Cashflow Stresstest en Personeelskosten Stresstest zijn het meest relevant.",icoon:"💸"},
+      "Transport & Logistiek": {titel:"Brandstof en personeel bepalen uw marge",tekst:"Stijgende variabele kosten en krappe marges vragen om actief beheer. De Personeelskosten Stresstest en Cashflow Stresstest zijn het meest relevant.",icoon:"👥"},
+      "Zorg": {titel:"In de zorg zijn declarabele uren de basis",tekst:"Productiviteit per medewerker en zorgverzekeraar-debiteuren zijn de kritische KPIs. De Personeelskosten Stresstest en Debiteuren Stresstest zijn het meest relevant.",icoon:"👥"},
+      "ICT": {titel:"Recurring revenue bepaalt uw waarde",tekst:"Contractverlenging en marge per project zijn kritisch. De Offerte & Marge Stresstest en Exit & Waardering Scan zijn het meest relevant.",icoon:"🏷"},
+      "Overig": {titel:"Financiele analyse op maat",tekst:"Op basis van uw jaarcijfers bepalen wij welke scans het meest relevant zijn voor uw bedrijf.",icoon:"💡"},
+    }
     const adv=sectorAanbeveling[sector];
     const banner=document.createElement('div');
     banner.id='diensten-aanbeveling';
