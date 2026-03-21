@@ -944,6 +944,9 @@ const Store = {
     await API.call({actie:'delKlant', code});
     this._klanten = null;
   },
+  async getLoginData(klantNaam) {
+    try{const d=await API.call({actie:'getAnalyse',sleutel:'login-'+klantNaam});return d.tekst?JSON.parse(d.tekst):{};}catch{return {};}
+  },
   async getNotitie(klantNaam) {
     try{const d=await API.call({actie:'getAnalyse',sleutel:'notitie-'+klantNaam});return d.tekst||'';}catch{return '';}
   },
@@ -1490,6 +1493,11 @@ const Dashboard={
     const up=await Store.getUploads();
     const pagers=await Store.get1Pagers();
     const bss=await Store.getBasisscans();
+    // Login data voor alle klanten
+    const loginMap={};
+    await Promise.all(kl.map(async k=>{
+      try{loginMap[k.naam]=await Store.getLoginData(k.naam);}catch{loginMap[k.naam]={};}
+    }));
     // Haal login data op voor alle klanten
     const loginMap={};
     await Promise.all(kl.map(async k=>{
@@ -1590,11 +1598,11 @@ const Klanten={
         + '<button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="Klanten.stuurMail(\'' + c + '\')">✉</button>'
         + '<button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="Klanten.verwijder(\'' + c + '\')">✕</button>'
         + '</td>';
-      // Login data ophalen
-      const ld2=await Store.getLoginData(k.naam).catch(()=>({}));
-      const loginTd=ld2.teller
-        ?'<td style="font-size:11px;color:var(--mid);">🔑 '+ld2.teller+'&times;<br><span style="font-size:10px;color:#888;">'+UI.esc(ld2.laatste||'')+'</span></td>'
-        :'<td style="font-size:11px;color:#ccc;">—</td>';
+      var loginTd = '<td class="login-cel" data-naam="'+UI.esc(k.naam)+'" style="font-size:11px;color:#ccc;">—</td>';
+
+
+
+
       rows.push('<tr data-naam="' + UI.esc(k.naam) + '" data-type="' + (k.klantType || 'lead') + '" data-sector="' + UI.esc(k.sector || '') + '" data-email="' + UI.esc(k.email || '') + '">'
         + '<td style="font-weight:600;">' + UI.esc(k.naam) + '</td>'
         + '<td>' + codeCell + '</td>'
@@ -1603,9 +1611,21 @@ const Klanten={
         + '<td>' + UI.esc(k.email || '—') + '</td>'
         + loginTd
         + actieTd
-        + '</tr>';
+        + '</tr>');
     }
     tb.innerHTML=rows.join('');
+    // Login data asynchroon laden per cel
+    document.querySelectorAll('.login-cel').forEach(async cel=>{
+      const nm=cel.dataset.naam;
+      if(!nm)return;
+      try{
+        const ld=await Store.getLoginData(nm);
+        if(ld.teller){
+          cel.style.color='var(--mid)';
+          cel.innerHTML='🔑 '+ld.teller+'&times;<br><span style="font-size:10px;">'+UI.esc(ld.laatste||'')+'</span>';
+        }
+      }catch{}
+    });
     const aantalEl=$('kb-aantal');
     if(aantalEl)aantalEl.textContent=kl.length+' klant'+(kl.length!==1?'en':'');
   },
