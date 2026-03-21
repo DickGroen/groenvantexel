@@ -1676,7 +1676,7 @@ Groen van Texel
 let _adminKlant=null,_adminPeriode=null;
 
 const Rapport={
-  adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.gaRapport('eenpager');},
+  adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.ga('rapport');},
   async laadVoorAdmin(){Rapport._reset();show('admin-selectie');await Rapport._vulKlantDropdown();if(_adminKlant)await Rapport.onKlantSelect();},
   async _vulKlantDropdown(){
     const sel=$('r-klant');if(!sel)return;
