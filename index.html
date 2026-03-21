@@ -122,6 +122,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Dashboard</h2>
     <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Overzicht alle klanten</p>
     <div id="dash-acties"></div>
+    <div id="dash-monitoring-herinnering"></div>
     <div class="stats-row">
       <div class="stat"><div class="stat-lbl">Klanten</div><div class="stat-val" id="s-totaal">0</div></div>
       <div class="stat"><div class="stat-lbl">Leads</div><div class="stat-val" id="s-leads">0</div><div class="stat-sub">Gratis 1-pager</div></div>
@@ -130,7 +131,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     </div>
     <div class="card">
       <div class="card-title">Klantenoverzicht</div>
-      <table class="tbl"><thead><tr><th>Bedrijf</th><th>Type</th><th>Sector</th><th>Status</th><th>Actie</th></tr></thead>
+      <table class="tbl"><thead><tr><th>Bedrijf</th><th>Type</th><th>Sector</th><th>Status</th><th>Kerncijfers</th><th>Actie</th></tr></thead>
       <tbody id="dash-tbody"></tbody></table>
     </div>
   </div>
@@ -155,10 +156,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div class="form-group"><label class="form-label">Sector</label>
           <select id="nk-sector" class="form-select"><option value="">— Kies —</option><option>Installatietechniek</option><option>Bouw &amp; Aannemerij</option><option>Groothandel</option><option>Detailhandel</option><option>Zakelijke dienstverlening</option><option>Horeca</option><option>Transport &amp; Logistiek</option><option>Zorg</option><option>ICT</option><option>Overig</option></select>
         </div>
-        <div class="form-group" style="justify-content:flex-end;gap:10px;display:flex;align-items:flex-end;">
-          <button class="btn btn-ghost" onclick="Klanten.toevoegenEnWelkom()" style="height:42px;">+ Toevoegen &amp; welkomsmail</button>
-          <button class="btn btn-primary" onclick="Klanten.toevoegen()" style="height:42px;">+ Klant toevoegen</button>
-        </div>
+      </div>
+      <div class="form-group" style="max-width:700px;margin-bottom:12px;">
+        <label class="form-label">Gespreksnotitie <span style="color:var(--light);font-weight:400;">(optioneel — wordt in welkomsmail verwerkt)</span></label>
+        <textarea id="nk-notitie" class="form-input" rows="2" placeholder="Bijv: Brutomarge staat onder druk door grondstofprijzen. Wil eerst gratis 1-pager zien voor de basisscan." style="resize:vertical;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6;padding:10px 12px;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" onclick="Klanten.toevoegenEnWelkom()" style="height:42px;">+ Klant toevoegen &amp; welkomsmail</button>
+        <button class="btn btn-ghost" onclick="Klanten.toevoegen()" style="height:42px;font-size:12px;color:var(--mid);">Toevoegen zonder mail</button>
       </div>
     </div>
     <div class="card">
@@ -1528,6 +1533,32 @@ const Dashboard={
       }
     }
 
+    // Monitoring herinnering — welke klanten missen maandrapport deze maand
+    const monKlanten=kl.filter(k=>(k.klantType||k.klanttype)==='monitoring');
+    if(monKlanten.length){
+      const huidigeMaand=new Date().toISOString().substring(0,7);
+      const monHerinnering=$('dash-monitoring-herinnering');
+      if(monHerinnering){
+        const alleMaand=await Promise.all(monKlanten.map(async k=>{
+          try{
+            const overzichten=await Store.getMaandoverzichten(k.naam);
+            const heeftDezeMailand=overzichten.some(o=>o.gepubliceerd&&o.periode===huidigeMaand);
+            return{naam:k.naam,klaar:heeftDezeMailand};
+          }catch{return{naam:k.naam,klaar:false};}
+        }));
+        const openstaand=alleMaand.filter(m=>!m.klaar);
+        if(openstaand.length){
+          monHerinnering.innerHTML='<div style="background:#FEF3C7;border:1.5px solid #D97706;border-radius:10px;padding:14px 18px;margin-bottom:20px;">'
+            +'<div style="font-size:12px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">📅 Monitoring — maandrapport nog niet gepubliceerd</div>'
+            +'<div style="display:flex;flex-wrap:wrap;gap:8px;">'
+            +openstaand.map(m=>'<button onclick="Nav.ga(\'monitoring\')" style="background:#D97706;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">'+UI.esc(m.naam)+'</button>').join('')
+            +'</div></div>';
+        } else {
+          monHerinnering.innerHTML='';
+        }
+      }
+    }
+
     const rows=[];
     for(const k of kl){
       const uploads=up.filter(u=>u.bedrijf===k.naam).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
@@ -1558,11 +1589,25 @@ const Dashboard={
       var openB = '<button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;"'
         + ' onclick="Rapport.adminNaar(\u0027' + n + '\u0027)">'
         + 'Open →</button>';
+      // Kerncijfers uit opgeslagen rapporten
+      var kcHtml = '<td style="font-size:11px;color:var(--mid);">—</td>';
+      var sleutelK = k.naam + '-' + (uploads.length ? uploads[0].periode : '');
+      var pagerK = pagers[sleutelK]; var bsK = bss[sleutelK];
+      var rapportK = bsK || pagerK;
+      if(rapportK && rapportK.html){
+        var tekst = rapportK.html.replace(/<[^>]+>/g,' ');
+        var omzetM = tekst.match(/€\s*([\d\.,]+)/);
+        var potM = tekst.match(/verbeterpotentieel[^€]*€\s*([\d\.,]+)/i);
+        var omzetStr = omzetM ? '€'+omzetM[1] : '—';
+        var potStr = potM ? '<span style="color:#1E8449;font-weight:700;">€'+potM[1]+'</span>' : '';
+        kcHtml = '<td style="font-size:11px;"><div style="color:var(--mid);">Omzet: '+omzetStr+'</div>'+(potStr?'<div>Potentieel: '+potStr+'</div>':'')+'</td>';
+      }
       rows.push('<tr>'
         + '<td><span class="link" onclick="Rapport.adminNaar(\u0027' + n + '\u0027)">' + n + '</span></td>'
         + '<td>' + UI.typeBadge(k.klantType) + '</td>'
         + '<td>' + UI.esc(k.sector||'—') + '</td>'
         + '<td>' + badge + loginBadge + '</td>'
+        + kcHtml
         + '<td>' + (actieKnop||openB) + '</td>'
         + '</tr>');
     }
@@ -1751,15 +1796,17 @@ Groen van Texel
     try{
       const kl=await Store.getKlanten();if(kl.find(k=>k.code===code)){UI.warn('Inlogcode al in gebruik');return;}
       await Store.addKlant({naam,code,klantType:type,email,sector:sect});
-      ['nk-naam','nk-code','nk-email'].forEach(id=>setVal(id,''));setVal('nk-sector','');
+      ['nk-naam','nk-code','nk-email'].forEach(id=>setVal(id,''));setVal('nk-sector','');setVal('nk-notitie','');
       Klanten.laadTabel();
       // Stuur welkomsmail
       const url='https://groenvantexel.pages.dev';
       const typeNaam=type==='monitoring'?'maandelijkse monitoring':type==='doorlichting'?'financiële doorlichting':'gratis financieel overzicht';
+      const notitie=($('nk-notitie')?.value||'').trim();
+      const notitieRegel=notitie?'\n\nNaar aanleiding van ons gesprek: '+notitie+'\n':'';
       const msg=`Beste ${naam},
 
 Welkom bij Groen van Texel — fijn dat u voor ons heeft gekozen.
-
+${notitieRegel}
 Zoals besproken starten wij met uw ${typeNaam}. U kunt direct aan de slag via uw persoonlijke portaal:
 
 ${url}
@@ -3546,7 +3593,7 @@ const Formulier={
       const klArr=await Store.getKlanten();
       const periode=jaar;const datum=UI.datumNL();
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
-      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')+(sessie?.code?`\nInlogcode: ${sessie.code}`:'')});}catch(e){console.warn('EmailJS:',e.message||e);}
+      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,to_email:'dickgroen2@gmail.com',message:`Nieuwe upload van ${bedrijf} (${periode}) voor de 1-pager\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')+(sessie?.code?`\nInlogcode: ${sessie.code}`:'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
     }catch(e){
       Formulier._bezig=false;
