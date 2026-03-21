@@ -1498,11 +1498,6 @@ const Dashboard={
     await Promise.all(kl.map(async k=>{
       try{loginMap[k.naam]=await Store.getLoginData(k.naam);}catch{loginMap[k.naam]={};}
     }));
-    // Haal login data op voor alle klanten
-    const loginMap={};
-    await Promise.all(kl.map(async k=>{
-      try{loginMap[k.naam]=await Store.getLoginData(k.naam);}catch{loginMap[k.naam]={};}
-    }));
     setTxt('s-totaal',kl.length);
     setTxt('s-leads',kl.filter(k=>k.klantType==='lead').length);
     setTxt('s-doorl',kl.filter(k=>k.klantType==='doorlichting').length);
