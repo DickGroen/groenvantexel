@@ -766,13 +766,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
               <select id="mon-maand" class="form-select"><option value="">— Maand —</option></select>
             </div>
           </div>
+          <div style="background:#f8faf9;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:var(--mid);">
+            📂 De aangeleverde jaarcijfers van de klant worden automatisch gebruikt.<br>
+            Wil je nieuwe maandcijfers gebruiken? Upload ze hieronder (optioneel).
+          </div>
           <div style="margin-bottom:12px;">
-            <div class="form-label" style="margin-bottom:7px;">V&amp;W deze maand <span class="req">*</span></div>
+            <div class="form-label" style="margin-bottom:7px;">V&amp;W nieuwe maand <span style="color:var(--light);font-weight:400;">(optioneel)</span></div>
             <label class="file-zone"><input type="file" id="mon-vw" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen (.pdf of .xlsx)</label>
             <div id="mon-vw-naam" class="file-ok"></div>
           </div>
           <div style="margin-bottom:16px;">
-            <div class="form-label" style="margin-bottom:7px;">Balans deze maand <span class="req">*</span></div>
+            <div class="form-label" style="margin-bottom:7px;">Balans nieuwe maand <span style="color:var(--light);font-weight:400;">(optioneel)</span></div>
             <label class="file-zone"><input type="file" id="mon-balans" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen (.pdf of .xlsx)</label>
             <div id="mon-balans-naam" class="file-ok"></div>
           </div>
@@ -7109,7 +7113,6 @@ const Monitoring = {
     this._klant=$('mon-klant')?.value||null;
     if(this._klant){
       Monitoring._vulMaandDropdown();
-      // Stel huidige maand in als standaard
       const nu=new Date();
       const huidig=nu.getFullYear()+'-'+(String(nu.getMonth()+1).padStart(2,'0'));
       const sel=$('mon-maand');if(sel)sel.value=huidig;
@@ -7121,38 +7124,6 @@ const Monitoring = {
     }
   },
 
-  async _laadGeschiedenis() {
-    if(!this._klant) return;
-    const overzichten=await Store.getMaandoverzichten(this._klant);
-    const box=$('mon-geschiedenis'); const inhoud=$('mon-geschiedenis-inhoud');
-    if(!overzichten.length){ hide('mon-geschiedenis'); return; }
-    show('mon-geschiedenis');
-    inhoud.innerHTML=overzichten.map(o=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
-        <div>
-          <div style="font-weight:600;font-size:14px;">${UI.esc(o.periode)}</div>
-          <div style="font-size:12px;color:var(--mid);">${o.gepubliceerd?'✅ Gepubliceerd':'⏳ Concept'} &nbsp;·&nbsp; ${UI.esc(o.datum||'')}</div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;" onclick="Monitoring.herlaad('${UI.esc(o.periode)}')">Bekijk</button>
-          <button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="Monitoring.verwijder('${UI.esc(o.periode)}')">✕</button>
-        </div>
-      </div>`).join('');
-  },
-
-  async herlaad(periode) {
-    const overzichten=await Store.getMaandoverzichten(this._klant);
-    const o=overzichten.find(x=>x.periode===periode);
-    if(o?.html){ setHTML('mon-prev-inhoud',o.html); show('mon-prev-box'); setTxt('btn-mon-pub',o.gepubliceerd?'✅ Gepubliceerd':'✅ Publiceer naar klant'); }
-  },
-
-  async verwijder(periode) {
-    if(!confirm('Maandoverzicht '+periode+' verwijderen?')) return;
-    await Store.delMaandoverzicht(this._klant, periode);
-    UI.toast('Maandoverzicht verwijderd');
-    this._laadGeschiedenis();
-  },
-
   async genereer() {
     this._klant=$('mon-klant')?.value||null;
     this._maand=$('mon-maand')?.value||null;
@@ -7160,14 +7131,26 @@ const Monitoring = {
     if(!this._maand){ UI.warn('Selecteer een maand'); return; }
     const bestandVw=$('mon-vw')?.files?.[0];
     const bestandBalans=$('mon-balans')?.files?.[0];
-    if(!bestandVw){ UI.warn('Upload de V&W'); return; }
-    if(!bestandBalans){ UI.warn('Upload de balans'); return; }
     const status=$('mon-status');
-    if(status) status.textContent='⏳ Cijfers worden uitgelezen...';
+    if(status) status.textContent='⏳ Cijfers laden...';
     try {
-      const tekstVw=await Bestanden.lees(bestandVw);
-      const tekstBalans=await Bestanden.lees(bestandBalans);
-      const tekst='=== V&W ===\n'+tekstVw+'\n\n=== BALANS ===\n'+tekstBalans;
+      let tekst='';
+      if(bestandVw&&bestandBalans){
+        // Nieuwe bestanden geüpload — gebruik die
+        if(status) status.textContent='⏳ Bestanden worden uitgelezen...';
+        const tekstVw=await Bestanden.lees(bestandVw);
+        const tekstBalans=await Bestanden.lees(bestandBalans);
+        tekst='=== V&W ===\n'+tekstVw+'\n\n=== BALANS ===\n'+tekstBalans;
+      } else {
+        // Gebruik opgeslagen jaarcijfers van klant (net als basisscan)
+        const alleUpl=await Store.getUploads();
+        const uploads=alleUpl.filter(u=>u.bedrijf===this._klant).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
+        if(!uploads.length||!uploads[0].pdfTekst){
+          UI.warn('Geen jaarcijfers gevonden — upload bestanden of laat de klant eerst aanleveren');return;
+        }
+        tekst=uploads[0].pdfTekst;
+        if(status) status.textContent='⏳ Aangeleverde jaarcijfers worden gebruikt...';
+      }
       // Haal basisscan op als referentie
       const bss=await Store.getBasisscans();
       const bsSleutel=Object.keys(bss).find(k=>k.startsWith(this._klant+'-'));
