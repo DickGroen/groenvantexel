@@ -3558,7 +3558,7 @@ const Formulier={
       const klArr=await Store.getKlanten();
       const periode=jaar;const datum=UI.datumNL();
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
-      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')+(sessie?.code?`\nInlogcode: ${sessie.code}`:'')});}catch(e){console.warn('EmailJS:',e.message||e);}
+      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,to_email:'dickgroen2@gmail.com',message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')+(sessie?.code?`\nInlogcode: ${sessie.code}`:'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
     }catch(e){
       Formulier._bezig=false;
