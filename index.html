@@ -1932,6 +1932,18 @@ const Rapport={
         ()=>Store.delExitScan(sl),
       ];
       for(const d of dels){try{await d();}catch{}}
+      // Leeg alle Store-caches zodat _teken() geen oude data herlaadt
+      Store._rapporten=null;Store._basisscans=null;Store._subsidiescans=null;
+      Store._cashflowstresstests=null;Store._debiteurenstresstests=null;
+      Store._offertemarges=null;Store._fiscaalscans=null;
+      Store._inkoopscans=null;Store._verzekerscans=null;
+      Store._personeelscans=null;Store._exitscans=null;
+      // Leeg ook preview-inhoud zodat er niets zichtbaar blijft
+      ['prev-inhoud','bs-prev-inhoud','cs-prev-inhoud','ds-prev-inhoud',
+       'om-prev-inhoud','fiscaal-prev-inhoud','inkoop-prev-inhoud',
+       'verzeker-prev-inhoud','personeel-prev-inhoud','exit-prev-inhoud'].forEach(id=>{
+        const el=$(id);if(el)el.innerHTML='';
+      });
       Rapport._reset();setHTML('r-header','');
       const pSel=$('r-periode');if(pSel)pSel.innerHTML='<option value="">— Periode —</option>';
       UI.toast('Upload en alle rapporten verwijderd — klant kan opnieuw aanleveren');
