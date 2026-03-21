@@ -1382,15 +1382,65 @@ const Auth={
 };
 
 const Nav={
+  _setMinimaleNav(nav){
+    var b = document.createElement.bind(document);
+    var items = [
+      {id:'nb-welkom',    lbl:'🏠 Start',         act:'Nav.ga("welkom")'},
+      {id:'nb-aanleveren',lbl:'📤 Aanleveren',     act:'Nav.ga("aanleveren")'},
+      {id:'nb-diensten',  lbl:'💡 Meer diensten',  act:'Nav.ga("diensten")'},
+    ];
+    nav.innerHTML = '';
+    items.forEach(function(it){
+      var btn = document.createElement('button');
+      btn.className = 'nav-btn'; btn.id = it.id; btn.textContent = it.lbl;
+      btn.setAttribute('onclick', it.act);
+      nav.appendChild(btn);
+    });
+    var uit = document.createElement('button');
+    uit.className = 'nav-btn';
+    uit.style.cssText = 'color:#fca5a5;background:rgba(255,255,255,.1);';
+    uit.textContent = '↩ Uitloggen';
+    uit.setAttribute('onclick', 'Auth.uitloggen()');
+    nav.appendChild(uit);
+  },
+
+  _setVolledigeNav(nav, extraBtns){
+    var basis = [
+      {id:'nb-welkom',    lbl:'🏠 Start',        act:'Nav.ga("welkom")'},
+      {id:'nb-aanleveren',lbl:'📤 Aanleveren',    act:'Nav.ga("aanleveren")'},
+    ];
+    nav.innerHTML = '';
+    basis.forEach(function(it){
+      var btn = document.createElement('button');
+      btn.className = 'nav-btn'; btn.id = it.id; btn.textContent = it.lbl;
+      btn.setAttribute('onclick', it.act);
+      nav.appendChild(btn);
+    });
+    // Voeg rapport-knoppen in via innerHTML fragment
+    if(extraBtns){
+      var tmp = document.createElement('div');
+      tmp.innerHTML = extraBtns;
+      while(tmp.firstChild) nav.appendChild(tmp.firstChild);
+    }
+    var diensten = document.createElement('button');
+    diensten.className = 'nav-btn'; diensten.id = 'nb-diensten';
+    diensten.textContent = '💡 Meer diensten';
+    diensten.setAttribute('onclick', 'Nav.ga("diensten")');
+    nav.appendChild(diensten);
+    var uit = document.createElement('button');
+    uit.className = 'nav-btn';
+    uit.style.cssText = 'color:#fca5a5;background:rgba(255,255,255,.1);';
+    uit.textContent = '↩ Uitloggen';
+    uit.setAttribute('onclick', 'Auth.uitloggen()');
+    nav.appendChild(uit);
+  },
+
   async bouw(){
     const nav=$('topnav');if(!nav||!sessie)return;
     if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-subsidie" onclick="Nav.ga('subsidie')">🎯 Subsidie</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
     else{
       // Toon minimale nav direct — uitloggen altijd zichtbaar
-      nav.innerHTML='<button class="nav-btn" id="nb-welkom" onclick="Nav.ga('welkom')">🏠 Start</button>'
-        +'<button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button>'
-        +'<button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">💡 Meer diensten</button>'
-        +'<button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>';
+      Nav._setMinimaleNav(nav);
       const kt=sessie?.klanttype||sessie?.klantType||'lead';
       const alleUpl=await Store.getUploads().catch(()=>[]);
       const uploads=alleUpl.filter(u=>u.bedrijf===sessie.naam);
@@ -1429,11 +1479,7 @@ const Nav={
       const heeftPager=uploads.some(u=>allPagers1[sessie.naam+'-'+u.periode]?.gepubliceerd);
       const pagerBtn=heeftPager?`<button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">📄 1-Pager</button>`:'';
       // Volledige nav nu beschikbaar — vervang de minimale versie
-      nav.innerHTML='<button class="nav-btn" id="nb-welkom" onclick="Nav.ga('welkom')">🏠 Start</button>'
-        +'<button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button>'
-        +pagerBtn+bsBtn+csBtn+dsBtn+omBtn+fiscaalBtn+inkoopBtn+verzekerBtn+personeelBtn+exitBtn+subBtn+monBtn
-        +'<button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">💡 Meer diensten</button>'
-        +'<button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>';
+      Nav._setVolledigeNav(nav, pagerBtn+bsBtn+csBtn+dsBtn+omBtn+fiscaalBtn+inkoopBtn+verzekerBtn+personeelBtn+exitBtn+subBtn+monBtn);
     }
   },
   ga(naam){
