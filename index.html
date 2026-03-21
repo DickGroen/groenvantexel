@@ -1482,7 +1482,7 @@ const Nav={
     if(naam==='personeel-klant')Rapport.laadPersoneelsScanKlant();
     if(naam==='exit-klant')Rapport.laadExitScanKlant();
     if(naam==='diensten'){if(sessie?.type==='klant')KlantApp._bouwDiensten(sessie.sector||'',sessie.klanttype||sessie.klantType||'lead');}
-    if(naam==='monitoring')Monitoring.laad();
+    if(naam==='monitoring'){Rapport._reset();Monitoring.laad();}
     if(naam==='subsidie')Subsidie.laad();
     // Monitoring aanvraagknop: klikbaar voor klant, decoratief voor admin
     setTimeout(()=>{document.querySelectorAll('.mon-aanvraag-knop').forEach(k=>{if(sessie?.type!=='klant'){k.style.cursor='default';k.style.pointerEvents='none';k.style.opacity='0.7';}else{k.style.cursor='pointer';k.style.pointerEvents='';k.style.opacity='';}});},100);
@@ -2485,6 +2485,34 @@ Mijlpaal: [concrete mijlpaal komende 3 maanden]`;
     }
   },
 
+  async _laadGeschiedenis(){
+    const box=$('mon-geschiedenis');
+    const inhoud=$('mon-geschiedenis-inhoud');
+    if(!box||!inhoud||!this._klant)return;
+    try{
+      const alle=await Store.getMaandoverzichten(this._klant);
+      const gepub=alle.filter(o=>o.gepubliceerd).sort((a,b)=>b.periode.localeCompare(a.periode));
+      if(!gepub.length){box.style.display='none';return;}
+      box.style.display='';
+      inhoud.innerHTML=gepub.map(o=>{
+        const d=new Date(o.periode+'-01').toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">'
+          +'<div style="font-size:13px;font-weight:600;">'+d+'</div>'
+          +'<div style="font-size:12px;color:var(--mid);">Gepubliceerd op '+UI.esc(o.datum||'?')+'</div>'
+          +'<button onclick="Monitoring.herlaadOverzicht(''+UI.esc(o.periode)+'')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;">Bekijk</button>'
+          +'</div>';
+      }).join('');
+    }catch{}
+  },
+
+  async herlaadOverzicht(periode){
+    try{
+      const alle=await Store.getMaandoverzichten(this._klant);
+      const o=alle.find(x=>x.periode===periode);
+      if(o?.html){setHTML('mon-prev-inhoud',o.html);show('mon-prev-box');setTxt('btn-mon-pub',o.gepubliceerd?'✅ Gepubliceerd':'✅ Publiceer naar klant');}
+    }catch{}
+  },
+
   _parseer(tekst){
     const sectie=naam=>{const re=new RegExp('=='+naam+'==([\\s\\S]*?)(?===|$)','i');return(tekst.match(re)||[])[1]?.trim()||'';};
     const lbl=(blok,naam)=>(blok.match(new RegExp(naam+':\\s*(.+)','i'))||[])[1]?.trim()||'';
@@ -3059,6 +3087,34 @@ Deadline: [Doorlopend / Specifieke datum / Op=op]
       if(knop){knop.disabled=false;knop.textContent='🎯 Genereer Subsidie Scan';}
       UI.error('Subsidie Scan mislukt: '+e.message);
     }
+  },
+
+  async _laadGeschiedenis(){
+    const box=$('mon-geschiedenis');
+    const inhoud=$('mon-geschiedenis-inhoud');
+    if(!box||!inhoud||!this._klant)return;
+    try{
+      const alle=await Store.getMaandoverzichten(this._klant);
+      const gepub=alle.filter(o=>o.gepubliceerd).sort((a,b)=>b.periode.localeCompare(a.periode));
+      if(!gepub.length){box.style.display='none';return;}
+      box.style.display='';
+      inhoud.innerHTML=gepub.map(o=>{
+        const d=new Date(o.periode+'-01').toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">'
+          +'<div style="font-size:13px;font-weight:600;">'+d+'</div>'
+          +'<div style="font-size:12px;color:var(--mid);">Gepubliceerd op '+UI.esc(o.datum||'?')+'</div>'
+          +'<button onclick="Monitoring.herlaadOverzicht(''+UI.esc(o.periode)+'')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;">Bekijk</button>'
+          +'</div>';
+      }).join('');
+    }catch{}
+  },
+
+  async herlaadOverzicht(periode){
+    try{
+      const alle=await Store.getMaandoverzichten(this._klant);
+      const o=alle.find(x=>x.periode===periode);
+      if(o?.html){setHTML('mon-prev-inhoud',o.html);show('mon-prev-box');setTxt('btn-mon-pub',o.gepubliceerd?'✅ Gepubliceerd':'✅ Publiceer naar klant');}
+    }catch{}
   },
 
   _parseer(tekst){
