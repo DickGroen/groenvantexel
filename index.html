@@ -1248,9 +1248,10 @@ const Nav={
     }
   },
   gaRapport(tabNaam){
-    // Navigeer naar rapporten-view en activeer het juiste tabblad
+    // Navigeer naar rapporten-view, dan pas laden
     Nav.ga('rapporten-klant');
-    RapportTabs.toon(tabNaam);
+    // requestAnimationFrame zorgt dat de view actief is voor laden
+    requestAnimationFrame(()=>RapportTabs.toon(tabNaam));
   },
 
   ga(naam){
@@ -1878,14 +1879,13 @@ const Rapport={
     const alleUpl=await Store.getUploads();
     const uploads=alleUpl.filter(u=>u.bedrijf===sessie.naam).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
     if(!uploads.length){
-      show('r-leeg');
-      const rleegBox=$('r-leeg');
-      if(rleegBox){rleegBox.innerHTML=`<div class="card" style="text-align:center;padding:40px 24px;">
+      const inhoudEl=$('rapport-tab-inhoud');
+      if(inhoudEl) inhoudEl.innerHTML=`<div class="card" style="text-align:center;padding:40px 24px;">
         <div style="font-size:48px;margin-bottom:16px;">📤</div>
         <div style="font-size:16px;font-weight:700;color:#1F4E79;margin-bottom:8px;">Nog geen jaarcijfers aangeleverd</div>
         <div style="font-size:13px;color:#555;line-height:1.8;margin-bottom:20px;">Lever uw V&amp;W en balans aan — binnen 3 werkdagen staat uw gratis 1-pager klaar.</div>
         <button onclick="Nav.ga('aanleveren')" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;">📤 Jaarcijfers aanleveren</button>
-      </div>`;}
+      </div>`;
       return;
     }
     const allPagers=await Store.get1Pagers();
@@ -1897,27 +1897,23 @@ const Rapport={
       }
     }
     if(!gevonden){
-      show('r-leeg');
-      // Toon aanleverdatum en verwachte oplevering
       const eersteUpl=uploads[0];
       const aanleverdatum=eersteUpl?.datum||'';
-      const rleegBox=$('r-leeg');
-      if(rleegBox){
-        rleegBox.innerHTML=`<div class="card" style="text-align:center;padding:40px 24px;">
-          <div style="font-size:48px;margin-bottom:16px;">⏳</div>
-          <div style="font-size:16px;font-weight:700;color:#1F4E79;margin-bottom:8px;">Uw rapport wordt opgesteld</div>
-          <div style="font-size:13px;color:#555;line-height:1.8;margin-bottom:20px;">
-            Uw jaarcijfers zijn <strong>ontvangen op ${UI.esc(aanleverdatum)}</strong>.<br>
-            Groen van Texel stelt uw rapport binnen <strong>3–5 werkdagen</strong> op.<br>
-            U ontvangt een bericht zodra het klaarstaat.
-          </div>
-          <div style="background:#EAF4FB;border:1.5px solid #2E75B6;border-radius:8px;padding:12px 20px;display:inline-block;">
-            <div style="font-size:11px;font-weight:700;color:#1F4E79;text-transform:uppercase;margin-bottom:3px;">Status</div>
-            <div style="font-size:13px;color:#2E75B6;font-weight:600;">✓ Ontvangen &nbsp;→&nbsp; ⏳ In behandeling &nbsp;→&nbsp; Rapport</div>
-          </div>
-          <div style="margin-top:20px;"><a href="tel:0642152499" style="font-size:13px;color:#1F4E79;font-weight:600;">Vragen? Bel 06 4215 2499</a></div>
-        </div>`;
-      }
+      const inhoudEl=$('rapport-tab-inhoud');
+      if(inhoudEl) inhoudEl.innerHTML=`<div class="card" style="text-align:center;padding:40px 24px;">
+        <div style="font-size:48px;margin-bottom:16px;">⏳</div>
+        <div style="font-size:16px;font-weight:700;color:#1F4E79;margin-bottom:8px;">Uw rapport wordt opgesteld</div>
+        <div style="font-size:13px;color:#555;line-height:1.8;margin-bottom:20px;">
+          Uw jaarcijfers zijn <strong>ontvangen op ${UI.esc(aanleverdatum)}</strong>.<br>
+          Groen van Texel stelt uw rapport binnen <strong>3–5 werkdagen</strong> op.<br>
+          U ontvangt een bericht zodra het klaarstaat.
+        </div>
+        <div style="background:#EAF4FB;border:1.5px solid #2E75B6;border-radius:8px;padding:12px 20px;display:inline-block;">
+          <div style="font-size:11px;font-weight:700;color:#1F4E79;text-transform:uppercase;margin-bottom:3px;">Status</div>
+          <div style="font-size:13px;color:#2E75B6;font-weight:600;">✓ Ontvangen &nbsp;→&nbsp; ⏳ In behandeling &nbsp;→&nbsp; Rapport</div>
+        </div>
+        <div style="margin-top:20px;"><a href="tel:0642152499" style="font-size:13px;color:#1F4E79;font-weight:600;">Vragen? Bel 06 4215 2499</a></div>
+      </div>`;
     }
   },
   async genereer1Pager(){
