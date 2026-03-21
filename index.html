@@ -1571,7 +1571,8 @@ const Klanten={
   async laadTabel(){
     const kl=await Store.getKlanten();const tb=$('kb-tbody');if(!tb)return;
     if(!kl.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px;">Nog geen klanten.</td></tr>';return;}
-    tb.innerHTML=kl.map(k=>{
+    const rows=[];
+    for(const k of kl){
       const c=UI.esc(k.code);
       const sel='<select data-code="'+c+'" onchange="Klanten.wijzigType(this)" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;background:#fff;">'
         +'<option value="lead"'+(k.klantType==='lead'?' selected':'')+'>Lead</option>'
