@@ -1227,9 +1227,10 @@ const Email={
       const k=kl.find(k=>k.naam===klantNaam);
       if(!k?.email){console.warn('Geen e-mail voor klant '+klantNaam);return;}
       const url='https://groenvantexel.pages.dev';
+      const inlogcode=k.code?'\n\nUw inlogcode: '+k.code:'';
       const typeMap={
-        'eenpager':    {naam:'Financieel Overzicht (1-pager)',     nav:'Klik op "📄 1-Pager" in het menu.'},
-        'basisscan':   {naam:'Financiële Basisscan',               nav:'Klik op "🔍 Basisscan" in het menu.'},
+        'eenpager':    {naam:'Financieel Overzicht (1-pager)',     nav:'Klik op "📋 Mijn rapporten" in het menu bovenin.'},
+        'basisscan':   {naam:'Financiële Basisscan',               nav:'Klik op "📋 Mijn rapporten" in het menu bovenin.'},
         'cashflow':    {naam:'Cashflow Stresstest',                 nav:'Klik op "💸 Cashflow" in het menu.'},
         'debiteuren':  {naam:'Debiteuren Stresstest',              nav:'Klik op "📋 Debiteuren" in het menu.'},
         'offerte-marge':{naam:'Offerte & Marge Stresstest',        nav:'Klik op "📐 Offerte & Marge" in het menu.'},
@@ -3556,7 +3557,29 @@ const KlantApp={
 const Formulier={
   _bezig:false,
   reset(){['f-vw1-naam','f-balans1-naam','f-vw2-naam','f-balans2-naam','f-vw3-naam','f-balans3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-vw2','f-balans2','f-vw3','f-balans3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Versturen';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';}Formulier._bezig=false;},
-  _ontvangenStaat(datum){const btn=$('f-submit');if(!btn)return;const kt=sessie?.klanttype||sessie?.klantType||'lead';const dagen=kt==='doorlichting'?'5':kt==='monitoring'?'3':'3';btn.textContent='Verstuurd op '+datum+' — uw rapport is binnen '+dagen+' werkdagen klaar';btn.classList.remove('btn-primary');btn.classList.add('btn-ghost');btn.style.cursor='default';btn.disabled=true;},
+  _ontvangenStaat(datum){
+    const btn=$('f-submit');if(!btn)return;
+    const kt=sessie?.klanttype||sessie?.klantType||'lead';
+    const dagen=kt==='doorlichting'?'3-5':kt==='monitoring'?'3':'3';
+    btn.textContent='✓ Verstuurd op '+datum;
+    btn.classList.remove('btn-primary');btn.classList.add('btn-ghost');btn.style.cursor='default';btn.disabled=true;
+    // Toon uitlegblok wat er nu gaat gebeuren
+    const statusBox=$('upload-status-box');
+    if(statusBox){
+      const stappen=kt==='doorlichting'
+        ?'<li>Groen van Texel analyseert uw jaarcijfers</li><li>Binnen 3–5 werkdagen: uw gratis 1-pager in het portaal</li><li>Daarna volgt de volledige Basisscan (€397 excl. BTW)</li>'
+        :kt==='monitoring'
+        ?'<li>Groen van Texel analyseert uw jaarcijfers</li><li>Binnen 3 werkdagen: uw eerste maandoverzicht in het portaal</li><li>Elke maand ontvangt u een nieuw overzicht</li>'
+        :'<li>Groen van Texel analyseert uw jaarcijfers</li><li>Binnen 3 werkdagen: uw gratis financieel overzicht (1-pager)</li><li>Wij vergelijken uw cijfers met de sectornorm</li><li>U ontvangt een bericht zodra het klaarstaat</li>';
+      statusBox.innerHTML='<div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:10px;padding:18px 20px;margin-bottom:16px;">'
+        +'<div style="font-size:14px;font-weight:700;color:#1E8449;margin-bottom:4px;">✓ Jaarcijfers ontvangen op '+UI.esc(datum)+'</div>'
+        +'<div style="font-size:13px;color:#555;margin-bottom:12px;">U ontvangt ook een bevestiging per e-mail.</div>'
+        +'<div style="font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:6px;">Wat er nu gebeurt:</div>'
+        +'<ol style="margin:0;padding-left:18px;font-size:13px;color:#444;line-height:2;">'+stappen+'</ol>'
+        +'<div style="margin-top:12px;font-size:12px;color:#888;">Vragen? Bel <a href="tel:0642152499" style="color:#1F4E79;font-weight:600;">06 4215 2499</a></div>'
+        +'</div>';
+    }
+  },
   async submit(){
     if(Formulier._bezig)return;Formulier._bezig=true;
     const foutBox2=$('upload-fout-box');if(foutBox2)foutBox2.style.display='none';
@@ -3595,6 +3618,13 @@ const Formulier={
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
       try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,to_email:'dickgroen2@gmail.com',message:`Nieuwe upload van ${bedrijf} (${periode}) voor de 1-pager\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')+(sessie?.code?`\nInlogcode: ${sessie.code}`:'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
+      // Bevestigingsmail naar klant
+      if(email){
+        const kt2=sessie?.klanttype||sessie?.klantType||'lead';
+        const typeNaam2=kt2==='monitoring'?'maandelijkse monitoring':kt2==='doorlichting'?'financiële doorlichting':'gratis financieel overzicht (1-pager)';
+        const dagen2=kt2==='doorlichting'||kt2==='monitoring'?'3-5':'3';
+        try{await Email.stuur({bedrijf:bedrijf,periode:jaar,name:bedrijf,time:datum,to_email:email,message:'Beste '+bedrijf+',\n\nWe hebben uw jaarcijfers ontvangen. Bedankt voor het aanleveren.\n\nWat u kunt verwachten:\nBinnen '+dagen2+' werkdagen staat uw '+typeNaam2+' klaar in uw portaal.\n\nU ontvangt dan een bericht van ons. U kunt ook zelf inloggen op:\nhttps://groenvantexel.pages.dev\n\nInlogcode: '+(sessie?.code||'zie uw welkomstmail')+'\n\nHeeft u vragen? Bel of mail ons gerust.\n\nMet vriendelijke groet,\nGroen van Texel\n06 4215 2499'});}catch(e){console.warn('Bevestigingsmail:',e);}
+      }
     }catch(e){
       Formulier._bezig=false;
       if(btn){btn.disabled=false;btn.textContent='▶ Versturen';}
