@@ -2889,18 +2889,36 @@ const RapportTabs = {
 
   // Definitie van alle mogelijke tabs
   _defs: [
-    {id:'eenpager',   lbl:'📄 1-Pager',              kleur:'#1E8449', laad:'Rapport.laadVoorKlant'},
-    {id:'basisscan',  lbl:'🔍 Basisscan',             kleur:'#5B21B6', laad:'Rapport.laadBasisscanKlant'},
-    {id:'cashflow',   lbl:'💸 Cashflow',              kleur:'#0E7490', laad:'Rapport.laadCashflowKlant'},
-    {id:'debiteuren', lbl:'📋 Debiteuren',            kleur:'#7C3AED', laad:'Rapport.laadDebiteurenKlant'},
-    {id:'offerte',    lbl:'📐 Offerte & Marge',       kleur:'#B45309', laad:'Rapport.laadOfferteKlant'},
-    {id:'fiscaal',    lbl:'🧾 Fiscaal',               kleur:'#065F46', laad:'Rapport.laadFiscaleScanKlant'},
-    {id:'inkoop',     lbl:'🛒 Inkoop',                kleur:'#1D4ED8', laad:'Rapport.laadInkoopanalyseKlant'},
-    {id:'verzeker',   lbl:'🛡 Verzekering',           kleur:'#7F1D1D', laad:'Rapport.laadVerzekeringsScanKlant'},
-    {id:'personeel',  lbl:'👥 Personeel',             kleur:'#831843', laad:'Rapport.laadPersoneelsScanKlant'},
-    {id:'exit',       lbl:'🏷 Exit & Waardering',     kleur:'#1E3A5F', laad:'Rapport.laadExitScanKlant'},
-    {id:'subsidie',   lbl:'🎯 Subsidie',              kleur:'#D97706', laad:'Rapport.laadSubsidiescanKlant'},
+    {id:'eenpager',   lbl:'📄 1-Pager',              kleur:'#1E8449'},
+    {id:'basisscan',  lbl:'🔍 Basisscan',             kleur:'#5B21B6'},
+    {id:'cashflow',   lbl:'💸 Cashflow',              kleur:'#0E7490'},
+    {id:'debiteuren', lbl:'📋 Debiteuren',            kleur:'#7C3AED'},
+    {id:'offerte',    lbl:'📐 Offerte & Marge',       kleur:'#B45309'},
+    {id:'fiscaal',    lbl:'🧾 Fiscaal',               kleur:'#065F46'},
+    {id:'inkoop',     lbl:'🛒 Inkoop',                kleur:'#1D4ED8'},
+    {id:'verzeker',   lbl:'🛡 Verzekering',           kleur:'#7F1D1D'},
+    {id:'personeel',  lbl:'👥 Personeel',             kleur:'#831843'},
+    {id:'exit',       lbl:'🏷 Exit & Waardering',     kleur:'#1E3A5F'},
+    {id:'subsidie',   lbl:'🎯 Subsidie',              kleur:'#D97706'},
   ],
+
+  // Lazy map — werkt pas na alle const-definities
+  _getLaadFn(tabId){
+    const map={
+      eenpager:   ()=>Rapport.laadVoorKlant(),
+      basisscan:  ()=>Rapport.laadBasisscanKlant(),
+      cashflow:   ()=>Rapport.laadCashflowKlant(),
+      debiteuren: ()=>Rapport.laadDebiteurenKlant(),
+      offerte:    ()=>Rapport.laadOfferteKlant(),
+      fiscaal:    ()=>Rapport.laadFiscaleScanKlant(),
+      inkoop:     ()=>Rapport.laadInkoopanalyseKlant(),
+      verzeker:   ()=>Rapport.laadVerzekeringsScanKlant(),
+      personeel:  ()=>Rapport.laadPersoneelsScanKlant(),
+      exit:       ()=>Rapport.laadExitScanKlant(),
+      subsidie:   ()=>Rapport.laadSubsidiescanKlant(),
+    };
+    return map[tabId]||null;
+  },
 
   // Bouw de tabbar op basis van beschikbare rapporten
   bouw(beschikbaar){
@@ -2974,13 +2992,10 @@ const RapportTabs = {
     if(inhoudEl) inhoudEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--mid);">Laden...</div>';
 
     try {
-      // Roep de juiste laad-functie aan
-      const parts = def.laad.split('.');
-      const obj = window[parts[0]];
-      if(obj && typeof obj[parts[1]] === 'function'){
-        await obj[parts[1]]();
+      const laadFn = this._getLaadFn(tabId);
+      if(laadFn){
+        await laadFn();
       } else {
-        console.warn('Laad-functie niet gevonden:', def.laad);
         if(inhoudEl) inhoudEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--mid);">Rapport niet beschikbaar.</div>';
       }
     } catch(e) {
