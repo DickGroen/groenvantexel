@@ -91,6 +91,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 .prev-balk-r{display:flex;gap:8px;}
 .toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:500;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;}
 .toast.show{transform:translateY(0);opacity:1;}
+@keyframes spin{to{transform:rotate(360deg);}}
 @media(max-width:680px){.stats-row{grid-template-columns:1fr 1fr;}.form-row.cols2,.form-row.cols4{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -596,17 +597,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <div style="max-width:720px;margin:0 auto;padding-bottom:48px;">
 
       <!-- Hero -->
-      <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:14px;padding:40px 36px;margin-bottom:24px;color:#fff;">
+      <div id="welkom-hero" style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:14px;padding:40px 36px;margin-bottom:24px;color:#fff;transition:padding .2s;">
         <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9dc3e6;margin-bottom:10px;">Groen van Texel — Financieel Platform</div>
         <h1 style="font-family:'DM Serif Display',serif;font-size:30px;margin-bottom:14px;line-height:1.3;" id="welkom-naam">Welkom</h1>
         <p id="welkom-subtekst" style="color:#c5dff4;font-size:16px;line-height:1.7;max-width:540px;">De meeste MKB-ondernemers laten geld liggen zonder het te weten.<br>Wij laten zien hoeveel — en hoe u het terughaalt.<br><br><strong style="color:#fff;">Uw accountant controleert of de cijfers kloppen.<br>Wij analyseren of u geld laat liggen.</strong><br><br><span style="font-size:14px;color:#9dc3e6;">Uw eerste analyse is gratis.</span></p>
       </div>
+      <!-- Laadspinner zolang KlantApp.init() bezig is -->
+      <div id="welkom-laad" style="text-align:center;padding:40px 0;color:var(--mid);font-size:14px;">
+        <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+        Uw dossier laden...
+      </div>
 
       <!-- Dynamisch statusoverzicht voor terugkerende klanten -->
-      <div id="welkom-status-box"></div>
+      <div id="welkom-status-box" style="display:none;"></div>
 
       <!-- Drie diensten (verborgen voor terugkerende klanten) -->
-      <div id="welkom-onboarding">
+      <div id="welkom-onboarding" style="display:none;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
 
         <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px;border-top:3px solid var(--green);">
@@ -1313,7 +1319,7 @@ const Auth={
     if(code===adminCode){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
     Store.getKlanten().then(kl=>{
       const k=kl.find(k=>k.code===code);
-      if(k){Auth._open({type:'klant',...k});Nav.bouw();KlantApp.init();return;}
+      if(k){Auth._open({type:'klant',...k});KlantApp.init();return;}
       show('login-error');
     }).catch(()=>show('login-error'));
     return;
@@ -1369,8 +1375,8 @@ const Auth={
         if(naam==='admin')sessie={type:'admin'};
       }
       if(!sessie)return;
-      hide('login-overlay');Nav.bouw();
-      if(sessie.type==='admin'){Nav.ga('dashboard');}else{KlantApp.init();}
+      hide('login-overlay');
+      if(sessie.type==='admin'){Nav.bouw();Nav.ga('dashboard');}else{KlantApp.init();}
     }catch{sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');}
   },
 };
@@ -3054,7 +3060,8 @@ Deadline: [Doorlopend / Specifieke datum / Op=op]
 const KlantApp={
   async init(){
     Nav.ga('welkom');
-    // Haal altijd verse klantdata op
+    // Bouw nav en laad klantdata parallel
+    const navPromise=Nav.bouw();
     try{const kl=await Store.getKlanten();const k=kl.find(k=>k.code===sessie.code||k.naam===sessie.naam);if(k)sessie={...sessie,...k};}catch{}
     const naam=sessie.naam||'';
     const kt=sessie.klanttype||sessie.klantType||'lead';
@@ -3113,6 +3120,11 @@ const KlantApp={
       // Terugkerende klant: toon statusoverzicht, verberg onboarding
       if(onboarding)onboarding.style.display='none';
       if(subtekst)subtekst.textContent='Hieronder ziet u de actuele status van uw dossier bij Groen van Texel.';
+      const laadEl=$('welkom-laad');if(laadEl)laadEl.style.display='none';
+      if(welkomStatusBox)welkomStatusBox.style.display='';
+      // Maak hero compacter voor terugkerende klant
+      const heroEl=$('welkom-hero');
+      if(heroEl){heroEl.style.padding='24px 28px';heroEl.style.marginBottom='16px';}
 
       // Tel beschikbare rapporten
       const alleRapportTypes=[
@@ -3154,7 +3166,8 @@ const KlantApp={
     } else {
       // Nieuwe klant: toon normale onboarding
       if(onboarding)onboarding.style.display='';
-      if(welkomStatusBox)welkomStatusBox.innerHTML='';
+      if(welkomStatusBox){welkomStatusBox.innerHTML='';welkomStatusBox.style.display='none';}
+      const laadEl2=$('welkom-laad');if(laadEl2)laadEl2.style.display='none';
     }
 
     // ── PUNT 5: Dienstenpagina filteren op sector ──
