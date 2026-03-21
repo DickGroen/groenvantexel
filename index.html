@@ -155,9 +155,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div class="form-group"><label class="form-label">Sector</label>
           <select id="nk-sector" class="form-select"><option value="">— Kies —</option><option>Installatietechniek</option><option>Bouw &amp; Aannemerij</option><option>Groothandel</option><option>Detailhandel</option><option>Zakelijke dienstverlening</option><option>Horeca</option><option>Transport &amp; Logistiek</option><option>Zorg</option><option>ICT</option><option>Overig</option></select>
         </div>
-        <div class="form-group" style="justify-content:flex-end;gap:10px;display:flex;align-items:flex-end;">
-          <button class="btn btn-ghost" onclick="Klanten.toevoegenEnWelkom()" style="height:42px;">+ Toevoegen &amp; welkomsmail</button>
-          <button class="btn btn-primary" onclick="Klanten.toevoegen()" style="height:42px;">+ Klant toevoegen</button>
+        <div class="form-group" style="justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="Klanten.toevoegenEnWelkom()" style="height:42px;">+ Klant toevoegen &amp; welkomsmail</button>
         </div>
       </div>
     </div>
@@ -3707,7 +3706,9 @@ function downloadAlsPDF(elementId, bestandsnaam) {
         @page { margin: 12mm 15mm; size: A4; }
         .geen-print { display: none !important; }
         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
       }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .pdf-instructie {
         background: #EAF4FB; border: 1.5px solid #2E75B6; border-radius: 8px;
         padding: 14px 18px; margin: 16px; font-family: Arial, sans-serif;
