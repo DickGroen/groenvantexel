@@ -7313,23 +7313,30 @@ const Admin = {
   },
 
   _toonBanner(naam){
-    const banner=$('admin-klant-banner');
-    if(banner){
-      banner.style.display='';
-      banner.innerHTML='<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#C0392B;color:#fff;padding:10px 20px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);">'
-        +'<span>👁 Admin-modus: u bekijkt het portaal als <strong>'+UI.esc(naam)+'</strong></span>'
-        +'<button onclick="Admin.terugNaarAdmin()" style="background:#fff;color:#C0392B;border:none;border-radius:5px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;">← Terug naar admin</button>'
-        +'</div>';
-      // Voeg padding toe aan body zodat content niet achter banner zit
-      document.body.style.paddingTop='44px';
-    }
+    // Verwijder eventuele oude banner
+    const oud=document.getElementById('admin-klant-banner-fixed');
+    if(oud)oud.remove();
+    // Maak nieuwe banner direct in body
+    const div=document.createElement('div');
+    div.id='admin-klant-banner-fixed';
+    div.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#C0392B;color:#fff;padding:10px 20px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.4);';
+    const span=document.createElement('span');
+    span.innerHTML='👁 Admin-modus: u bekijkt het portaal als <strong>'+UI.esc(naam)+'</strong>';
+    const btn=document.createElement('button');
+    btn.textContent='← Terug naar admin';
+    btn.style.cssText='background:#fff;color:#C0392B;border:none;border-radius:5px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;';
+    btn.onclick=()=>Admin.terugNaarAdmin();
+    div.appendChild(span);
+    div.appendChild(btn);
+    document.body.appendChild(div);
+    document.body.style.paddingTop='44px';
   },
 
   terugNaarAdmin(){
     if(!Admin._vorigeSessione){UI.warn('Geen admin-sessie gevonden');return;}
     Auth._open(Admin._vorigeSessione);
-    const banner=$('admin-klant-banner');
-    if(banner){banner.style.display='none';banner.innerHTML='';}
+    const banner=document.getElementById('admin-klant-banner-fixed');
+    if(banner)banner.remove();
     document.body.style.paddingTop='';
     Admin._vorigeSessione=null;
     Admin._bekijktKlant=null;
