@@ -7308,8 +7308,8 @@ const Admin = {
     // Zet sessie naar klant en laad klantview
     Auth._open({type:'klant',naam:k.naam,code:k.code,email:k.email||'',sector:k.sector||'',klanttype:k.klantType||k.klanttype||'lead'});
     await KlantApp.init();
-    // Toon banner NA init zodat nav al gebouwd is
-    Admin._toonBanner(naam);
+    // Toon banner NA init met timeout zodat async nav-opbouw klaar is
+    setTimeout(()=>Admin._toonBanner(naam), 600);
   },
 
   _toonBanner(naam){
