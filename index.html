@@ -206,6 +206,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <button class="btn btn-ghost" onclick="Klanten.sluitMailModal()">Annuleren</button>
         <button class="btn btn-primary" onclick="Klanten.verstuurMail()">✉ Versturen</button>
       </div>
+      <div class="card">
+        <div class="card-title">📦 Data back-up</div>
+        <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Download alle klant- en rapportdata als JSON-bestand. Bewaar dit als back-up.</p>
+        <button class="btn btn-ghost" onclick="Instellen.exportData()" style="margin-right:8px;">⬇ Download back-up</button>
+        <span id="export-status" style="font-size:12px;color:var(--mid);"></span>
+      </div>
     </div>
   </div>
 
@@ -453,7 +459,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:10px;padding:28px;text-align:center;">
         <div style="color:#FDE68A;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Interesse in een van deze diensten?</div>
         <div style="color:#fff;font-size:16px;font-weight:700;margin-bottom:6px;">Neem contact op met Groen van Texel</div>
-        <div style="color:#9dc3e6;font-size:14px;margin-bottom:16px;">06 4215 2499 &nbsp;·&nbsp; groenvantexel.pages.dev</div>
+        <div style="color:#9dc3e6;font-size:14px;margin-bottom:4px;">06 4215 2499 &nbsp;·&nbsp; groenvantexel.pages.dev</div>
+        <div id="nav-kvk-btw" style="color:#7ba7cc;font-size:12px;margin-bottom:12px;"></div>
         <a href="tel:0642152499" style="display:inline-block;background:#fff;color:#1F4E79;font-weight:700;font-size:14px;border-radius:8px;padding:12px 28px;text-decoration:none;">📞 Bel direct</a>
       </div>
 
@@ -747,7 +754,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div id="cfg-admin-feedback" style="font-size:12px;margin-top:8px;"></div>
     </div>
     <div class="card" style="max-width:520px;">
-      <div class="card-title">EmailJS instellingen</div>
+      <div class="card-title">Bedrijfsgegevens (zichtbaar in portaal)</div>
+        <div class="form-row cols2" style="max-width:600px;">
+          <div class="form-group"><label class="form-label">KVK-nummer</label><input id="cfg-kvk" class="form-input" placeholder="12345678" oninput="Config.slaKvkOp()"></div>
+          <div class="form-group"><label class="form-label">BTW-nummer</label><input id="cfg-btw" class="form-input" placeholder="NL123456789B01" oninput="Config.slaBtwOp()"></div>
+        </div>
+        <div class="form-row cols2" style="max-width:600px;">
+          <div class="form-group"><label class="form-label">Adres</label><input id="cfg-adres" class="form-input" placeholder="Straat 1, 1234 AB Plaats" oninput="Config.slaAdresOp()"></div>
+          <div class="form-group"><label class="form-label">Website</label><input id="cfg-website" class="form-input" placeholder="www.groenvantexel.nl" oninput="Config.slaWebsiteOp()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">EmailJS instellingen</div>
       <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Service ID</label><input id="cfg-service" class="form-input" value="service_oqgsajg"></div>
       <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Template ID</label><input id="cfg-template" class="form-input" value="template_q3aea4c"></div>
       <div class="form-group" style="margin-bottom:20px;"><label class="form-label">Public Key</label><input id="cfg-pubkey" class="form-input" value="ubJuLGAX11M-mSoIZ"></div>
@@ -758,7 +776,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-monitoring" class="view">
     <div id="mon-admin" style="display:none;">
       <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Monitoring</h2>
-      <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Maandoverzichten genereren en publiceren</p>
+      <p style="color:var(--mid);font-size:14px;margin-bottom:12px;">Maandoverzichten genereren en publiceren</p>
+      <div id="mon-batch-box" style="background:#EAF4FB;border:1.5px solid #2E75B6;border-radius:8px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <div style="font-size:13px;color:#1F4E79;"><strong>Batch genereren</strong> — maak alle openstaande monitoring-rapporten voor deze maand in één keer.</div>
+        <button onclick="Monitoring.batchGenereer()" style="background:#1F4E79;color:#fff;border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">🤖 Alle rapporten genereren</button>
+      </div>
+      <div id="mon-batch-status" style="font-size:12px;color:var(--mid);margin-bottom:16px;"></div>
       <div class="card">
         <div class="card-title">Nieuw maandoverzicht genereren</div>
         <div class="form-row cols2" style="max-width:480px;">
@@ -1240,6 +1263,14 @@ const Config={
     return null;
   },
   opslaan(){['service','template','pubkey'].forEach(k=>{const el=$('cfg-'+k);if(el&&el.value.trim())Store.setCfg(k,el.value.trim());});try{emailjs.init(Config.pubkey());}catch{}UI.toast('Instellingen opgeslagen');},
+  kvk(){return Store.getCfg('kvk','');},
+  btw(){return Store.getCfg('btw','');},
+  adres(){return Store.getCfg('adres','');},
+  website(){return Store.getCfg('website','groenvantexel.pages.dev');},
+  slaKvkOp(){const v=$('cfg-kvk')?.value||'';Store.setCfg('kvk',v);},
+  slaBtwOp(){const v=$('cfg-btw')?.value||'';Store.setCfg('btw',v);},
+  slaAdresOp(){const v=$('cfg-adres')?.value||'';Store.setCfg('adres',v);},
+  slaWebsiteOp(){const v=$('cfg-website')?.value||'';Store.setCfg('website',v);},
   wijzigAdminCode(){
     const huidig=($('cfg-admin-huidig')?.value||'').trim();
     const nieuw=($('cfg-admin-nieuw')?.value||'').trim();
@@ -1383,6 +1414,18 @@ const Auth={
       if(!sessie)return;
       hide('login-overlay');
       if(sessie.type==='admin'){Nav.bouw();Nav.ga('dashboard');}else{KlantApp.init();}
+      // Toon bedrijfsgegevens in nav footer
+      const kvkBtw=$('nav-kvk-btw');
+      if(kvkBtw){
+        const kvk=Store.getCfg('kvk','');
+        const btw=Store.getCfg('btw','');
+        const adres=Store.getCfg('adres','');
+        const parts=[];
+        if(kvk) parts.push('KVK: '+kvk);
+        if(btw) parts.push('BTW: '+btw);
+        if(adres) parts.push(adres);
+        kvkBtw.textContent=parts.join(' · ');
+      }
     }catch{sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');}
   },
 };
@@ -1526,6 +1569,9 @@ const Nav={
     if(naam==='diensten'){if(sessie?.type==='klant')KlantApp._bouwDiensten(sessie.sector||'',sessie.klanttype||sessie.klantType||'lead');}
     if(naam==='aanleveren'){window.scrollTo({top:0,behavior:'instant'});}
     if(naam==='monitoring'){Rapport._reset();Monitoring.laad();}
+    if(naam==='instellen'){
+      ['kvk','btw','adres','website'].forEach(function(k){var el=$('cfg-'+k);if(el)el.value=Store.getCfg(k,'');});
+    }
     if(naam==='subsidie')Subsidie.laad();
     // Monitoring aanvraagknop: klikbaar voor klant, decoratief voor admin
     setTimeout(()=>{document.querySelectorAll('.mon-aanvraag-knop').forEach(k=>{if(sessie?.type!=='klant'){k.style.cursor='default';k.style.pointerEvents='none';k.style.opacity='0.7';}else{k.style.cursor='pointer';k.style.pointerEvents='';k.style.opacity='';}});},100);
@@ -2871,7 +2917,7 @@ Mijlpaal: [concrete mijlpaal komende 3 maanden]`;
     <div style="font-size:13px;color:#78350F;line-height:1.8;margin-bottom:6px;">Uit uw jaarcijfers blijkt dat u mogelijk voor subsidie in aanmerking komt.${p.subsidie.toelichting?' '+p.subsidie.toelichting:''}</div>
     ${p.subsidie.kans==='Hoog'?`<div style="display:inline-block;background:#F59E0B;color:#fff;font-size:11px;font-weight:700;border-radius:4px;padding:3px 10px;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px;">Kans: Hoog</div>`:p.subsidie.kans==='Middel'?`<div style="display:inline-block;background:#D97706;color:#fff;font-size:11px;font-weight:700;border-radius:4px;padding:3px 10px;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px;">Kans: Middel</div>`:''}
     <div style="background:#fff;border-radius:8px;padding:14px 18px;margin-bottom:16px;border:1px solid #FDE68A;font-size:13px;color:#333;line-height:1.7;">
-      Groen van Texel onderzoekt welke subsidies voor uw bedrijf van toepassing zijn — landelijk, regionaal en Europees. Wij beoordelen uw kansen, stellen de aanvraag op en begeleiden het volledige traject. <strong>U betaalt uitsluitend bij resultaat: 20% van het ontvangen subsidiebedrag. Levert de scan niets op? Dan zijn er geen kosten.</strong>
+      Groen van Texel onderzoekt welke subsidies voor uw bedrijf van toepassing zijn — landelijk, regionaal en Europees. Wij beoordelen uw kansen, stellen de aanvraag op en begeleiden het volledige traject. <strong>U betaalt uitsluitend bij resultaat: 20% van het ontvangen subsidiebedrag. Levert de scan niets op? Dan zijn er geen kosten.<br><span style="font-size:12px;color:#92400E;margin-top:4px;display:block;">Voorbeeld: bij €50.000 subsidie is de succesfee €10.000 — u houdt €40.000 over.</span></strong>
     </div>
     <button onclick="Formulier.bestelSubsidiescan(this)" style="background:#F59E0B;color:#fff;border:none;border-radius:8px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;width:100%;">✅ Ja, laat Groen van Texel mijn subsidiekansen onderzoeken</button>
   </div>`:''}
@@ -7247,9 +7293,63 @@ ${uploads[0].pdfTekst || ''}`;
 
 
 // ─── MONITORING ───────────────────────────────────────────────────────────────
+const Instellen = {
+  async exportData(){
+    const status=$('export-status');
+    if(status) status.textContent='⏳ Data ophalen...';
+    try{
+      const klanten=await Store.getKlanten();
+      const uploads=await Store.getUploads();
+      const pagers=await Store.get1Pagers();
+      const basisscans=await Store.getBasisscans();
+      const backup={
+        datum:new Date().toISOString(),
+        versie:'1.0',
+        klanten:klanten,
+        aantalUploads:uploads.length,
+        aantalPagers:Object.keys(pagers).length,
+        aantalBasisscans:Object.keys(basisscans).length,
+        klantNamen:klanten.map(function(k){return k.naam;}),
+      };
+      const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='GvT_backup_'+new Date().toISOString().slice(0,10)+'.json';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      if(status) status.textContent='✓ Back-up gedownload op '+UI.datumNL();
+    }catch(e){if(status) status.textContent='⚠ Fout: '+e.message;}
+  },
+};
+
 const Monitoring = {
   _klant: null,
   _maand: null,
+
+  async batchGenereer(){
+    const status=$('mon-batch-status');
+    const huidigeMaand=new Date().toISOString().substring(0,7);
+    const kl=await Store.getKlanten();
+    const monKlanten=kl.filter(function(k){return (k.klantType||k.klanttype)==='monitoring';});
+    if(!monKlanten.length){if(status)status.textContent='Geen monitoring-klanten gevonden.';return;}
+    if(status)status.textContent='⏳ Bezig met '+monKlanten.length+' klant(en)...';
+    let gedaan=0;let overgeslagen=0;
+    for(const k of monKlanten){
+      const alleUpl=await Store.getUploads();
+      const uploads=alleUpl.filter(function(u){return u.bedrijf===k.naam;}).sort(function(a,b){return new Date(b.datum||0)-new Date(a.datum||0);});
+      if(!uploads.length||!uploads[0].pdfTekst){overgeslagen++;continue;}
+      // Check of al gegenereerd
+      const bestaand=await Store.getMaandoverzichten(k.naam).catch(function(){return [];});
+      if(bestaand.some(function(o){return o.gepubliceerd&&o.periode===huidigeMaand;})){overgeslagen++;continue;}
+      // Genereer
+      this._klant=k.naam;this._maand=huidigeMaand;
+      if(status)status.textContent='⏳ Genereer '+k.naam+' ('+( gedaan+1)+'/'+monKlanten.length+')...';
+      await this.genereer().catch(function(){});
+      gedaan++;
+    }
+    if(status)status.textContent='✓ Klaar — '+gedaan+' gegenereerd, '+overgeslagen+' overgeslagen (al klaar of geen cijfers). Controleer en publiceer de previews.';
+  },
 
   async laad() {
     if (sessie?.type==='admin') {
@@ -7365,6 +7465,35 @@ const Monitoring = {
 
       const bsRefTekst=bsRef?'BASISSCAN REFERENTIE:\n'+bsRef.replace(/<[^>]+>/g,' ').substring(0,3000):'';
 
+      // Haal aan welke scans klant al heeft om dubbele aanbevelingen te voorkomen
+      const allBsK=await Store.getBasisscans();
+      const allCsK=await Store.getCashflowStresstests();
+      const allDsK=await Store.getDebiteurenStresstests();
+      const allOmK=await Store.getOfferteMargescans();
+      const allFsK=await Store.getFiscaleScans();
+      const allIsK=await Store.getInkoopanalyses();
+      const allVsK=await Store.getVerzekeringsScans();
+      const allPsK=await Store.getPersoneelsScans();
+      const allExK=await Store.getExitScans();
+      const klantSleutels=Object.keys(allBsK).filter(k=>k.startsWith(this._klant+'-'));
+      const heeftBsAl=klantSleutels.some(k=>allBsK[k]?.gepubliceerd);
+      const heeftCsAl=Object.keys(allCsK).some(k=>k.startsWith(this._klant+'-')&&allCsK[k]?.gepubliceerd);
+      const heeftDsAl=Object.keys(allDsK).some(k=>k.startsWith(this._klant+'-')&&allDsK[k]?.gepubliceerd);
+      const heeftOmAl=Object.keys(allOmK).some(k=>k.startsWith(this._klant+'-')&&allOmK[k]?.gepubliceerd);
+      const heeftFsAl=Object.keys(allFsK).some(k=>k.startsWith(this._klant+'-')&&allFsK[k]?.gepubliceerd);
+      const heeftIsAl=Object.keys(allIsK).some(k=>k.startsWith(this._klant+'-')&&allIsK[k]?.gepubliceerd);
+      const heeftPsAl=Object.keys(allPsK).some(k=>k.startsWith(this._klant+'-')&&allPsK[k]?.gepubliceerd);
+      const heeftExAl=Object.keys(allExK).some(k=>k.startsWith(this._klant+'-')&&allExK[k]?.gepubliceerd);
+      const scanContext=[
+        !heeftCsAl?'CASHFLOW_STRESSTEST_BESCHIKBAAR (€297) — aanbevelen als: current ratio <1,2 OF liquiditeit kritiek OF cashflow meerdere maanden negatief':'CASHFLOW_STRESSTEST_AL_AANWEZIG',
+        !heeftDsAl?'DEBITEUREN_STRESSTEST_BESCHIKBAAR (€247) — aanbevelen als: debiteurendagen >45':'DEBITEUREN_STRESSTEST_AL_AANWEZIG',
+        !heeftOmAl?'OFFERTE_MARGE_STRESSTEST_BESCHIKBAAR (€347) — aanbevelen als: brutomarge daalt 2+ maanden OF brutomarge onder sectornorm':'OFFERTE_MARGE_AL_AANWEZIG',
+        !heeftFsAl?'FISCALE_SCAN_BESCHIKBAAR (€297) — aanbevelen als: nettoresultaat <5% OF kostenratio boven norm':'FISCALE_SCAN_AL_AANWEZIG',
+        !heeftIsAl?'INKOOPANALYSE_BESCHIKBAAR (€347) — aanbevelen als: kostenratio stijgend OF inkoopkosten >40% omzet':'INKOOPANALYSE_AL_AANWEZIG',
+        !heeftPsAl?'PERSONEELSKOSTEN_STRESSTEST_BESCHIKBAAR (€347) — aanbevelen als: personeelskosten% stijgend of boven sectornorm':'PERSONEELSKOSTEN_AL_AANWEZIG',
+        !heeftExAl?'EXIT_WAARDERING_SCAN_BESCHIKBAAR (€697) — aanbevelen als: solvabiliteit <25% OF ondernemer is ouder dan 55 (inschatten uit context)':'EXIT_SCAN_AL_AANWEZIG',
+      ].join('\n');
+
       // Historische data voor trendvergelijking
       const alleOverzichten=await Store.getMaandoverzichten(this._klant);
       const gepubOverzichten=alleOverzichten.filter(o=>o.gepubliceerd&&o.periode!==this._maand).sort((a,b)=>b.periode.localeCompare(a.periode));
@@ -7424,7 +7553,18 @@ Verwacht resultaat: € [bedrag of omschrijving]
 KPI1: [naam] | Streef: [waarde]
 KPI2: [naam] | Streef: [waarde]
 KPI3: [naam] | Streef: [waarde]
-Mijlpaal: [mijlpaal komende maand]`;
+Mijlpaal: [mijlpaal komende maand]
+
+==AANBEVELING==
+INSTRUCTIE: Analyseer de cijfers van deze maand. Als een van de onderstaande signalen aanwezig is EN de bijbehorende scan nog niet beschikbaar is, geef dan EEN gerichte aanbeveling in maximaal 3 zinnen. Noem het concrete signaal uit de cijfers, wat de scan oplevert en de prijs. Als er geen relevant signaal is of de scan al beschikbaar is, schrijf dan alleen: GEEN.
+
+BESCHIKBARE SCANS EN TRIGGERS:
+${scanContext}
+
+FORMAAT (alleen invullen als signaal aanwezig EN scan beschikbaar):
+SIGNAAL: [concrete afwijking met getal, bijv. "Debiteurendagen staan op 52 — 7 dagen boven de norm"]
+SCAN: [naam scan] | PRIJS: [prijs]
+TOELICHTING: [1-2 zinnen: wat levert de scan op voor deze klant, specifiek op basis van zijn cijfers]`;
 
       const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:1800})});
       if(!resp.ok) throw new Error('API fout '+resp.status);
@@ -7644,6 +7784,27 @@ Mijlpaal: [mijlpaal komende maand]`;
     <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Mijlpaal komende maand</div>
     <div style="font-size:14px;color:#1F4E79;font-weight:700;">${UI.esc(p.mijlpaal)}</div>
   </div>`:''}
+
+  <!-- Aanbeveling -->
+  ${(function(){
+    const aanbSection=(tekst.split('==AANBEVELING==')[1]||'').split('==')[0].trim();
+    if(!aanbSection||aanbSection==='GEEN'||!aanbSection.includes('SIGNAAL:')) return '';
+    const signaalM=aanbSection.match(/SIGNAAL:\s*(.+)/);
+    const scanM=aanbSection.match(/SCAN:\s*(.+?)\s*\|\s*PRIJS:\s*(.+)/);
+    const toelM=aanbSection.match(/TOELICHTING:\s*(.+)/);
+    if(!signaalM||!scanM) return '';
+    return '<div style="background:#FEF9EC;border:1.5px solid #D97706;border-radius:0 0 0 0;border-top:1px solid #e2e8e4;padding:18px 24px;">'
+      +'<div style="font-size:10px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">💡 Aanbeveling op basis van uw cijfers</div>'
+      +'<div style="background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #FDE68A;">'
+      +'<div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:6px;">⚠ '+UI.esc(signaalM[1])+'</div>'
+      +'<div style="font-size:12px;color:#555;margin-bottom:10px;">'+(toelM?UI.esc(toelM[1]):'')+'</div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">'
+      +'<div style="font-size:12px;font-weight:700;color:#92400E;">'+UI.esc(scanM[1])+' &nbsp;—&nbsp; '+UI.esc(scanM[2])+'</div>'
+      +'<button onclick="Nav.ga(\'diensten\')" style="background:#D97706;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;">Meer informatie →</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  })()}
 
   <!-- Footer -->
   <div style="background:#f4f6f8;padding:12px 24px;border:1px solid #e2e8e4;border-top:none;border-radius:0 0 10px 10px;">
