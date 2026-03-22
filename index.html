@@ -2072,7 +2072,7 @@ const Rapport={
       }
       const bestaand=await Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
       if(bestaand){setTxt('ai-status','Analyse beschikbaar');setTxt('ai-tekst',bestaand);show('ai-tekst');showFlex('ai-acties');}
-      const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display=klant?.klantType==='doorlichting'?'inline-flex':'none';
+      const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display='inline-flex';
     }
     const sleutel=_adminKlant+'-'+_adminPeriode;
     const pagers=await Store.get1Pagers();const pager=pagers[sleutel];
@@ -2479,7 +2479,7 @@ const Basisscan={
   async genereer(){
     if(!_adminKlant||!_adminPeriode){UI.warn('Geen klant/periode geselecteerd');return;}
     const kl3=await Store.getKlanten();const klantObj=kl3.find(k=>k.naam===_adminKlant);
-    if(klantObj?.klantType!=='doorlichting'){UI.warn('Basisscan is alleen voor Doorlichting-klanten');return;}
+    
     const alleUpl=await Store.getUploads();
     const uploads=alleUpl.filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
     if(!uploads.length){UI.warn('Geen uploads gevonden');return;}
@@ -3783,6 +3783,7 @@ const Formulier={
         if(box){
           box.innerHTML='<div style="background:#E8F5E9;border:2px solid #1E8449;border-radius:10px;padding:20px;">'
             +'<div style="font-size:16px;font-weight:700;color:#1E8449;margin-bottom:14px;">✅ Aanvraag ontvangen</div>'
+            +(function(){const lnk=Config.getBetaallink('Financiële Basisscan');return lnk&&!lnk.startsWith('BETAALLINK')?'<div style="margin-bottom:14px;"><a href="'+lnk+'" target="_blank" style="display:block;background:#1E8449;color:#fff;text-align:center;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;">💳 Betaal nu — €397 excl. BTW</a></div>':'<div style="background:#FEF3C7;border:1px solid #D97706;border-radius:6px;padding:10px 14px;font-size:12px;color:#92400E;margin-bottom:14px;">💳 Betaallink volgt per omgaande via e-mail</div>';}())
             +'<div style="border-top:1px solid #c8e6c9;padding-top:12px;display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">'
             +'<div style="font-size:13px;color:#444;display:flex;gap:8px;align-items:flex-start;"><span>✓</span><span>Groen van Texel start de analyse zodra betaling is ontvangen</span></div>'
             +'<div style="font-size:13px;color:#444;display:flex;gap:8px;align-items:flex-start;"><span>✓</span><span>Volledige Basisscan binnen 5 werkdagen in uw portaal</span></div>'
@@ -4040,13 +4041,13 @@ ${uploads[0].pdfTekst||''}`;
       output.textContent=tekst;output.style.display='';acties.style.display='flex';status.textContent='Analyse gereed';
       if(knop){knop.disabled=false;knop.textContent='🚀 Analyseer gegevens';}
       const kl2=await Store.getKlanten();const klant=kl2.find(k=>k.naam===_adminKlant);
-      const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display=klant?.klantType==='doorlichting'?'':'none';
-      const csKnop=$('btn-cashflow');if(csKnop)csKnop.style.display=(klant?.klantType==='doorlichting'||klant?.klantType==='monitoring')?'':'none';
-      const dsKnop=$('btn-debiteuren');if(dsKnop)dsKnop.style.display=(klant?.klantType==='doorlichting'||klant?.klantType==='monitoring')?'':'none';
-      const omKnop=$('btn-offerte');if(omKnop)omKnop.style.display=(klant?.klantType==='doorlichting'||klant?.klantType==='monitoring')?'':'none';
-      const fiscaalKnop=$('btn-fiscaal');if(fiscaalKnop)fiscaalKnop.style.display=(klant?.klantType==='doorlichting'||klant?.klantType==='monitoring')?'':'none';
-      const inkoopKnop=$('btn-inkoop');if(inkoopKnop)inkoopKnop.style.display=(klant?.klantType==='doorlichting'||klant?.klantType==='monitoring')?'':'none';
-      const verzekerKnop=$('btn-verzeker');if(verzekerKnop)verzekerKnop.style.display=(klant?.klantType==='doorlichting'||klant?.klantType==='monitoring')?'':'none';
+      const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display='';
+      const csKnop=$('btn-cashflow');if(csKnop)csKnop.style.display='';
+      const dsKnop=$('btn-debiteuren');if(dsKnop)dsKnop.style.display='';
+      const omKnop=$('btn-offerte');if(omKnop)omKnop.style.display='';
+      const fiscaalKnop=$('btn-fiscaal');if(fiscaalKnop)fiscaalKnop.style.display='';
+      const inkoopKnop=$('btn-inkoop');if(inkoopKnop)inkoopKnop.style.display='';
+      const verzekerKnop=$('btn-verzeker');if(verzekerKnop)verzekerKnop.style.display='';
       const personeelKnop=$('btn-personeel');if(personeelKnop)personeelKnop.style.display=(klant?.klantType==='doorlichting'||klant?.klantType==='monitoring')?'':'none';
       const exitKnop=$('btn-exit');if(exitKnop)exitKnop.style.display=(klant?.klantType==='doorlichting'||klant?.klantType==='monitoring')?'':'none';
     }catch(e){
