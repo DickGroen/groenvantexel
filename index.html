@@ -7304,29 +7304,37 @@ const Admin = {
     if(!k){UI.warn('Klant niet gevonden');return;}
     // Sla admin-sessie op
     Admin._vorigeSessione=JSON.parse(JSON.stringify(sessie));
-    // Toon banner
+    Admin._bekijktKlant=naam;
+    // Zet sessie naar klant en laad klantview
+    Auth._open({type:'klant',naam:k.naam,code:k.code,email:k.email||'',sector:k.sector||'',klanttype:k.klantType||k.klanttype||'lead'});
+    await KlantApp.init();
+    // Toon banner NA init zodat nav al gebouwd is
+    Admin._toonBanner(naam);
+  },
+
+  _toonBanner(naam){
     const banner=$('admin-klant-banner');
     if(banner){
       banner.style.display='';
-      banner.innerHTML='<div style="background:#1F4E79;color:#fff;padding:10px 20px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;">'
-        +'<span>👁 U bekijkt het portaal als klant: <strong>'+UI.esc(naam)+'</strong></span>'
-        +'<button onclick="Admin.terugNaarAdmin()" style="background:#fff;color:#1F4E79;border:none;border-radius:5px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;">← Terug naar admin</button>'
+      banner.innerHTML='<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#C0392B;color:#fff;padding:10px 20px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);">'
+        +'<span>👁 Admin-modus: u bekijkt het portaal als <strong>'+UI.esc(naam)+'</strong></span>'
+        +'<button onclick="Admin.terugNaarAdmin()" style="background:#fff;color:#C0392B;border:none;border-radius:5px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;">← Terug naar admin</button>'
         +'</div>';
+      // Voeg padding toe aan body zodat content niet achter banner zit
+      document.body.style.paddingTop='44px';
     }
-    // Zet sessie naar klant
-    Auth._open({type:'klant',naam:k.naam,code:k.code,email:k.email||'',sector:k.sector||'',klanttype:k.klantType||k.klanttype||'lead'});
-    await KlantApp.init();
   },
 
   terugNaarAdmin(){
     if(!Admin._vorigeSessione){UI.warn('Geen admin-sessie gevonden');return;}
-    // Herstel admin-sessie
     Auth._open(Admin._vorigeSessione);
     const banner=$('admin-klant-banner');
-    if(banner)banner.style.display='none';
+    if(banner){banner.style.display='none';banner.innerHTML='';}
+    document.body.style.paddingTop='';
+    Admin._vorigeSessione=null;
+    Admin._bekijktKlant=null;
     Nav.bouw();
     Nav.ga('dashboard');
-    Admin._vorigeSessione=null;
   },
 };
 
