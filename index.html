@@ -3894,7 +3894,15 @@ const Formulier={
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen — ingaande komende maand begint de monitoring';knop.style.opacity='0.8';knop.style.cursor='default';}
     UI.toast('Aanvraag ontvangen — wij nemen zo snel mogelijk contact met u op over maandelijkse monitoring');
     try{await Store.updateKlantType(sessie.code,'monitoring');sessie.klanttype='monitoring';sessie.klantType='monitoring';}catch(e){console.warn('Type update mislukt:',e);}
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Monitoring aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft maandelijkse monitoring aangevraagd via de Basisscan. Klanttype is automatisch gewijzigd naar Monitoring.'});}catch(e){console.warn(e);}
+    // Mail naar admin
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Monitoring aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft maandelijkse monitoring aangevraagd (€249/mnd excl. BTW). Klanttype gewijzigd naar Monitoring. Ingangsdatum: komende maand.'});}catch(e){console.warn(e);}
+    // Bevestigingsmail naar klant
+    const monEmail=sessie?.email||(await Store.getKlanten().then(kl=>kl.find(k=>k.naam===sessie?.naam)?.email||'').catch(()=>''));
+    if(monEmail){
+      const lnk=Config.getBetaallink('Monitoring');
+      const betaalTekst=lnk&&!lnk.startsWith('BETAALLINK')?'\n\n💳 Betaal direct: '+lnk:'\n\nGroen van Texel neemt binnen 1 werkdag contact op voor de eerste betaling.';
+      try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Monitoring bevestiging',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:monEmail,message:'Beste '+sessie.naam+',\n\nBedankt voor uw aanvraag van de maandelijkse monitoring.\n\nGroen van Texel levert maandelijks een overzicht van uw kerncijfers, signalen en één concrete actie.'+betaalTekst+'\n\nIngangsdatum: komende maand.\n\nVragen? Bel 06 4215 2499\n\nMet vriendelijke groet,\nGroen van Texel'});}catch(e){console.warn('Monitoring bevestiging:',e);}
+    }
   },
 
   async opzegMonitoring(knop){
