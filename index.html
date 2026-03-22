@@ -3771,18 +3771,9 @@ const Formulier={
     // Bevestigingsmail naar klant
     const klEmail2=sessie?.email||(await Store.getKlanten().then(kl=>kl.find(k=>k.naam===sessie?.naam)?.email||'').catch(()=>''));
     if(klEmail2){
-      try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:dienst,name:sessie.naam||'Klant',time:UI.datumNL(),to_email:klEmail2,message:'Beste '+sessie.naam+',
-
-Bedankt voor uw aanvraag van de '+dienst+'.
-
-Groen van Texel neemt binnen 1 werkdag contact met u op om de mogelijkheden en de prijs te bespreken.
-
-Heeft u in de tussentijd vragen? Bel of mail ons gerust.
-
-Met vriendelijke groet,
-Groen van Texel
-06 4215 2499
-https://groenvantexel.pages.dev'});}catch(e){console.warn('Bevestiging dienst:',e);}
+      try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:dienst,name:sessie.naam||'Klant',time:UI.datumNL(),to_email:klEmail2,
+        message:(function(){var lnk=Config.getBetaallink(dienst);var br=lnk&&!lnk.startsWith('BETAALLINK')?'\n\n✅ Betaal direct ('+lnk+')\n\nNa betaling starten wij direct.':'\n\nGroen van Texel neemt binnen 1 werkdag contact op voor de betaling.';return 'Beste '+sessie.naam+',\n\nBedankt voor uw aanvraag van de '+dienst+'.'+br+'\n\nNa betaling ontvangt u het rapport binnen 3-5 werkdagen.\n\nVragen? Bel 06 4215 2499\n\nMet vriendelijke groet,\nGroen van Texel';})(),
+      });}catch(e){console.warn('Bevestiging dienst:',e);}
     }
   },
   async bestelSubsidiescan(knop){
