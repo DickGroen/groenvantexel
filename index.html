@@ -952,6 +952,18 @@ const Store = {
     await API.call({actie:'delKlant', code});
     this._klanten = null;
   },
+  async getAanvragen(klantNaam) {
+    try{const d=await API.call({actie:'getAnalyse',sleutel:'aanvragen-'+klantNaam});return d.tekst?JSON.parse(d.tekst):[];}catch{return [];}
+  },
+  async addAanvraag(klantNaam, dienst) {
+    try{
+      const d=await API.call({actie:'getAnalyse',sleutel:'aanvragen-'+klantNaam});
+      const lijst=d.tekst?JSON.parse(d.tekst):[];
+      const nu=new Date().toLocaleDateString('nl-NL');
+      if(!lijst.find(a=>a.dienst===dienst)){lijst.push({dienst,datum:nu});}
+      await API.call({actie:'setAnalyse',sleutel:'aanvragen-'+klantNaam,tekst:JSON.stringify(lijst)});
+    }catch{}
+  },
   async getNotitie(klantNaam) {
     try{const d=await API.call({actie:'getAnalyse',sleutel:'notitie-'+klantNaam});return d.tekst||'';}catch{return '';}
   },
@@ -1570,6 +1582,16 @@ const Dashboard={
       const heeftBs=sl&&!!bss[sl]?.gepubliceerd;
       const ld=loginMap[k.naam]||{};
       const heeftIngelogd=ld.teller>0;
+      // Haal aanvragen op voor deze klant
+      var aanvraagBadge='';
+      try{
+        var aanvragen=await Store.getAanvragen(k.naam);
+        if(aanvragen&&aanvragen.length){
+          aanvraagBadge='<div style="margin-top:4px;">'+aanvragen.map(function(a){
+            return '<span style="display:inline-block;background:#FEF3C7;color:#92400E;border-radius:4px;font-size:10px;font-weight:700;padding:2px 6px;margin:1px 2px 1px 0;">⚡ '+UI.esc(a.dienst)+'</span>';
+          }).join('')+'</div>';
+        }
+      }catch{}
       let badge, actieKnop='', loginBadge='';
       if(!heeftUpload){
         badge=heeftIngelogd
@@ -1608,7 +1630,7 @@ const Dashboard={
         + '<td><span class="link" onclick="Rapport.adminNaar(\u0027' + n + '\u0027)">' + n + '</span></td>'
         + '<td>' + UI.typeBadge(k.klantType) + '</td>'
         + '<td>' + UI.esc(k.sector||'—') + '</td>'
-        + '<td>' + badge + loginBadge + '</td>'
+        + '<td>' + badge + loginBadge + aanvraagBadge + '</td>'
         + kcHtml
         + '<td>' + (actieKnop||openB) + '</td>'
         + '</tr>');
@@ -3678,6 +3700,7 @@ const Formulier={
       return;
     }
     sessionStorage.setItem(bsKey,'1');
+    await Store.addAanvraag(sessie.naam||'onbekend','Financiële Basisscan (€397)');
     // Knop uitschakelen in de DOM
     document.querySelectorAll('button').forEach(btn=>{
       if(btn.textContent.includes('Ja, ik wil de Basisscan')){
@@ -3708,7 +3731,26 @@ const Formulier={
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
     UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:dienst,name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft interesse getoond in: '+dienst});}catch(e){console.warn(e);}
+    // Sla aanvraag op in database
+    await Store.addAanvraag(sessie.naam||'onbekend', dienst);
+    // Mail naar admin
+    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:dienst+' aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),to_email:'dickgroen2@gmail.com',message:'Klant '+(sessie.naam||'onbekend')+' heeft de '+dienst+' aangevraagd.'});}catch(e){console.warn(e);}
+    // Bevestigingsmail naar klant
+    const klEmail2=sessie?.email||(await Store.getKlanten().then(kl=>kl.find(k=>k.naam===sessie?.naam)?.email||'').catch(()=>''));
+    if(klEmail2){
+      try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:dienst,name:sessie.naam||'Klant',time:UI.datumNL(),to_email:klEmail2,message:'Beste '+sessie.naam+',
+
+Bedankt voor uw aanvraag van de '+dienst+'.
+
+Groen van Texel neemt binnen 1 werkdag contact met u op om de mogelijkheden en de prijs te bespreken.
+
+Heeft u in de tussentijd vragen? Bel of mail ons gerust.
+
+Met vriendelijke groet,
+Groen van Texel
+06 4215 2499
+https://groenvantexel.pages.dev'});}catch(e){console.warn('Bevestiging dienst:',e);}
+    }
   },
   async bestelSubsidiescan(knop){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
