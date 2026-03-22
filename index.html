@@ -1212,6 +1212,33 @@ const Config={
   service(){return Store.getCfg('service','service_oqgsajg');},
   template(){return Store.getCfg('template','template_q3aea4c');},
   pubkey(){return Store.getCfg('pubkey','ubJuLGAX11M-mSoIZ');},
+  // Betaallinks — vervang BETAALLINK_... door echte Mollie/Tikkie URLs
+  _links:{
+    basisscan:  'BETAALLINK_BASISSCAN_397',
+    cashflow:   'BETAALLINK_CASHFLOW_297',
+    debiteuren: 'BETAALLINK_DEBITEUREN_247',
+    offerte:    'BETAALLINK_OFFERTE_347',
+    fiscaal:    'BETAALLINK_FISCAAL_297',
+    inkoop:     'BETAALLINK_INKOOP_347',
+    verzeker:   'BETAALLINK_VERZEKER_247',
+    personeel:  'BETAALLINK_PERSONEEL_347',
+    exit:       'BETAALLINK_EXIT_697',
+    monitoring: 'BETAALLINK_MONITORING_249',
+  },
+  getBetaallink(dienst){
+    const d=dienst||'';
+    if(d.includes('Basisscan'))     return this._links.basisscan;
+    if(d.includes('Cashflow'))      return this._links.cashflow;
+    if(d.includes('Debiteuren'))    return this._links.debiteuren;
+    if(d.includes('Offerte'))       return this._links.offerte;
+    if(d.includes('Fiscaal')||d.includes('Fiscale')) return this._links.fiscaal;
+    if(d.includes('Inkoop'))        return this._links.inkoop;
+    if(d.includes('Verzeker'))      return this._links.verzeker;
+    if(d.includes('Personeel'))     return this._links.personeel;
+    if(d.includes('Exit'))          return this._links.exit;
+    if(d.includes('Monitoring'))    return this._links.monitoring;
+    return null;
+  },
   opslaan(){['service','template','pubkey'].forEach(k=>{const el=$('cfg-'+k);if(el&&el.value.trim())Store.setCfg(k,el.value.trim());});try{emailjs.init(Config.pubkey());}catch{}UI.toast('Instellingen opgeslagen');},
   wijzigAdminCode(){
     const huidig=($('cfg-admin-huidig')?.value||'').trim();
@@ -3722,7 +3749,13 @@ const Formulier={
         name:sessie.naam||'Klant',
         time:UI.datumNL(),
         to_email:klEmail,
-        message:'Beste '+sessie.naam+',\n\nBedankt voor uw aanvraag van de Financiële Basisscan.\n\nWat u kunt verwachten:\n— Groen van Texel neemt binnen 1 werkdag contact op voor de betaling (€397 excl. BTW)\n— Na ontvangst van de betaling starten wij direct met de analyse\n— Binnen 3-5 werkdagen staat uw volledige Basisscan klaar in uw portaal\n— U ontvangt een bericht zodra het rapport beschikbaar is\n\nHet rapport bevat:\n— Volledige financiële architectuuranalyse\n— Concreet verbeterpotentieel met eurobedragen\n— Strategisch actieplan in 3 fasen\n— Sectorvergelijking op alle kerncijfers\n\nVragen? Bel of mail ons gerust.\n\nMet vriendelijke groet,\nGroen van Texel\n06 4215 2499\nhttps://groenvantexel.pages.dev'
+        message:(function(){
+          const link=Config.getBetaallink('Financiële Basisscan');
+          const betaalRegel=link&&!link.startsWith('BETAALLINK')
+            ?'\n\n✅ Betaal direct via: '+link+'\n\nNa ontvangst van uw betaling starten wij direct.'
+            :'\n\nGroen van Texel neemt binnen 1 werkdag contact op voor de betaling (€397 excl. BTW).';
+          return 'Beste '+sessie.naam+',\n\nBedankt voor uw aanvraag van de Financiële Basisscan.'+betaalRegel+'\n\nNa betaling:\n— Analyse start direct\n— Binnen 3-5 werkdagen uw volledige Basisscan in het portaal\n— U ontvangt een bericht zodra het klaar is\n\nHet rapport bevat:\n— Volledige financiële architectuuranalyse\n— Concreet verbeterpotentieel met eurobedragen\n— Strategisch actieplan in 3 fasen\n— Sectorvergelijking op alle kerncijfers\n\nVragen? Bel gerust.\n\nMet vriendelijke groet,\nGroen van Texel\n06 4215 2499';
+        })()
       });}catch(e){console.warn('Bevestigingsmail klant:',e);}
     }
   },
