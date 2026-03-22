@@ -24,6 +24,26 @@ const sb = async (path, method = 'GET', body = null) => {
   return txt ? JSON.parse(txt) : [];
 };
 
+// Generieke helper voor scan-tabellen
+const getScan = async (tabel) => {
+  const data = await sb(`${tabel}?order=bijgewerkt.desc`);
+  return data;
+};
+
+const setScan = async (tabel, body) => {
+  const { sleutel, html, gepubliceerd, datum } = body;
+  const bestaand = await sb(`${tabel}?sleutel=eq.${encodeURIComponent(sleutel)}`);
+  if (bestaand.length > 0) {
+    await sb(`${tabel}?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', { html, gepubliceerd, datum, bijgewerkt: new Date().toISOString() });
+  } else {
+    await sb(tabel, 'POST', { sleutel, html, gepubliceerd, datum });
+  }
+};
+
+const delScan = async (tabel, sleutel) => {
+  await sb(`${tabel}?sleutel=eq.${encodeURIComponent(sleutel)}`, 'DELETE');
+};
+
 export async function onRequestPost({ request, env }) {
   const cors = {
     'Access-Control-Allow-Origin': '*',
@@ -78,7 +98,6 @@ export async function onRequestPost({ request, env }) {
     }
     if (actie === 'setUpload') {
       const { bedrijf, periode, datum, sector, pdftekst } = body;
-      // Upsert — vervang als zelfde bedrijf+periode al bestaat
       await sb('uploads', 'POST', {
         bedrijf, periode, datum, sector: sector || '',
         pdftekst: (pdftekst || '').substring(0, 80000),
@@ -95,6 +114,11 @@ export async function onRequestPost({ request, env }) {
       } else {
         await sb('uploads', 'POST', { bedrijf, periode, datum, sector: sector || '', pdftekst: (pdftekst || '').substring(0, 80000) });
       }
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delUpload') {
+      const { bedrijf, periode } = body;
+      await sb(`uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`, 'DELETE');
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
@@ -136,52 +160,133 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
-    // ── SUBSIDIESCANS ─────────────────────────────────────────────────────────
-    if (actie === 'getSubsidiescans') {
-      const data = await sb('subsidiescans?order=bijgewerkt.desc');
-      return new Response(JSON.stringify(data), { headers: cors });
-    }
-    if (actie === 'setSubsidiescan') {
-      const { sleutel, html, gepubliceerd, datum } = body;
-      const bestaand = await sb(`subsidiescans?sleutel=eq.${encodeURIComponent(sleutel)}`);
-      if (bestaand.length > 0) {
-        await sb(`subsidiescans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', { html, gepubliceerd, datum, bijgewerkt: new Date().toISOString() });
-      } else {
-        await sb('subsidiescans', 'POST', { sleutel, html, gepubliceerd, datum });
-      }
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-    if (actie === 'delSubsidiescan') {
-      const { sleutel } = body;
-      await sb(`subsidiescans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'DELETE');
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── UPLOAD VERWIJDEREN ───────────────────────────────────────────────────
-    if (actie === 'delUpload') {
-      const { bedrijf, periode } = body;
-      await sb(`uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`, 'DELETE');
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
     // ── BASISSCANS ────────────────────────────────────────────────────────
     if (actie === 'getBasisscans') {
-      const data = await sb('basisscans?order=bijgewerkt.desc');
-      return new Response(JSON.stringify(data), { headers: cors });
+      return new Response(JSON.stringify(await getScan('basisscans')), { headers: cors });
     }
     if (actie === 'setBasisscan') {
-      const { sleutel, html, gepubliceerd, datum } = body;
-      const bestaand = await sb(`basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`);
-      if (bestaand.length > 0) {
-        await sb(`basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', { html, gepubliceerd, datum, bijgewerkt: new Date().toISOString() });
-      } else {
-        await sb('basisscans', 'POST', { sleutel, html, gepubliceerd, datum });
-      }
+      await setScan('basisscans', body);
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
     if (actie === 'delBasisscan') {
-      const { sleutel } = body;
-      await sb(`basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'DELETE');
+      await delScan('basisscans', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── SUBSIDIESCANS ─────────────────────────────────────────────────────
+    if (actie === 'getSubsidiescans') {
+      return new Response(JSON.stringify(await getScan('subsidiescans')), { headers: cors });
+    }
+    if (actie === 'setSubsidiescan') {
+      await setScan('subsidiescans', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delSubsidiescan') {
+      await delScan('subsidiescans', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── CASHFLOW STRESSTESTS ──────────────────────────────────────────────
+    if (actie === 'getCashflowStresstests') {
+      return new Response(JSON.stringify(await getScan('cashflowstresstests')), { headers: cors });
+    }
+    if (actie === 'setCashflowStresstest') {
+      await setScan('cashflowstresstests', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delCashflowStresstest') {
+      await delScan('cashflowstresstests', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── DEBITEUREN STRESSTESTS ────────────────────────────────────────────
+    if (actie === 'getDebiteurenStresstests') {
+      return new Response(JSON.stringify(await getScan('debiteurenstresstests')), { headers: cors });
+    }
+    if (actie === 'setDebiteurenStresstest') {
+      await setScan('debiteurenstresstests', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delDebiteurenStresstest') {
+      await delScan('debiteurenstresstests', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── OFFERTE MARGESCANS ────────────────────────────────────────────────
+    if (actie === 'getOfferteMargescans') {
+      return new Response(JSON.stringify(await getScan('offertemargeschans')), { headers: cors });
+    }
+    if (actie === 'setOfferteMargescan') {
+      await setScan('offertemargeschans', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delOfferteMargescan') {
+      await delScan('offertemargeschans', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── FISCALE SCANS ─────────────────────────────────────────────────────
+    if (actie === 'getFiscaleScans') {
+      return new Response(JSON.stringify(await getScan('fiscalescans')), { headers: cors });
+    }
+    if (actie === 'setFiscaleScan') {
+      await setScan('fiscalescans', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delFiscaleScan') {
+      await delScan('fiscalescans', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── INKOOPANALYSES ────────────────────────────────────────────────────
+    if (actie === 'getInkoopanalyses') {
+      return new Response(JSON.stringify(await getScan('inkoopanalyses')), { headers: cors });
+    }
+    if (actie === 'setInkoopanalyse') {
+      await setScan('inkoopanalyses', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delInkoopanalyse') {
+      await delScan('inkoopanalyses', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── VERZERKERINGSSCANS ────────────────────────────────────────────────
+    if (actie === 'getVerzekeringsScans') {
+      return new Response(JSON.stringify(await getScan('verzekeringsscans')), { headers: cors });
+    }
+    if (actie === 'setVerzekeringsScan') {
+      await setScan('verzekeringsscans', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delVerzekeringsScan') {
+      await delScan('verzekeringsscans', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── PERSONEELSSCANS ───────────────────────────────────────────────────
+    if (actie === 'getPersoneelsScans') {
+      return new Response(JSON.stringify(await getScan('personeelsscans')), { headers: cors });
+    }
+    if (actie === 'setPersoneelsScan') {
+      await setScan('personeelsscans', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delPersoneelsScan') {
+      await delScan('personeelsscans', body.sleutel);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── EXIT SCANS ────────────────────────────────────────────────────────
+    if (actie === 'getExitScans') {
+      return new Response(JSON.stringify(await getScan('exitscans')), { headers: cors });
+    }
+    if (actie === 'setExitScan') {
+      await setScan('exitscans', body);
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+    if (actie === 'delExitScan') {
+      await delScan('exitscans', body.sleutel);
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
@@ -225,3 +330,4 @@ export async function onRequestOptions() {
     },
   });
 }
+
