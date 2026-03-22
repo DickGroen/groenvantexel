@@ -1685,7 +1685,9 @@ const Dashboard={
       var n = UI.esc(k.naam);
       var openB = '<button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;"'
         + ' onclick="Rapport.adminNaar(\u0027' + n + '\u0027)">'
-        + 'Open →</button>';
+        + 'Open →</button>'
+        + ' <button style="padding:5px 10px;font-size:11px;background:none;border:1px solid #9dc3e6;border-radius:5px;color:#1F4E79;cursor:pointer;"'
+        + ' onclick="Admin.bekijkAlsKlant(\u0027' + n + '\u0027)" title="Bekijk portaal als deze klant">👁</button>';
       // Kerncijfers uit opgeslagen rapporten
       var kcHtml = '<td style="font-size:11px;color:var(--mid);">—</td>';
       var sleutelK = k.naam + '-' + (uploads.length ? uploads[0].periode : '');
@@ -7293,6 +7295,41 @@ ${uploads[0].pdfTekst || ''}`;
 
 
 // ─── MONITORING ───────────────────────────────────────────────────────────────
+const Admin = {
+  _vorigeSessione: null,
+
+  async bekijkAlsKlant(naam){
+    const kl=await Store.getKlanten();
+    const k=kl.find(x=>x.naam===naam);
+    if(!k){UI.warn('Klant niet gevonden');return;}
+    // Sla admin-sessie op
+    Admin._vorigeSessione=JSON.parse(JSON.stringify(sessie));
+    // Toon banner
+    const banner=$('admin-klant-banner');
+    if(banner){
+      banner.style.display='';
+      banner.innerHTML='<div style="background:#1F4E79;color:#fff;padding:10px 20px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;">'
+        +'<span>👁 U bekijkt het portaal als klant: <strong>'+UI.esc(naam)+'</strong></span>'
+        +'<button onclick="Admin.terugNaarAdmin()" style="background:#fff;color:#1F4E79;border:none;border-radius:5px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;">← Terug naar admin</button>'
+        +'</div>';
+    }
+    // Zet sessie naar klant
+    Auth._open({type:'klant',naam:k.naam,code:k.code,email:k.email||'',sector:k.sector||'',klanttype:k.klantType||k.klanttype||'lead'});
+    await KlantApp.init();
+  },
+
+  terugNaarAdmin(){
+    if(!Admin._vorigeSessione){UI.warn('Geen admin-sessie gevonden');return;}
+    // Herstel admin-sessie
+    Auth._open(Admin._vorigeSessione);
+    const banner=$('admin-klant-banner');
+    if(banner)banner.style.display='none';
+    Nav.bouw();
+    Nav.ga('dashboard');
+    Admin._vorigeSessione=null;
+  },
+};
+
 const Instellen = {
   async exportData(){
     const status=$('export-status');
