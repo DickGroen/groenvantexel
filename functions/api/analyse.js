@@ -80,10 +80,53 @@ KWALITEITSEISEN:
 - Volg het gevraagde outputformaat EXACT — geen extra tekst, koppen of uitleg buiten het formaat.
 - Geef altijd getallen terug — nooit "onbekend" of een streepje als een berekening mogelijk is.
 - Controleer rekensommen (bijv. verbeterpotentieel = som van actiepunten) vóór je ze invult.
-- Gebruik Nederlandse sectornormen: brutomarge varieert sterk per sector (bouw ~20–30%, groothandel ~15–25%, zakelijke dienstverlening ~40–60%, horeca ~60–70%, detailhandel ~30–50%).
-- Debiteurendagen norm: 30 dgn is goed, 45 dgn is acceptabel, >60 dgn is risico.
-- Solvabiliteit norm MKB: >25% is voldoende, >40% is sterk.
-- Nettoresultaat norm MKB: >5% is gezond, 2–5% is matig, <2% is kritiek.`;
+- Gebruik ALTIJD de onderstaande sectorspecifieke normen. Noem de norm expliciet bij elke vergelijking.
+
+SECTORNORMEN (gebaseerd op Nederlandse branchebenchmarks 2024):
+
+Installatietechniek:
+  Brutomarge: 45–60% (gemiddeld 52%) | Nettoresultaat: 5–12% | Solvabiliteit: 30–45%
+  Personeelskosten: 25–35% van omzet | Debiteurendagen: 30–50 dgn | Kostprijs montage-uur: €83–100
+
+Bouw & Aannemerij:
+  Brutomarge: 15–28% | Nettoresultaat: 3–8% | Solvabiliteit: 30–45%
+  Personeelskosten: 30–45% van omzet | Debiteurendagen: 30–55 dgn
+
+Groothandel:
+  Brutomarge: 15–25% | Nettoresultaat: 2–6% | Solvabiliteit: 25–40%
+  Personeelskosten: 10–20% van omzet | Debiteurendagen: 30–45 dgn
+
+Detailhandel:
+  Brutomarge: 30–50% | Nettoresultaat: 3–8% | Solvabiliteit: 25–40%
+  Personeelskosten: 15–25% van omzet | Debiteurendagen: 0–15 dgn
+
+Zakelijke dienstverlening:
+  Brutomarge: 40–65% | Nettoresultaat: 8–20% | Solvabiliteit: 30–50%
+  Personeelskosten: 40–60% van omzet | Debiteurendagen: 30–45 dgn
+
+Horeca:
+  Brutomarge: 55–75% | Nettoresultaat: 3–8% | Solvabiliteit: 20–40%
+  Personeelskosten: 30–40% van omzet | Debiteurendagen: 0–10 dgn
+
+Transport & Logistiek:
+  Brutomarge: 15–28% | Nettoresultaat: 3–7% | Solvabiliteit: 25–40%
+  Personeelskosten: 25–40% van omzet | Debiteurendagen: 30–45 dgn
+
+Zorg:
+  Brutomarge: 20–40% | Nettoresultaat: 2–6% | Solvabiliteit: 20–35%
+  Personeelskosten: 50–70% van omzet | Debiteurendagen: 30–60 dgn
+
+ICT:
+  Brutomarge: 45–70% | Nettoresultaat: 8–18% | Solvabiliteit: 30–55%
+  Personeelskosten: 40–60% van omzet | Debiteurendagen: 30–45 dgn
+
+Algemeen MKB (fallback bij onbekende sector):
+  Brutomarge: 30–50% | Nettoresultaat: 5–10% | Solvabiliteit: 25–40%
+  Personeelskosten: 30–50% van omzet | Debiteurendagen: 30–45 dgn
+
+- Debiteurendagen: 30 dgn = goed, 45 dgn = acceptabel, >60 dgn = risico.
+- Solvabiliteit: onder sectornorm = aandacht, >sectornorm bovengrens = sterk.
+- Nettoresultaat: >sectorgemiddelde = gezond, helft van norm = matig, negatief = kritiek.`;
 
       // Gebruik altijd minimaal het gevraagde aantal tokens, met een minimum van 1500
       const effectieve_tokens = Math.max(max_tokens, 1500);
