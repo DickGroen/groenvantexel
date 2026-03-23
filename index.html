@@ -2373,7 +2373,7 @@ const Rapport={
     const status=$('ai-status');
     if(status)status.textContent='1-pager wordt gegenereerd via AI...';
 
-    const prompt=`Je bent financieel adviseur voor MKB. Analyseer de jaarcijfers en genereer een beknopte 1-pager.
+    const prompt=`Analyseer de jaarcijfers en genereer een beknopte 1-pager.
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | BOEKJAAR: ${jaar}
 
@@ -2489,7 +2489,7 @@ const Basisscan={
     const status=$('ai-status');if(status)status.textContent='Basisscan wordt gegenereerd...';
     const knop=$('btn-basisscan');if(knop){knop.disabled=true;knop.textContent='Bezig...';}
 
-    const prompt=`Je bent een onafhankelijk financieel adviseur voor MKB (MKB Stresstest Methode™). Genereer een volledig Executive Rapport Financiële Doorlichting in de stijl van een professioneel adviesrapport.
+    const prompt=`Genereer een volledig Executive Rapport Financiële Doorlichting in de stijl van een professioneel adviesrapport.
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -3094,7 +3094,7 @@ SECTORSPECIFIEK — ${sector}:
 • Controleer of er aanwijzingen zijn van R&D-activiteiten (WBSO).
 • Beoordeel BMKB als er financieringsbehoeften zichtbaar zijn.`;
 
-    const prompt=`Je bent een Nederlandse subsidieadviseur gespecialiseerd in MKB-financiering. Je maakt een gepersonaliseerde Subsidie Scan op basis van de werkelijke jaarcijfers.
+    const prompt=`Maak een gepersonaliseerde Subsidie Scan op basis van de werkelijke jaarcijfers.
 
 STAP 1 — LEES DE CIJFERS
 Bedrijf: ${Subsidie._klant}
@@ -4012,7 +4012,7 @@ const Analyse={
     if(!uploads.length){UI.warn('Geen uploads gevonden');return;}
     status.textContent='Analyse bezig...';output.style.display='none';acties.style.display='none';
     if(knop){knop.disabled=true;knop.textContent='Bezig...';}
-    const prompt=`Je bent financieel analist voor MKB. Voer de MKB Stresstest Methode™ uit.
+    const prompt=`Voer de MKB Stresstest Methode™ uit.
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -4127,7 +4127,7 @@ const FiscaleScan = {
     const alleUpl = await Store.getUploads();
     const uploads = alleUpl.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
     if (!uploads.length) { UI.warn('Geen uploads gevonden'); if (knop) { knop.disabled = false; knop.textContent = '🧾 Genereer Fiscale Optimalisatie Scan'; } return; }
-    const prompt = `Je bent een fiscaal specialist voor het Nederlandse MKB. Voer een Fiscale Optimalisatie Scan uit op basis van de V&W en balans.
+    const prompt = `Voer een Fiscale Optimalisatie Scan uit op basis van de V&W en balans.
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -4450,7 +4450,7 @@ const InkoopScan = {
     const alleUpl = await Store.getUploads();
     const uploads = alleUpl.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
     if (!uploads.length) { UI.warn('Geen uploads gevonden'); if (knop) { knop.disabled = false; knop.textContent = '🛒 Genereer Inkoopanalyse'; } return; }
-    const prompt = `Je bent een inkoopspecialist voor het Nederlandse MKB. Voer een diepgaande Inkoopanalyse uit: welke leveranciers heronderhandelen oplevert, wat de inkoop kost en hoe u marge terughaalt.
+    const prompt = `Voer een diepgaande Inkoopanalyse uit: welke leveranciers heronderhandelen oplevert, wat de inkoop kost en hoe u marge terughaalt.
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -4754,7 +4754,7 @@ const VerzekeringsScan = {
     const alleUpl = await Store.getUploads();
     const uploads = alleUpl.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
     if (!uploads.length) { UI.warn('Geen uploads gevonden'); if (knop) { knop.disabled = false; knop.textContent = '🛡 Genereer Verzekerings Scan'; } return; }
-    const prompt = `Je bent een risico- en verzekeringsanalist voor het Nederlandse MKB. Voer een Verzekerings Scan uit op basis van de V&W en balans: bent u over- of onderverzekerd en wat kost dat?
+    const prompt = `Voer een Verzekerings Scan uit op basis van de V&W en balans: bent u over- of onderverzekerd en wat kost dat?
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -5058,7 +5058,7 @@ const PersoneelsScan = {
     const alleUpl = await Store.getUploads();
     const uploads = alleUpl.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
     if (!uploads.length) { UI.warn('Geen uploads gevonden'); if (knop) { knop.disabled = false; knop.textContent = '👥 Genereer Personeelskosten Stresstest'; } return; }
-    const prompt = `Je bent een personeelskosten-specialist voor het Nederlandse MKB. Voer een Personeelskosten Stresstest uit: wat kosten uw medewerkers werkelijk, wat zijn de normen en hoe optimaliseert u?
+    const prompt = `Voer een Personeelskosten Stresstest uit: wat kosten uw medewerkers werkelijk, wat zijn de normen en hoe optimaliseert u?
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -5354,7 +5354,7 @@ const ExitScan = {
     const alleUpl = await Store.getUploads();
     const uploads = alleUpl.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
     if (!uploads.length) { UI.warn('Geen uploads gevonden'); if (knop) { knop.disabled = false; knop.textContent = '🏷 Genereer Exit & Waardering Scan'; } return; }
-    const prompt = `Je bent een bedrijfswaardering-specialist voor het Nederlandse MKB. Voer een Exit & Waardering Scan uit: wat is het bedrijf waard, hoe verhoog je de waarde richting een mogelijke exit?
+    const prompt = `Voer een Exit & Waardering Scan uit: wat is het bedrijf waard, hoe verhoog je de waarde richting een mogelijke exit?
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -5683,7 +5683,7 @@ const OfferteMargeScan = {
     const uploads = alleUpl.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
     if (!uploads.length) { UI.warn('Geen uploads gevonden'); if (knop) { knop.disabled = false; knop.textContent = '📐 Genereer Offerte & Marge Stresstest'; } return; }
 
-    const prompt = `Je bent een gespecialiseerd marge-analist voor het Nederlandse MKB. Voer een diepgaande Offerte & Marge Stresstest uit: weet u wat u werkelijk verdient per klus, waar lekt de marge en hoe lost u het op?
+    const prompt = `Voer een diepgaande Offerte & Marge Stresstest uit: weet u wat u werkelijk verdient per klus, waar lekt de marge en hoe lost u het op?
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -6234,7 +6234,7 @@ const DebiteurenStresstest = {
     const uploads = alleUpl.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
     if (!uploads.length) { UI.warn('Geen uploads gevonden'); if (knop) { knop.disabled = false; knop.textContent = '📋 Genereer Debiteuren Stresstest'; } return; }
 
-    const prompt = `Je bent een gespecialiseerd debiteurenbeheer-analist voor het Nederlandse MKB. Voer een diepgaande Debiteuren Stresstest uit: wie betaalt niet, wat kost dat, en hoe lost u het op?
+    const prompt = `Voer een diepgaande Debiteuren Stresstest uit: wie betaalt niet, wat kost dat, en hoe lost u het op?
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -6777,7 +6777,7 @@ const CashflowStresstest = {
     const uploads = alleUpl.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
     if (!uploads.length) { UI.warn('Geen uploads gevonden'); if (knop) { knop.disabled = false; knop.textContent = '💸 Genereer Cashflow Stresstest'; } return; }
 
-    const prompt = `Je bent een gespecialiseerd cashflow-analist voor het Nederlandse MKB. Voer een diepgaande Cashflow Stresstest uit.
+    const prompt = `Voer een diepgaande Cashflow Stresstest uit.
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -7566,16 +7566,30 @@ const Monitoring = {
         !heeftExAl?'EXIT_WAARDERING_SCAN_BESCHIKBAAR (€697) — aanbevelen als: solvabiliteit <25% OF ondernemer is ouder dan 55 (inschatten uit context)':'EXIT_SCAN_AL_AANWEZIG',
       ].join('\n');
 
-      // Historische data voor trendvergelijking
+      // Historische data voor trendvergelijking + narratief geheugen
       const alleOverzichten=await Store.getMaandoverzichten(this._klant);
       const gepubOverzichten=alleOverzichten.filter(o=>o.gepubliceerd&&o.periode!==this._maand).sort((a,b)=>b.periode.localeCompare(a.periode));
       const isEersteMaand=gepubOverzichten.length===0;
-      const vorigeData=gepubOverzichten[0]||null;
-      const trendContext=isEersteMaand
-        ? 'DIT IS DE EERSTE MONITORINGMAAND — geen vorige maand beschikbaar. Gebruik uitsluitend startmetingen ("Startmeting: X — doel: Y"). Schrijf GEEN vergelijkingen met vorige maand. De voortgangssectie beschrijft het startpunt van het traject.'
-        : ('VORIGE MAAND ('+gepubOverzichten[0].periode+'): omzet €'+(vorigeData.omzet||'?')+' | brutomarge '+(vorigeData.brutomarge||'?')+'% | debiteurendagen '+(vorigeData.debiteurendagen||'?')+' dgn | nettoresultaat '+(vorigeData.nettoresultaat||'?')+'% | solvabiliteit '+(vorigeData.solvabiliteit||'?')+'%. Gebruik deze voor CONCRETE trends: "Debiteurendagen daalden van X naar Y."');
 
-      const prompt=`Je bent een onafhankelijk financieel adviseur voor MKB. Genereer een professioneel maandrapport — dit is een betaalde dienst van €249/maand. Het rapport moet voelen als een mini-bestuursrapportage, niet als een samenvatting.
+      let trendContext='';
+      if(isEersteMaand){
+        trendContext='DIT IS DE EERSTE MONITORINGMAAND — geen vorige maand beschikbaar. Gebruik uitsluitend startmetingen ("Startmeting: X — doel: Y"). Schrijf GEEN vergelijkingen met vorige maand. De voortgangssectie beschrijft het startpunt van het traject.';
+      } else {
+        const maanden=gepubOverzichten.slice(0,3);
+        const cijferRij=maanden.map(o=>{
+          const mn=new Date(o.periode+'-01').toLocaleDateString('nl-NL',{month:'short',year:'numeric'});
+          return mn+': omzet €'+(o.omzet||'?')+' | brutomarge '+(o.brutomarge||'?')+'% | debiteurendagen '+(o.debiteurendagen||'?')+' dgn | nettoresultaat '+(o.nettoresultaat||'?')+'% | solvabiliteit '+(o.solvabiliteit||'?')+'%';
+        }).join('\n');
+        const adviesRij=maanden.filter(o=>o.advies).map(o=>{
+          const mn=new Date(o.periode+'-01').toLocaleDateString('nl-NL',{month:'short',year:'numeric'});
+          return mn+' — advies gegeven: '+o.advies;
+        }).join('\n');
+        trendContext='HISTORISCHE CIJFERS (meest recent eerst):\n'+cijferRij
+          +(adviesRij?'\n\nEERDER GEGEVEN ADVIEZEN & ACTIES:\n'+adviesRij+'\n\nGebruik bovenstaande adviezen om te beoordelen of eerder aanbevolen acties effect hebben gehad. Benoem dit CONCREET in de voortgangssectie: wat is opgepakt, wat is het resultaat, wat staat nog open.':'')
+          +'\n\nGebruik de cijfers voor CONCRETE trendanalyse: "Debiteurendagen daalden van X naar Y over de afgelopen Z maanden."';
+      }
+
+      const prompt=`Genereer een professioneel maandrapport. Het rapport moet voelen als een mini-bestuursrapportage, niet als een samenvatting.
 
 KLANT: ${this._klant} | SECTOR: ${sector} | MAAND: ${maandNaam}
 
@@ -7646,10 +7660,16 @@ TOELICHTING: [1-2 zinnen: wat levert de scan op voor deze klant, specifiek op ba
 
       const html=Monitoring._bouw(aiTekst,this._klant,this._maand,maandNaam,sector);
       const d=Fin.parseData(aiTekst);
+      // Extraheer advies + actie als narratief geheugen voor volgende maand
+      const _sectie=naam=>{const re=new RegExp('=='+naam+'==([\\s\\S]*?)(?===|$)','i');return(aiTekst.match(re)||[])[1]?.trim()||'';};
+      const _actieRegel=_sectie('ACTIE').split('\n').find(r=>r.toLowerCase().startsWith('actie:'))||'';
+      const _actie=_actieRegel.replace(/^actie:\s*/i,'').trim();
+      const _samenvatting=_sectie('SAMENVATTING').split('\n')[0]?.trim()||'';
+      const adviesOpslag=[_samenvatting,_actie?'Actie: '+_actie:''].filter(Boolean).join(' | ').substring(0,500);
       await Store.setMaandoverzicht(this._klant, this._maand, {
         html, gepubliceerd:false, datum:UI.datumNL(),
         omzet:d.omzet, brutomarge:d.brutomarge, debiteurendagen:d.debiteurendagen,
-        solvabiliteit:d.solvabiliteit, nettoresultaat:d.ebitda,
+        solvabiliteit:d.solvabiliteit, nettoresultaat:d.ebitda, advies:adviesOpslag,
       });
       setHTML('mon-prev-inhoud',html);
       show('mon-prev-box');
