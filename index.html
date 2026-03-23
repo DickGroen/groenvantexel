@@ -4227,8 +4227,7 @@ const Fin={
     }
 
     // Veel rommelkarakters (scans zonder OCR produceren dit)
-    const rommel=(tekst.match(/[^\w\s€.,;:()\-\/
-%]/g)||[]).length;
+    const rommel=(tekst.match(/[^\w\s\u20AC.,;:()\-\/\n%]/g)||[]).length;
     const rommelRatio=rommel/tekst.length;
     if(rommelRatio>0.15){
       w.push('PDF bevat veel onleesbare tekens ('+Math.round(rommelRatio*100)+'%) — mogelijk een ingescand document zonder tekstlaag.');
