@@ -483,7 +483,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div id="welkom-hero" style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:14px;padding:40px 36px;margin-bottom:24px;color:#fff;transition:padding .2s;">
         <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9dc3e6;margin-bottom:10px;">Groen van Texel — Financieel Platform</div>
         <h1 style="font-family:'DM Serif Display',serif;font-size:30px;margin-bottom:14px;line-height:1.3;" id="welkom-naam">Welkom</h1>
-        <p id="welkom-subtekst" style="color:#c5dff4;font-size:16px;line-height:1.7;max-width:540px;">De meeste MKB-ondernemers laten geld liggen zonder het te weten.<br>Wij laten zien hoeveel — en hoe u het terughaalt.<br><br><strong style="color:#fff;">Uw accountant controleert of de cijfers kloppen.<br>Wij analyseren of u geld laat liggen.</strong><br><br><span style="font-size:14px;color:#9dc3e6;">Uw eerste analyse is gratis.</span></p>
+        <p id="welkom-subtekst" style="color:#c5dff4;font-size:16px;line-height:1.7;max-width:540px;">De meeste MKB-ondernemers laten geld liggen zonder het te weten.<br>Wij laten zien hoeveel — en hoe u het terughaalt.<br><br><strong style="color:#fff;">Uw accountant controleert of de cijfers kloppen.<br>Wij analyseren of u geld laat liggen.</strong><br><br><span style="font-size:16px;font-weight:700;color:#ffffff;background:rgba(255,255,255,0.12);padding:6px 14px;border-radius:20px;display:inline-block;margin-top:4px;">✓ Uw eerste analyse is gratis</span></p>
       </div>
       <!-- Laadspinner zolang KlantApp.init() bezig is -->
       <div id="welkom-laad" style="text-align:center;padding:40px 0;color:var(--mid);font-size:14px;">
@@ -1921,11 +1921,16 @@ ${url}
 
 Uw inlogcode: ${code}
 
-Na het inloggen kunt u uw jaarcijfers aanleveren. Wij hebben de V&W-rekening en balans nodig als PDF of Excel, te exporteren vanuit uw boekhoudprogramma.
+Na het inloggen kunt u direct uw jaarcijfers aanleveren. In de app staat stap voor stap uitgelegd hoe u dat doet. Wij hebben de V&W-rekening en balans nodig als PDF of Excel — te exporteren vanuit uw boekhoudprogramma.
+
+Na ontvangst krijgt u een bevestiging. Binnen 3 werkdagen ontvangt u uw kerncijfers afgezet tegen de sectornormen in de vorm van een persoonlijke 1-pager.
+
+Tip: de meeste ondernemers zijn verrast door wat er uit de analyse komt — zowel de kansen als de valkuilen. Hoe eerder u aanlevert, hoe sneller u weet waar u staat.
 
 Heeft u vragen? Bel of mail ons gerust.
 
 Met vriendelijke groet,
+Dick Groen
 Groen van Texel
 06 4215 2499`;
       await Email.stuur({bedrijf:naam,periode:'Welkom',name:naam,time:UI.datumNL(),message:msg,to_email:email});
@@ -2479,14 +2484,14 @@ Impact: € [bedrag of leeg]`;
   _bouw1PagerData(bedrijf,periode,sector,d,bevindingen){
     const bev=bevindingen||Fin.bevindingen(d);const datum=UI.datumNL();
     const jaar=(periode.match(/(\d{4})/)||[])[1]||periode;
-    const sig=(n,v)=>Fin.signaal(n,v);
+    const sig=(n,v)=>Fin.signaal(n,v,sector);
     const fmt=(v,e='%')=>(v!==null&&v!==undefined)?v+e:'—';
     const fmtEur=v=>v!=null?'€ '+Math.round(v).toLocaleString('nl-NL'):'€ —';
     const omzetStr=d.omzet?'€ '+Math.round(d.omzet).toLocaleString('nl-NL'):'—';
     const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
     const totaalStr=totaal>0?fmtEur(totaal):'€ —';
     const rij=(lbl,veld,eenh,norm,alt)=>`<tr${alt?' style="background:#f9fbfa;"':''}><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${lbl}</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig(veld,d[veld]).k};border-bottom:1px solid #eef1ee;">${fmt(d[veld],eenh)}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">${norm}</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${sig(veld,d[veld]).s}</td></tr>`;
-    return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;">${UI.esc(bedrijf)}</div><div style="color:#9dc3e6;font-size:12px;margin-top:4px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%','30–40%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn','30–45 dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%','25–40%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">6–12%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr></table></div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>${bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div><div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div></div>${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}</div>`).join('')}<div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div><div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div></div><div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div></div></div><div style="padding:16px 24px 20px;"><div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">U laat nu geld liggen — dat hoeft niet.</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. De Financiële Basisscan (€397 excl. BTW) laat u exact zien waar dit geld weglekt en geeft u een concreet actieplan om het terug te halen.</p><div style="font-size:12px;color:#1F4E79;margin:0 0 10px;line-height:1.9;"><strong>Het rapport bevat:</strong><br>— Volledige financiële architectuuranalyse<br>— Concreet verbeterpotentieel met eurobedragen<br>— Strategisch actieplan in 3 fasen<br>— Sectorvergelijking op alle kerncijfers</div><p style="font-size:12px;color:#2E75B6;margin:0 0 10px;">✓ Alle ratio's volledig onderbouwd &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Binnen 5 werkdagen</p><div style="text-align:center;"><button onclick="Formulier.bestelBasiscan()" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">✓ Ja, ik wil de Basisscan — €397</button></div></div></div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;text-align:center;">Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
+    return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;">${UI.esc(bedrijf)}</div><div style="color:#9dc3e6;font-size:12px;margin-top:4px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',Fin.normTekst('brutomarge',sector),false)}${rij('Debiteurendagen','debiteurendagen',' dgn',Fin.normTekst('debiteurendagen',sector),true)}${rij('Solvabiliteit %','solvabiliteit','%',Fin.normTekst('solvabiliteit',sector),false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">6–12%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr></table></div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar gaat geld verloren?</div>${bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div><div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div></div>${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}</div>`).join('')}<div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div><div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div></div><div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div></div></div><div style="padding:16px 24px 20px;"><div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">U laat nu geld liggen — dat hoeft niet.</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. De Financiële Basisscan (€397 excl. BTW) laat u exact zien waar dit geld weglekt en geeft u een concreet actieplan om het terug te halen.</p><div style="font-size:12px;color:#1F4E79;margin:0 0 10px;line-height:1.9;"><strong>Het rapport bevat:</strong><br>— Volledige financiële architectuuranalyse<br>— Concreet verbeterpotentieel met eurobedragen<br>— Strategisch actieplan in 3 fasen<br>— Sectorvergelijking op alle kerncijfers</div><p style="font-size:12px;color:#2E75B6;margin:0 0 10px;">✓ Alle ratio's volledig onderbouwd &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Binnen 5 werkdagen</p><div style="text-align:center;"><button onclick="Formulier.bestelBasiscan()" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">✓ Ja, ik wil de Basisscan — €397</button></div></div></div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;text-align:center;">Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
   },
 };
 
@@ -4287,10 +4292,46 @@ const Fin={
     if(d.solvabiliteit===null){const m=tekst.match(/[Ss]olvabiliteit\s*%?\s*:?\s*([\d,]+)%/);if(m)d.solvabiliteit=parseFloat(m[1].replace(',','.'));}
     return d;
   },
-  signaal(naam,waarde){
-    const n={brutomarge:{min:30,max:40,inv:false},ebitda:{min:6,max:12,inv:false},personeelskosten:{min:45,max:60,inv:true},debiteurendagen:{min:30,max:45,inv:true},solvabiliteit:{min:25,max:40,inv:false},currentratio:{min:1.3,max:1.8,inv:false}};
-    const r=n[naam];if(!r||waarde===null||waarde===undefined)return{s:'—',k:'#9CA3AF'};
-    const ok=waarde>=r.min&&waarde<=r.max;const ver=r.inv?waarde>r.max*1.2:waarde<r.min*0.8;
+  normTekst(naam, sector=''){
+    const basis={brutomarge:'30–40%',ebitda:'6–12%',personeelskosten:'45–60%',debiteurendagen:'30–45 dgn',solvabiliteit:'25–40%',currentratio:'1,3–1,8'};
+    const sectorNormen={
+      'Installatietechniek':  {solvabiliteit:'30–45%', brutomarge:'18–30%', debiteurendagen:'30–50 dgn'},
+      'Bouw & Aannemerij':    {solvabiliteit:'30–45%', brutomarge:'15–28%', debiteurendagen:'30–55 dgn'},
+      'Groothandel':          {brutomarge:'15–25%'},
+      'Detailhandel':         {brutomarge:'30–50%', debiteurendagen:'0–15 dgn'},
+      'Zakelijke dienstverlening': {solvabiliteit:'30–50%', brutomarge:'40–65%'},
+      'Horeca':               {solvabiliteit:'20–40%', brutomarge:'55–75%', debiteurendagen:'0–10 dgn'},
+      'Transport & Logistiek':{brutomarge:'15–28%'},
+      'Zorg':                 {solvabiliteit:'20–35%', brutomarge:'20–40%'},
+      'ICT':                  {solvabiliteit:'30–55%', brutomarge:'45–70%'},
+    };
+    const override=sector&&sectorNormen[sector]?sectorNormen[sector]:{};
+    return override[naam]||basis[naam]||'—';
+  },
+
+  signaal(naam,waarde,sector=''){
+    // Basisnormen algemeen MKB
+    const basis={brutomarge:{min:30,max:40,inv:false},ebitda:{min:6,max:12,inv:false},personeelskosten:{min:45,max:60,inv:true},debiteurendagen:{min:30,max:45,inv:true},solvabiliteit:{min:25,max:40,inv:false},currentratio:{min:1.3,max:1.8,inv:false}};
+    // Sectorspecifieke overrides
+    const sectorNormen={
+      'Installatietechniek':  {solvabiliteit:{min:30,max:45,inv:false}, brutomarge:{min:18,max:30,inv:false}, debiteurendagen:{min:30,max:50,inv:true}},
+      'Bouw & Aannemerij':    {solvabiliteit:{min:30,max:45,inv:false}, brutomarge:{min:15,max:28,inv:false}, debiteurendagen:{min:30,max:55,inv:true}},
+      'Groothandel':          {solvabiliteit:{min:25,max:40,inv:false}, brutomarge:{min:15,max:25,inv:false}},
+      'Detailhandel':         {solvabiliteit:{min:25,max:40,inv:false}, brutomarge:{min:30,max:50,inv:false}, debiteurendagen:{min:0,max:15,inv:true}},
+      'Zakelijke dienstverlening': {solvabiliteit:{min:30,max:50,inv:false}, brutomarge:{min:40,max:65,inv:false}},
+      'Horeca':               {solvabiliteit:{min:20,max:40,inv:false}, brutomarge:{min:55,max:75,inv:false}, debiteurendagen:{min:0,max:10,inv:true}},
+      'Transport & Logistiek':{solvabiliteit:{min:25,max:40,inv:false}, brutomarge:{min:15,max:28,inv:false}},
+      'Zorg':                 {solvabiliteit:{min:20,max:35,inv:false}, brutomarge:{min:20,max:40,inv:false}},
+      'ICT':                  {solvabiliteit:{min:30,max:55,inv:false}, brutomarge:{min:45,max:70,inv:false}},
+    };
+    // Kies norm: sectorspecifiek indien beschikbaar, anders basis
+    const override=sector?sectorNormen[sector]||{}:{};
+    const n={...basis,...override[naam]?{[naam]:override[naam]}:{}};
+    // Voeg alle sectoroverrides samen
+    const normen=Object.assign({},basis);
+    if(sector&&sectorNormen[sector]){Object.assign(normen,sectorNormen[sector]);}
+    const r=normen[naam];if(!r||waarde===null||waarde===undefined)return{s:'—',k:'#9CA3AF'};
+    const ok=waarde>=r.min&&waarde<=r.max;const ver=r.inv?waarde>r.max*1.5:waarde<r.min*0.7;
     return ok?{s:'✅',k:'#16A34A'}:ver?{s:'🔴',k:'#DC2626'}:{s:'⚠',k:'#D97706'};
   },
   bevindingen(d){
