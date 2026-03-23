@@ -2410,7 +2410,7 @@ Tekst: [1 zin]
 Impact: € [bedrag of leeg]`;
 
     try{
-      const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:800})});
+      const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:1200})});
       if(!resp.ok)throw new Error('API fout '+resp.status);
       const data=await resp.json();if(data.error)throw new Error(data.error.message);
       const tekst=data.content?.find(b=>b.type==='text')?.text||'';
@@ -2584,7 +2584,7 @@ KPI3: [KPI naam] | Streef: [waarde]
 Mijlpaal: [concrete mijlpaal komende 3 maanden]`;
 
     try{
-      const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:2000})});
+      const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:3500})});
       if(!resp.ok){let msg='API fout '+resp.status;try{const d=await resp.json();msg=d?.error?.message||msg;}catch{}throw new Error(msg);}
       const data=await resp.json();if(data.error)throw new Error(data.error.message);
       const tekst=data.content?.find(b=>b.type==='text')?.text||'';
@@ -7638,7 +7638,7 @@ SIGNAAL: [concrete afwijking met getal, bijv. "Debiteurendagen staan op 52 — 7
 SCAN: [naam scan] | PRIJS: [prijs]
 TOELICHTING: [1-2 zinnen: wat levert de scan op voor deze klant, specifiek op basis van zijn cijfers]`;
 
-      const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:1800})});
+      const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:3000})});
       if(!resp.ok) throw new Error('API fout '+resp.status);
       const data=await resp.json();
       const aiTekst=data.content?.find(b=>b.type==='text')?.text||'';
