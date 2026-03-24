@@ -2404,34 +2404,7 @@ ${Fin.toonInstructie(klanttype1p)}
 JAARCIJFERS:
 ${pdfTekst}${!pdfCheck1p.ok?' [WAARSCHUWING: PDF-kwaliteit laag — '+pdfCheck1p.waarschuwingen.join('; ')+'. Doe je best met beschikbare data en geef aan waar je aannames maakt.]':''}
 
-Extraheer de volgende kengetallen en bereken ze indien niet direct aanwezig. Geef altijd een getal terug — nooit een streepje of "onbekend".
-
-Reageer UITSLUITEND in dit formaat:
-
-==KENGETALLEN==
-Omzet: € [bedrag]
-Brutomarge: [getal]%
-Debiteurendagen: [getal] dgn
-Solvabiliteit: [getal]%
-Nettoresultaat: [getal]%
-
-==BEVINDING_1==
-Titel: [naam probleem]
-Ernst: [Hoog/Middel/Laag]
-Tekst: [1 zin: wat is het probleem]
-Impact: € [bedrag]
-
-==BEVINDING_2==
-Titel: [naam]
-Ernst: [Hoog/Middel/Laag]
-Tekst: [1 zin]
-Impact: € [bedrag of leeg]
-
-==BEVINDING_3==
-Titel: [naam]
-Ernst: [Hoog/Middel/Laag]
-Tekst: [1 zin]
-Impact: € [bedrag of leeg]`;
+VOLG DE MKB STRESSTEST REKENREGELS EXACT:\n\nBALANSTOTAAL (als niet opgegeven): Installatietechniek/overig=50%xomzet | Bouw=55% | Groothandel=65% | Zakelijke dienstverlening=45%.\n\nSOLVABILITEIT (alleen als werkelijk% STRIKT < sectornorm_min%): impact=(sectornorm_min%-werkelijk%)xbalanstotaal, afronden op €100. Voorbeeld installatietechniek omzet 1435800 solv 26,3%: balanstotaal=717900, verschil=0,037, impact=€26.600.\n\nBRUTOMARGE (alleen als werkelijk% STRIKT < sectornormgemiddelde%): impact=(sectornormgemiddelde%-werkelijk%)xomzet, afronden op €100.\n\nDEBITEUERENDAGEN (alleen als werkelijk STRIKT > sectornorm_max): impact=(werkelijk-norm_max)/365xomzet, afronden op €100. Anders: BEVINDING WEGLATEN.\n\nNETTORESULTAAT (alleen als werkelijk% STRIKT < sectornorm_min%): impact=(sectornorm_min%-werkelijk%)xomzet. Anders: VOLLEDIG WEGLATEN — geen tekst, geen opmerking.\n\nVERBODEN in bevindingen: current ratio, voorraadratio, werkkapitaal, liquiditeit, personeelskosten.\n\nReageer UITSLUITEND in dit formaat:\n\n==KENGETALLEN==\nOmzet: € [bedrag]\nBrutomarge: [getal]%\nDebiteurendagen: [getal] dgn\nSolvabiliteit: [getal]%\nNettoresultaat: [getal]%\n\n==BEVINDING_1==\nTitel: [solvabiliteit of brutomarge of debiteurendagen of nettoresultaat]\nErnst: [Hoog/Middel/Laag]\nTekst: [1 zin: probleem + concrete actie]\nImpact: € [bedrag berekend via rekenregels]\n\n==BEVINDING_2==\nTitel: [naam of leeg als geen tweede bevinding]\nErnst: [Hoog/Middel/Laag]\nTekst: [1 zin]\nImpact: € [bedrag of leeg]\n\n==BEVINDING_3==\nTitel: [naam of leeg als geen derde bevinding]\nErnst: [Hoog/Middel/Laag]\nTekst: [1 zin]\nImpact: € [bedrag of leeg]`;
 
     try{
       const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:1200})});
