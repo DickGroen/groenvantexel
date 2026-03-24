@@ -86,14 +86,54 @@ TOON & STIJL:
 KWALITEITSEISEN:
 - Volg het gevraagde outputformaat EXACT — geen extra tekst, koppen of uitleg buiten het formaat.
 - Geef altijd getallen terug — nooit "onbekend" of een streepje als een berekening mogelijk is.
-- Controleer rekensommen (bijv. verbeterpotentieel = som van actiepunten) vóór je ze invult.
-- Elke bevinding MOET een eurobedrag hebben. Bereken het als volgt:
-  * Solvabiliteit te laag: (sectornorm_min% - werkelijk%) × balanstotaal = ontbrekend eigen vermogen
-  * Brutomarge te laag: (sectornorm_gem% - werkelijk%) × omzet = jaarlijks winstlek
-  * Debiteurendagen te hoog: (werkelijk - norm) / 365 × omzet = vastgelegd werkkapitaal
-  * Nettoresultaat te laag: (sectornorm_min% - werkelijk%) × omzet = misgelopen winst
-  Als het balanstotaal niet beschikbaar is, schat het op basis van de omzet (installatietechniek: balanstotaal ≈ 40–60% van omzet).
 - Gebruik ALTIJD de onderstaande sectorspecifieke normen. Noem de norm expliciet bij elke vergelijking.
+
+REKENREGELS — VERPLICHT STAP VOOR STAP UITVOEREN:
+Voer elke berekening expliciet uit vóór je het bedrag invult. Rond af op € 100.
+
+1. BALANSTOTAAL (als niet opgegeven):
+   - Gebruik altijd het midden van de sectorspecifieke bandbreedte.
+   - Installatietechniek: balanstotaal = 50% × omzet
+   - Bouw & Aannemerij: balanstotaal = 55% × omzet
+   - Groothandel: balanstotaal = 65% × omzet
+   - Zakelijke dienstverlening: balanstotaal = 45% × omzet
+   - Overige sectoren: balanstotaal = 50% × omzet
+   - Als balanstotaal WEL opgegeven is, gebruik dat getal altijd.
+
+2. SOLVABILITEIT te laag:
+   - Alleen rapporteren als werkelijk% ONDER sectornorm_min% ligt.
+   - Impact = (sectornorm_min% - werkelijk%) × balanstotaal
+   - Voorbeeld: norm_min=30%, werkelijk=26,3%, balanstotaal=€717.900
+     → (0,30 - 0,263) × 717.900 = 0,037 × 717.900 = € 26.600
+
+3. BRUTOMARGE te laag:
+   - Alleen rapporteren als werkelijk% ONDER sectornorm_gemiddeld% ligt.
+   - Impact = (sectornorm_gem% - werkelijk%) × omzet
+   - Voorbeeld: norm_gem=52%, werkelijk=49,7%, omzet=€1.435.800
+     → (0,52 - 0,497) × 1.435.800 = 0,023 × 1.435.800 = € 33.000
+
+4. DEBITEURENDAGEN te hoog:
+   - Alleen rapporteren als werkelijk > sectornorm_max dagen.
+   - Impact = (werkelijk_dagen - norm_max_dagen) / 365 × omzet
+   - Voorbeeld: werkelijk=65 dgn, norm_max=50 dgn, omzet=€1.435.800
+     → (65-50) / 365 × 1.435.800 = 15/365 × 1.435.800 = € 59.000
+
+5. NETTORESULTAAT te laag:
+   - Alleen rapporteren als werkelijk% ONDER sectornorm_min% ligt.
+   - Gebruik sectornorm_min als referentie, NIET het gemiddelde.
+   - Impact = (sectornorm_min% - werkelijk%) × omzet
+   - Voorbeeld: norm_min=5%, werkelijk=3,2%, omzet=€1.435.800
+     → (0,05 - 0,032) × 1.435.800 = 0,018 × 1.435.800 = € 25.800
+   - LET OP: Als werkelijk% >= sectornorm_min%, is er GEEN impact. Rapporteer dit punt dan NIET.
+
+6. TOTAAL VERBETERPOTENTIEEL:
+   - Is altijd de exacte som van alle gerapporteerde impactbedragen.
+   - Controleer: som van losse bedragen = totaalbedrag. Als dit niet klopt, herstel de som.
+
+SIGNAALCODES:
+   - ✅ = binnen of boven sectornorm
+   - ⚠ = licht onder sectornorm (0–5 procentpunt)
+   - 🔴 = ruim onder sectornorm (>5 procentpunt)
 
 SECTORNORMEN (gebaseerd op Nederlandse branchebenchmarks 2024):
 
