@@ -128,11 +128,13 @@ Voer elke berekening expliciet uit vóór je het bedrag invult. Rond af op € 1
      → 15/365 × 1.435.800 = 59.000 → € 59.000
 
 5. NETTORESULTAAT te laag:
-   - STAP A: Is werkelijk% STRIKT KLEINER dan sectornorm_min%? Zo nee → DIT PUNT VOLLEDIG WEGLATEN. Geen titel, geen tekst, geen impactbedrag, geen vermelding. Het punt mag in geen enkele vorm in het rapport voorkomen.
-   - Installatietechniek sectornorm_min = 5,0%. Werkelijk=5,1% → 5,1 is NIET kleiner dan 5,0 → punt WEGLATEN.
-   - Werkelijk=4,9% → 4,9 is kleiner dan 5,0 → punt WEL rapporteren.
+   - STAP A: Bereken: is werkelijk% STRIKT KLEINER DAN sectornorm_min%?
+   - Installatietechniek sectornorm_min = 5,0%.
+   - 5,1% < 5,0% → ONWAAR → dit punt bestaat NIET. Geen titel. Geen tekst. Geen zin. Niets.
+   - 4,9% < 5,0% → WAAR → punt rapporteren met impact = (0,05 - 0,049) × omzet
+   - HET IS VERBODEN om tekst te schrijven over nettoresultaat als werkelijk% >= sectornorm_min%.
+   - "Net voldoende", "ruimte voor verbetering", "zit aan de grens" zijn VERBODEN als werkelijk% >= sectornorm_min%.
    - STAP B (alleen als werkelijk% strikt < sectornorm_min%): impact = (sectornorm_min% - werkelijk%) × omzet
-   - Voorbeeld werkelijk=3,2%: (0,05 - 0,032) × 1.435.800 = € 25.800
 
 6. TOTAAL VERBETERPOTENTIEEL:
    - Tel ALLEEN de impactbedragen op van punten die daadwerkelijk gerapporteerd zijn.
