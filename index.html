@@ -4314,7 +4314,7 @@ const Fin={
     const basis={brutomarge:{min:30,max:40,inv:false},ebitda:{min:6,max:12,inv:false},personeelskosten:{min:45,max:60,inv:true},debiteurendagen:{min:30,max:45,inv:true},solvabiliteit:{min:25,max:40,inv:false},currentratio:{min:1.3,max:1.8,inv:false}};
     // Sectorspecifieke overrides
     const sectorNormen={
-      'Installatietechniek':  {solvabiliteit:{min:30,max:45,inv:false}, brutomarge:{min:45,max:62,inv:false}, debiteurendagen:{min:30,max:50,inv:true}},
+      'Installatietechniek':  {solvabiliteit:{min:30,max:45,inv:false}, brutomarge:{min:50,max:62,inv:false}, debiteurendagen:{min:30,max:50,inv:true}},
       'Bouw & Aannemerij':    {solvabiliteit:{min:30,max:45,inv:false}, brutomarge:{min:15,max:28,inv:false}, debiteurendagen:{min:30,max:55,inv:true}},
       'Groothandel':          {solvabiliteit:{min:25,max:40,inv:false}, brutomarge:{min:15,max:25,inv:false}},
       'Detailhandel':         {solvabiliteit:{min:25,max:40,inv:false}, brutomarge:{min:30,max:50,inv:false}, debiteurendagen:{min:0,max:15,inv:true}},
@@ -4339,7 +4339,7 @@ const Fin={
     const neg=[];
     if(d.debiteurendagen&&d.debiteurendagen>45){const extra=d.omzet?Math.round((d.debiteurendagen-45)/365*d.omzet):null;neg.push({t:'Debiteurenprobleem',tx:'Debiteurenbeheer ligt boven de sectornorm. Dit bindt onnodig werkkapitaal.',bedrag:extra,k:'#C0392B'});}
     if(d.ebitda!==null&&d.ebitda<6){const gemist=d.omzet?Math.round((9-d.ebitda)/100*d.omzet):null;neg.push({t:'Winstgevendheidsprobleem',tx:'Winstgevendheid ligt onder de sectornorm. Er blijft omzetpotentieel onbenut.',bedrag:gemist,k:'#E67E22'});}
-    if(d.solvabiliteit!==null&&d.solvabiliteit<25){const tekort=d.balanstotaal?Math.round((32.5-d.solvabiliteit)/100*d.balanstotaal):null;neg.push({t:'Solvabiliteitsprobleem',tx:`Solvabiliteit is ${d.solvabiliteit}% — onder de norm van 25–40%.`,bedrag:tekort,k:'#C0392B'});}
+    if(d.solvabiliteit!==null&&d.solvabiliteit<30){const normSolv=30;const tekort=d.balanstotaal?Math.round((normSolv-d.solvabiliteit)/100*d.balanstotaal):null;neg.push({t:'Solvabiliteit onder sectornorm',tx:`Solvabiliteit is ${d.solvabiliteit}% — onder de sectornorm van 30–45%. Meer eigen vermogen geeft financiële rust en betere financieringsvoorwaarden.`,bedrag:tekort,k:'#C0392B'});}
     if(d.personeelskosten&&d.personeelskosten>60){const extra=d.omzet?Math.round((d.personeelskosten-52.5)/100*d.omzet):null;neg.push({t:'Personeelskosten hoog',tx:`Personeelskosten zijn ${d.personeelskosten}% van omzet — boven de norm.`,bedrag:extra,k:'#C0392B'});}
     if(d.brutomarge!==null&&d.brutomarge<30){const gemist=d.omzet?Math.round((35-d.brutomarge)/100*d.omzet):null;neg.push({t:'Brutomarge laag',tx:`Brutomarge is ${d.brutomarge}% — onder de norm van 30–40%.`,bedrag:gemist,k:'#C0392B'});}
     const pos=[{t:'Solvabiliteit gezond',tx:`Solvabiliteit van ${d.solvabiliteit!=null?d.solvabiliteit+'%':'—'} valt binnen de sectornorm.`,bedrag:null,k:'#27AE60'},{t:'Brutomarge op niveau',tx:`Brutomarge van ${d.brutomarge!=null?d.brutomarge+'%':'—'} is gezond.`,bedrag:null,k:'#27AE60'},{t:'Financiële basis stabiel',tx:'De overige indicatoren vallen binnen de sectornorm.',bedrag:null,k:'#27AE60'}];
