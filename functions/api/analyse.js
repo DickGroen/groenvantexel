@@ -101,34 +101,40 @@ Voer elke berekening expliciet uit vóór je het bedrag invult. Rond af op € 1
    - Als balanstotaal WEL opgegeven is, gebruik dat getal altijd.
 
 2. SOLVABILITEIT te laag:
-   - Alleen rapporteren als werkelijk% ONDER sectornorm_min% ligt.
-   - Impact = (sectornorm_min% - werkelijk%) × balanstotaal
-   - Voorbeeld: norm_min=30%, werkelijk=26,3%, balanstotaal=€717.900
-     → (0,30 - 0,263) × 717.900 = 0,037 × 717.900 = € 26.600
+   - STAP A: Is werkelijk% < sectornorm_min%? Zo nee → NIET rapporteren, stop.
+   - STAP B: balanstotaal = zie regel 1 hierboven.
+   - STAP C: verschil = sectornorm_min% - werkelijk% (als decimaal)
+   - STAP D: impact = verschil × balanstotaal → afronden op €100
+   - VERPLICHT REKENVOORBEELD voor installatietechniek omzet €1.435.800, solvabiliteit 26,3%:
+     A: 26,3% < 30% → ja, rapporteren
+     B: balanstotaal = 0,50 × 1.435.800 = 717.900
+     C: verschil = 0,300 - 0,263 = 0,037
+     D: impact = 0,037 × 717.900 = 26.562 → afgerond € 26.600
+   - NOOIT een ander bedrag gebruiken voor dit voorbeeld dan € 26.600.
 
 3. BRUTOMARGE te laag:
-   - Alleen rapporteren als werkelijk% ONDER sectornorm_gemiddeld% ligt.
-   - Impact = (sectornorm_gem% - werkelijk%) × omzet
+   - STAP A: Is werkelijk% < sectornorm_gem%? Zo nee → NIET rapporteren, stop.
+   - STAP B: verschil = sectornorm_gem% - werkelijk% (als decimaal)
+   - STAP C: impact = verschil × omzet → afronden op €100
    - Voorbeeld: norm_gem=52%, werkelijk=49,7%, omzet=€1.435.800
-     → (0,52 - 0,497) × 1.435.800 = 0,023 × 1.435.800 = € 33.000
+     → 0,023 × 1.435.800 = 33.023 → € 33.000
 
 4. DEBITEURENDAGEN te hoog:
-   - Alleen rapporteren als werkelijk > sectornorm_max dagen.
-   - Impact = (werkelijk_dagen - norm_max_dagen) / 365 × omzet
-   - Voorbeeld: werkelijk=65 dgn, norm_max=50 dgn, omzet=€1.435.800
-     → (65-50) / 365 × 1.435.800 = 15/365 × 1.435.800 = € 59.000
+   - STAP A: Is werkelijk_dagen > sectornorm_max_dagen? Zo nee → NIET rapporteren, stop.
+   - STAP B: impact = (werkelijk - norm_max) / 365 × omzet → afronden op €100
+   - Voorbeeld: 65 dgn, norm_max=50, omzet=€1.435.800
+     → 15/365 × 1.435.800 = 59.000 → € 59.000
 
 5. NETTORESULTAAT te laag:
-   - Alleen rapporteren als werkelijk% ONDER sectornorm_min% ligt.
-   - Gebruik sectornorm_min als referentie, NIET het gemiddelde.
-   - Impact = (sectornorm_min% - werkelijk%) × omzet
-   - Voorbeeld: norm_min=5%, werkelijk=3,2%, omzet=€1.435.800
-     → (0,05 - 0,032) × 1.435.800 = 0,018 × 1.435.800 = € 25.800
-   - LET OP: Als werkelijk% >= sectornorm_min%, is er GEEN impact. Rapporteer dit punt dan NIET.
+   - STAP A: Is werkelijk% < sectornorm_min%? Zo nee → ABSOLUUT NIET rapporteren. Geen tekst, geen bedrag, punt bestaat niet.
+   - Installatietechniek sectornorm_min = 5%. Als werkelijk >= 5,0% → dit punt bestaat NIET in het rapport.
+   - STAP B (alleen als werkelijk% < sectornorm_min%): impact = (sectornorm_min% - werkelijk%) × omzet
+   - Voorbeeld werkelijk=3,2%: (0,05-0,032) × 1.435.800 = € 25.800
 
 6. TOTAAL VERBETERPOTENTIEEL:
-   - Is altijd de exacte som van alle gerapporteerde impactbedragen.
-   - Controleer: som van losse bedragen = totaalbedrag. Als dit niet klopt, herstel de som.
+   - Tel ALLEEN de impactbedragen op van punten die daadwerkelijk gerapporteerd zijn.
+   - Schrijf de som expliciet op vóór invullen: bijv. €26.600 + €33.000 = €59.600
+   - Vul dit bedrag in. Geen andere getallen verzinnen.
 
 SIGNAALCODES:
    - ✅ = binnen of boven sectornorm
