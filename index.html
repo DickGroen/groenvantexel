@@ -206,6 +206,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <button class="btn btn-ghost" onclick="Klanten.sluitMailModal()">Annuleren</button>
         <button class="btn btn-primary" onclick="Klanten.verstuurMail()">✉ Versturen</button>
       </div>
+      <div class="card">
+        <div class="card-title">📦 Data back-up</div>
+        <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Download alle klant- en rapportdata als JSON-bestand. Bewaar dit als back-up.</p>
+        <button class="btn btn-ghost" onclick="Instellen.exportData()" style="margin-right:8px;">⬇ Download back-up</button>
+        <span id="export-status" style="font-size:12px;color:var(--mid);"></span>
+      </div>
     </div>
   </div>
 
@@ -701,6 +707,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div id="upload-fout-box" style="display:none;"></div>
       <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">▶ Versturen</button>
       <div id="upload-voortgang" style="text-align:center;font-size:12px;color:var(--mid);margin-top:8px;min-height:18px;"></div>
+      <div id="upload-fout-box" style="display:none;"></div>
     </div>
   </div>
 
@@ -739,12 +746,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         </div>
       </div>
       <button class="btn btn-ghost" onclick="UI.toast('RLS instructies gekopieerd naar klembord');navigator.clipboard?.writeText('ALTER TABLE uploads ENABLE ROW LEVEL SECURITY;\nALTER TABLE klanten ENABLE ROW LEVEL SECURITY;')">📋 Kopieer SQL</button>
-    </div>
-    <div class="card" style="max-width:520px;">
-      <div class="card-title">📦 Data back-up</div>
-      <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Download alle klant- en rapportdata als JSON-bestand. Bewaar dit als back-up.</p>
-      <button class="btn btn-ghost" onclick="Instellen.exportData()" style="margin-right:8px;">⬇ Download back-up</button>
-      <span id="export-status" style="font-size:12px;color:var(--mid);"></span>
     </div>
     <div class="card" style="max-width:520px;border-color:#f5c6c2;">
       <div class="card-title" style="color:var(--red);">Reset — schone lei</div>
@@ -949,9 +950,13 @@ const API = {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body),
     });
-    if (!r.ok) throw new Error('API fout ' + r.status);
+    if (!r.ok) {
+      let errTekst = 'API fout ' + r.status;
+      try { const e = await r.json(); errTekst = e?.error?.message || JSON.stringify(e) || errTekst; } catch {}
+      throw new Error(errTekst);
+    }
     const d = await r.json();
-    if (d.error) throw new Error(d.error.message);
+    if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
     return d;
   },
 };
@@ -1305,6 +1310,7 @@ const Email={
       const k=kl.find(k=>k.naam===klantNaam);
       if(!k?.email){console.warn('Geen e-mail voor klant '+klantNaam);return;}
       const url='https://groenvantexel.pages.dev';
+      const inlogcode=k.code?'\n\nUw inlogcode: '+k.code:'';
       const typeMap={
         'eenpager':    {naam:'Financieel Overzicht (1-pager)',     nav:'Klik op "📋 Mijn rapporten" in het menu bovenin.'},
         'basisscan':   {naam:'Financiële Basisscan',               nav:'Klik op "📋 Mijn rapporten" in het menu bovenin.'},
@@ -1366,6 +1372,9 @@ const Auth={
       }
       show('login-error');
     }).catch(()=>show('login-error'));
+    return;
+    // admin already handled above
+    show('login-error');
   },
   uitloggen(){sessie=null;sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');window.location.href=window.location.pathname;},
   _open(s){
@@ -4290,7 +4299,7 @@ const Fin={
   normTekst(naam, sector=''){
     const basis={brutomarge:'30–40%',ebitda:'6–12%',personeelskosten:'45–60%',debiteurendagen:'30–45 dgn',solvabiliteit:'25–40%',currentratio:'1,3–1,8'};
     const sectorNormen={
-      'Installatietechniek':  {solvabiliteit:'30–45%', brutomarge:'≥52% (gem.)', debiteurendagen:'30–50 dgn'},
+      'Installatietechniek':  {solvabiliteit:'30–45%', brutomarge:'45–60%', debiteurendagen:'30–50 dgn'},
       'Bouw & Aannemerij':    {solvabiliteit:'30–45%', brutomarge:'38–50%', debiteurendagen:'30–55 dgn'},
       'Groothandel':          {brutomarge:'15–25%'},
       'Detailhandel':         {brutomarge:'30–50%', debiteurendagen:'0–15 dgn'},
@@ -4309,7 +4318,7 @@ const Fin={
     const basis={brutomarge:{min:30,max:40,inv:false},ebitda:{min:6,max:12,inv:false},personeelskosten:{min:45,max:60,inv:true},debiteurendagen:{min:30,max:45,inv:true},solvabiliteit:{min:25,max:40,inv:false},currentratio:{min:1.3,max:1.8,inv:false}};
     // Sectorspecifieke overrides
     const sectorNormen={
-      'Installatietechniek':  {solvabiliteit:{min:30,max:45,inv:false}, brutomarge:{min:52,max:62,inv:false}, debiteurendagen:{min:30,max:50,inv:true}},
+      'Installatietechniek':  {solvabiliteit:{min:30,max:45,inv:false}, brutomarge:{min:50,max:62,inv:false}, debiteurendagen:{min:30,max:50,inv:true}},
       'Bouw & Aannemerij':    {solvabiliteit:{min:30,max:45,inv:false}, brutomarge:{min:38,max:50,inv:false}, debiteurendagen:{min:30,max:55,inv:true}},
       'Groothandel':          {solvabiliteit:{min:25,max:40,inv:false}, brutomarge:{min:15,max:25,inv:false}},
       'Detailhandel':         {solvabiliteit:{min:25,max:40,inv:false}, brutomarge:{min:30,max:50,inv:false}, debiteurendagen:{min:0,max:15,inv:true}},
@@ -8191,8 +8200,8 @@ TOELICHTING: [1-2 zinnen: wat levert de scan op voor deze klant, specifiek op ba
           </div>`;
       } else {
         // Vind aanleverdatum van deze maand
-        const uplDezeMaand=uploadsKlant.filter(u=>u.periode&&u.periode.startsWith(huidigeMaand)).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
-        const aanleverdatum=uplDezeMaand[0]?.datum||'';
+        const uplDezeMailand=uploadsKlant.filter(u=>u.periode&&u.periode.startsWith(huidigeMaand)).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
+        const aanleverdatum=uplDezeMailand[0]?.datum||'';
         // Controleer of maandrapport al gepubliceerd is
         const huidigMaandRapport=gepubliceerd.find(o=>o.periode===huidigeMaand);
         if(huidigMaandRapport){
