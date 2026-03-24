@@ -1,10 +1,6 @@
 // functions/api/analyse.js — Groen van Texel
 // Cloudflare Pages Function — alle API calls
 
-// SUPABASE_URL en SUPABASE_KEY worden ingelezen via Cloudflare omgevingsvariabelen.
-// Stel deze in via: Cloudflare Dashboard → Pages → Project → Settings → Environment variables.
-// Voeg toe: SUPABASE_URL en SUPABASE_KEY
-
 const maakSb = (env) => async (path, method = 'GET', body = null) => {
   const SUPABASE_URL = env.SUPABASE_URL;
   const SUPABASE_KEY = env.SUPABASE_KEY;
@@ -28,7 +24,6 @@ const maakSb = (env) => async (path, method = 'GET', body = null) => {
   return txt ? JSON.parse(txt) : [];
 };
 
-// Generieke helper voor scan-tabellen
 const getScan = async (sb, tabel) => {
   const data = await sb(`${tabel}?order=bijgewerkt.desc`);
   return data;
@@ -41,7 +36,6 @@ const setScan = async (sb, tabel, body) => {
   if (bestaand.length > 0) {
     await sb(`${tabel}?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', { html, gepubliceerd, datum, bijgewerkt: nu });
   } else {
-    // Fix: bijgewerkt meesturen bij nieuw record zodat sortering op bijgewerkt.desc correct werkt
     await sb(tabel, 'POST', { sleutel, html, gepubliceerd, datum, bijgewerkt: nu });
   }
 };
@@ -88,11 +82,18 @@ KWALITEITSEISEN:
 - Geef altijd getallen terug — nooit "onbekend" of een streepje als een berekening mogelijk is.
 - Gebruik ALTIJD de onderstaande sectorspecifieke normen. Noem de norm expliciet bij elke vergelijking.
 
+ABSOLUTE VERBODEN — NOOIT DOEN:
+- VERBODEN: current ratio, voorraadratio, werkkapitaal, liquiditeit, omzetgroei, personeelskosten, vaste lasten, kostenstructuur vermelden in bevindingen.
+- VERBODEN: "Geen actiepunten gegenereerd" schrijven — er zijn ALTIJD actiepunten.
+- VERBODEN: een sectie leeg laten — elke sectie moet volledig ingevuld zijn.
+- VERBODEN: impactbedragen verzinnen die niet uit de rekenregels komen.
+- VERBODEN: over nettoresultaat schrijven als werkelijk% >= sectornorm_min%.
+- VERBODEN: "Net voldoende", "ruimte voor verbetering", "zit aan de grens" als indicator binnen norm valt.
+
 REKENREGELS — VERPLICHT STAP VOOR STAP UITVOEREN:
 Voer elke berekening expliciet uit vóór je het bedrag invult. Rond af op € 100.
 
 1. BALANSTOTAAL (als niet opgegeven):
-   - Gebruik altijd het midden van de sectorspecifieke bandbreedte.
    - Installatietechniek: balanstotaal = 50% × omzet
    - Bouw & Aannemerij: balanstotaal = 55% × omzet
    - Groothandel: balanstotaal = 65% × omzet
@@ -101,65 +102,60 @@ Voer elke berekening expliciet uit vóór je het bedrag invult. Rond af op € 1
    - Als balanstotaal WEL opgegeven is, gebruik dat getal altijd.
 
 2. SOLVABILITEIT te laag:
-   - STAP A: Is werkelijk% < sectornorm_min%? Zo nee → NIET rapporteren, stop.
-   - STAP B: balanstotaal = zie regel 1 hierboven.
+   - STAP A: Is werkelijk% STRIKT KLEINER DAN sectornorm_min%? Zo nee → NIET rapporteren, stop.
+   - STAP B: balanstotaal = zie regel 1.
    - STAP C: verschil = sectornorm_min% - werkelijk% (als decimaal)
    - STAP D: impact = verschil × balanstotaal → afronden op €100
-   - VERPLICHT REKENVOORBEELD voor installatietechniek omzet €1.435.800, solvabiliteit 26,3%:
-     A: 26,3% < 30% → ja, rapporteren
+   - CONTROLVOORBEELD: installatietechniek, omzet €1.435.800, solvabiliteit 26,3%:
      B: balanstotaal = 0,50 × 1.435.800 = 717.900
      C: verschil = 0,300 - 0,263 = 0,037
-     D: impact = 0,037 × 717.900 = 26.562 → afgerond € 26.600
-   - NOOIT een ander bedrag gebruiken voor dit voorbeeld dan € 26.600.
+     D: impact = 0,037 × 717.900 = 26.562 → € 26.600
+   - Dit voorbeeld geeft ALTIJD € 26.600. Nooit een ander bedrag.
 
 3. BRUTOMARGE te laag:
-   - STAP A: Is werkelijk% < sectornorm_gem%? Zo nee → NIET rapporteren, stop.
+   - STAP A: Is werkelijk% STRIKT KLEINER DAN sectornorm_gem%? Zo nee → NIET rapporteren, stop.
    - STAP B: verschil = sectornorm_gem% - werkelijk% (als decimaal)
    - STAP C: impact = verschil × omzet → afronden op €100
-   - Voorbeeld: norm_gem=52%, werkelijk=49,7%, omzet=€1.435.800
-     → 0,023 × 1.435.800 = 33.023 → € 33.000
+   - Voorbeeld: norm_gem=52%, werkelijk=49,7%, omzet=€1.435.800 → 0,023 × 1.435.800 = 33.023 → € 33.000
 
 4. DEBITEURENDAGEN te hoog:
    - STAP A: Is werkelijk_dagen STRIKT GROTER dan sectornorm_max_dagen? Zo nee → DIT PUNT VOLLEDIG WEGLATEN. Geen titel, geen tekst, geen bedrag.
-   - Installatietechniek sectornorm_max = 50 dagen. Werkelijk=50 → 50 is NIET groter dan 50 → punt WEGLATEN.
-   - Werkelijk=51 → 51 is groter dan 50 → punt WEL rapporteren.
-   - STAP B (alleen als werkelijk strikt > norm_max): impact = (werkelijk - norm_max) / 365 × omzet → afronden op €100
-   - Voorbeeld: 65 dgn, norm_max=50, omzet=€1.435.800
-     → 15/365 × 1.435.800 = 59.000 → € 59.000
+   - Installatietechniek: norm_max = 50 dagen. Werkelijk=50 → WEGLATEN. Werkelijk=51 → rapporteren.
+   - STAP B (alleen als strikt >): impact = (werkelijk - norm_max) / 365 × omzet → afronden op €100
 
 5. NETTORESULTAAT te laag:
-   - STAP A: Bereken: is werkelijk% STRIKT KLEINER DAN sectornorm_min%?
-   - Installatietechniek sectornorm_min = 5,0%.
-   - 5,1% < 5,0% → ONWAAR → dit punt bestaat NIET. Geen titel. Geen tekst. Geen zin. Niets.
-   - 4,9% < 5,0% → WAAR → punt rapporteren met impact = (0,05 - 0,049) × omzet
-   - HET IS VERBODEN om tekst te schrijven over nettoresultaat als werkelijk% >= sectornorm_min%.
-   - "Net voldoende", "ruimte voor verbetering", "zit aan de grens" zijn VERBODEN als werkelijk% >= sectornorm_min%.
-   - STAP B (alleen als werkelijk% strikt < sectornorm_min%): impact = (sectornorm_min% - werkelijk%) × omzet
+   - STAP A: Is werkelijk% STRIKT KLEINER DAN sectornorm_min%? Zo nee → DIT PUNT BESTAAT NIET. Geen titel, geen tekst, niets.
+   - STAP B (alleen als strikt <): impact = (sectornorm_min% - werkelijk%) × omzet → afronden op €100
 
 6. TOTAAL VERBETERPOTENTIEEL:
-   - Tel ALLEEN de impactbedragen op van punten die daadwerkelijk gerapporteerd zijn.
-   - Schrijf de som expliciet op vóór invullen: bijv. €26.600 + €33.000 = €59.600
-   - Vul dit bedrag in. Geen andere getallen verzinnen.
+   - Tel ALLEEN impactbedragen op van punten die daadwerkelijk gerapporteerd zijn.
+   - Schrijf de optelling expliciet op: bijv. € 26.600 + € 33.000 = € 59.600
+   - Gebruik uitsluitend dit berekende bedrag. Nooit een ander getal.
 
-STRIKTE BEPERKING BEVINDINGEN:
-- Sectie "Waar gaat geld verloren?" bevat UITSLUITEND bevindingen uit de vier rekenregels hierboven: solvabiliteit, brutomarge, debiteurendagen, nettoresultaat.
-- VERBODEN: personeelskosten, liquiditeit, omzetgroei, werkkapitaal, of enig ander onderwerp dat niet in de vier rekenregels staat.
-- Elke bevinding MOET een impactbedrag hebben. Een bevinding zonder eurobedrag mag NOOIT in het rapport staan.
-- Als een indicator binnen de sectornorm valt → die indicator bestaat niet in sectie 2. Geen tekst, geen opmerking, geen "zit aan de grens".
+BEVINDINGEN — STRIKTE BEPERKING:
+- Sectie bevindingen bevat UITSLUITEND resultaten uit rekenregels 2, 3, 4 en 5.
+- Elke bevinding MOET een impactbedrag hebben uit de rekenregels.
+- Indicator binnen sectornorm → bestaat niet in bevindingen. Geen tekst, geen opmerking.
+
+ACTIEPUNTEN — ALTIJD INVULLEN:
+- Voor elke gerapporteerde bevinding MOET een concreet actiepunt staan.
+- Actiepunt bevat: wat, wanneer (termijn in dagen/weken), verwacht resultaat in euro's.
+- Minimaal 1 actiepunt, ook als er maar één bevinding is.
+- Nooit "Geen actiepunten" schrijven.
 
 SIGNAALCODES:
-   - ✅ = binnen of boven sectornorm
-   - ⚠ = licht onder sectornorm (0–5 procentpunt)
-   - 🔴 = ruim onder sectornorm (>5 procentpunt)
+- ✅ = binnen of boven sectornorm
+- ⚠ = licht onder sectornorm (0–5 procentpunt)
+- 🔴 = ruim onder sectornorm (>5 procentpunt)
 
-SECTORNORMEN (gebaseerd op Nederlandse branchebenchmarks 2024):
+SECTORNORMEN (Nederlandse branchebenchmarks 2024):
 
 Installatietechniek:
   Brutomarge: 45–60% (gemiddeld 52%) | Nettoresultaat: 5–12% | Solvabiliteit: 30–45%
-  Personeelskosten: 25–35% van omzet | Debiteurendagen: 30–50 dgn | Kostprijs montage-uur: €83–100
+  Personeelskosten: 25–35% van omzet | Debiteurendagen: 30–50 dgn
 
 Bouw & Aannemerij:
-  Brutomarge: 38–50% (gemiddeld 43,5% — bron CBS/Firmfocus) | Nettoresultaat: 8–14% | Solvabiliteit: 30–45%
+  Brutomarge: 38–50% (gemiddeld 43,5%) | Nettoresultaat: 8–14% | Solvabiliteit: 30–45%
   Personeelskosten: 18–25% van omzet | Debiteurendagen: 30–55 dgn
 
 Groothandel:
@@ -190,15 +186,10 @@ ICT:
   Brutomarge: 45–70% | Nettoresultaat: 8–18% | Solvabiliteit: 30–55%
   Personeelskosten: 40–60% van omzet | Debiteurendagen: 30–45 dgn
 
-Algemeen MKB (fallback bij onbekende sector):
+Algemeen MKB (fallback):
   Brutomarge: 30–50% | Nettoresultaat: 5–10% | Solvabiliteit: 25–40%
-  Personeelskosten: 30–50% van omzet | Debiteurendagen: 30–45 dgn
+  Personeelskosten: 30–50% van omzet | Debiteurendagen: 30–45 dgn`;
 
-- Debiteurendagen: 30 dgn = goed, 45 dgn = acceptabel, >60 dgn = risico.
-- Solvabiliteit: onder sectornorm = aandacht, >sectornorm bovengrens = sterk.
-- Nettoresultaat: >sectorgemiddelde = gezond, helft van norm = matig, negatief = kritiek.`;
-
-      // Gebruik altijd minimaal het gevraagde aantal tokens, met een minimum van 1500
       const effectieve_tokens = Math.max(max_tokens, 1500);
 
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
