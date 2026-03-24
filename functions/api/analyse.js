@@ -120,8 +120,10 @@ Voer elke berekening expliciet uit vóór je het bedrag invult. Rond af op € 1
      → 0,023 × 1.435.800 = 33.023 → € 33.000
 
 4. DEBITEURENDAGEN te hoog:
-   - STAP A: Is werkelijk_dagen > sectornorm_max_dagen? Zo nee → NIET rapporteren, stop.
-   - STAP B: impact = (werkelijk - norm_max) / 365 × omzet → afronden op €100
+   - STAP A: Is werkelijk_dagen STRIKT GROTER dan sectornorm_max_dagen? Zo nee → DIT PUNT VOLLEDIG WEGLATEN. Geen titel, geen tekst, geen bedrag.
+   - Installatietechniek sectornorm_max = 50 dagen. Werkelijk=50 → 50 is NIET groter dan 50 → punt WEGLATEN.
+   - Werkelijk=51 → 51 is groter dan 50 → punt WEL rapporteren.
+   - STAP B (alleen als werkelijk strikt > norm_max): impact = (werkelijk - norm_max) / 365 × omzet → afronden op €100
    - Voorbeeld: 65 dgn, norm_max=50, omzet=€1.435.800
      → 15/365 × 1.435.800 = 59.000 → € 59.000
 
