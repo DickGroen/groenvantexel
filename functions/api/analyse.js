@@ -89,8 +89,8 @@ Installatietechniek:
   Personeelskosten: 25–35% van omzet | Debiteurendagen: 30–50 dgn | Kostprijs montage-uur: €83–100
 
 Bouw & Aannemerij:
-  Brutomarge: 15–28% | Nettoresultaat: 3–8% | Solvabiliteit: 30–45%
-  Personeelskosten: 30–45% van omzet | Debiteurendagen: 30–55 dgn
+  Brutomarge: 38–50% (gemiddeld 43,5% — bron CBS/Firmfocus) | Nettoresultaat: 8–14% | Solvabiliteit: 30–45%
+  Personeelskosten: 18–25% van omzet | Debiteurendagen: 30–55 dgn
 
 Groothandel:
   Brutomarge: 15–25% | Nettoresultaat: 2–6% | Solvabiliteit: 25–40%
