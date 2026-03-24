@@ -139,6 +139,12 @@ Voer elke berekening expliciet uit vóór je het bedrag invult. Rond af op € 1
    - Schrijf de som expliciet op vóór invullen: bijv. €26.600 + €33.000 = €59.600
    - Vul dit bedrag in. Geen andere getallen verzinnen.
 
+STRIKTE BEPERKING BEVINDINGEN:
+- Sectie "Waar gaat geld verloren?" bevat UITSLUITEND bevindingen uit de vier rekenregels hierboven: solvabiliteit, brutomarge, debiteurendagen, nettoresultaat.
+- VERBODEN: personeelskosten, liquiditeit, omzetgroei, werkkapitaal, of enig ander onderwerp dat niet in de vier rekenregels staat.
+- Elke bevinding MOET een impactbedrag hebben. Een bevinding zonder eurobedrag mag NOOIT in het rapport staan.
+- Als een indicator binnen de sectornorm valt → die indicator bestaat niet in sectie 2. Geen tekst, geen opmerking, geen "zit aan de grens".
+
 SIGNAALCODES:
    - ✅ = binnen of boven sectornorm
    - ⚠ = licht onder sectornorm (0–5 procentpunt)
