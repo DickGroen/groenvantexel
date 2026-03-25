@@ -1317,16 +1317,40 @@ const Diensten = {
   },
 
   async aanvragen(id, dienst, naam) {
-    UI.toast('Aanvraag verstuurd — wij nemen contact op');
+    // TODO: vervang door Mollie betaallink zodra KvK + Mollie actief zijn
+    // Gewenste flow: klant klikt -> betaallink -> na betaling automatisch type wijzigen -> bevestigingsmail
+    const bedrijf = naam||sessie?.naam||'onbekend';
     try {
       await Email.stuur({
-        bedrijf: naam||sessie?.naam||'onbekend',
+        bedrijf,
         periode: dienst+' aanvraag',
-        name: naam||sessie?.naam||'Klant',
+        name: bedrijf,
         time: UI.datumNL(),
-        message: 'Klant '+(naam||sessie?.naam||'onbekend')+' vraagt aan: '+dienst+' ('+id+')'
+        message: 'AANVRAAG: '+bedrijf+' wil afnemen: '+dienst+' ('+id+')\nLevering binnen 5 werkdagen na betaling.'
       });
     } catch(e){ console.warn('Email fout:',e); }
+    // Toon bevestigingsvenster
+    Diensten._toonBevestiging(dienst);
+  },
+
+  _toonBevestiging(dienst) {
+    const bestaand=document.getElementById('dienst-modal');
+    if(bestaand) bestaand.remove();
+    const modal=document.createElement('div');
+    modal.id='dienst-modal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML='<div style="background:#fff;border-radius:14px;padding:32px 28px;max-width:420px;width:100%;text-align:center;">'
+      +'<div style="font-size:40px;margin-bottom:16px;">📋</div>'
+      +'<div style="font-family:DM Serif Display,serif;font-size:20px;color:#1F4E79;margin-bottom:10px;">Aanvraag ontvangen</div>'
+      +'<div style="font-size:14px;color:#555;line-height:1.7;margin-bottom:8px;">Uw aanvraag voor <strong>'+UI.esc(dienst)+'</strong> is ontvangen.</div>'
+      +'<div style="font-size:14px;color:#555;line-height:1.7;margin-bottom:20px;">Wij sturen u binnen 1 werkdag een betaallink. Na ontvangst van de betaling ontvangt u het rapport binnen <strong>5 werkdagen</strong>.</div>'
+      +'<div style="font-size:13px;color:#888;margin-bottom:20px;">GroenvanTexel &nbsp;·&nbsp; 0642152499</div>'
+      +'<button id="dienst-sluiten" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:11px 32px;font-size:14px;font-weight:700;cursor:pointer;">Sluiten</button>'
+      +'</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{ if(e.target===modal) modal.remove(); });
+    const sluitBtn=document.getElementById('dienst-sluiten');
+    if(sluitBtn) sluitBtn.addEventListener('click',()=>modal.remove());
   },
 
   adminInfo(id) {
