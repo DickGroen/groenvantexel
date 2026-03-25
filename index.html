@@ -711,6 +711,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     </div>
   </div>
 
+  <div id="view-aanvragen" class="view">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Aanvragen</h2>
+    <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Openstaande dienstenaanvragen van klanten</p>
+    <div id="aanvragen-lijst"></div>
+  </div>
+
   <div id="view-instellen" class="view">
     <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:24px;">Instellingen</h2>
     <div class="card" style="max-width:520px;">
@@ -1507,6 +1513,7 @@ const Nav={
         {id:'nb-rapport',   lbl:'Rapport',       act:'Nav.ga("rapport")'},
         {id:'nb-subsidie',  lbl:'🎯 Subsidie',   act:'Nav.ga("subsidie")'},
         {id:'nb-monitoring',lbl:'📅 Monitoring', act:'Nav.ga("monitoring")'},
+        {id:'nb-aanvragen', lbl:'📋 Aanvragen',  act:'Nav.ga("aanvragen")'},
         {id:'nb-instellen', lbl:'⚙ Instellen',  act:'Nav.ga("instellen")'},
       ].forEach(function(it){
         var btn=document.createElement('button');
@@ -1586,6 +1593,7 @@ const Nav={
       ['kvk','btw','adres','website'].forEach(function(k){var el=$('cfg-'+k);if(el)el.value=Store.getCfg(k,'');});
     }
     if(naam==='subsidie')Subsidie.laad();
+    if(naam==='aanvragen')Aanvragen.laad();
     // Monitoring aanvraagknop: klikbaar voor klant, decoratief voor admin
     setTimeout(()=>{document.querySelectorAll('.mon-aanvraag-knop').forEach(k=>{if(sessie?.type!=='klant'){k.style.cursor='default';k.style.pointerEvents='none';k.style.opacity='0.7';}else{k.style.cursor='pointer';k.style.pointerEvents='';k.style.opacity='';}});},100);
 
@@ -8267,6 +8275,57 @@ document.addEventListener('click', e => {
 ['click','keydown','scroll','mousemove'].forEach(ev=>
   document.addEventListener(ev,()=>{if(sessie)Auth._resetInactiviteitTimer();},{passive:true})
 );
+
+
+// ===== AANVRAGEN =====
+const _dienstTab={
+  '👥 Personeelskosten Stresstest':'personeel-klant',
+  '📐 Offerte & Marge Stresstest':'offerte-klant',
+  '💸 Cashflow Stresstest':'cashflow-klant',
+  '📋 Debiteuren Stresstest':'debiteuren-klant',
+  '🧾 Fiscale Optimalisatie Scan':'fiscaal-klant',
+  '🛒 Inkoopanalyse':'inkoop-klant',
+  '🛡 Verzekerings Scan':'verzeker-klant',
+  '🏷 Exit & Waardering Scan':'exit-klant',
+  '🔍 Financiële Basisscan (€397)':'basisscan-klant',
+};
+const Aanvragen={
+  async laad(){
+    const el=$('aanvragen-lijst');
+    if(!el)return;
+    el.innerHTML='<p style="color:var(--mid);font-size:13px;">Laden...</p>';
+    const kl=await Store.getKlanten();
+    let rijen=[];
+    for(const k of kl){
+      const lijst=await Store.getAanvragen(k.naam);
+      for(const a of lijst){
+        rijen.push({klant:k.naam,dienst:a.dienst||a,datum:a.datum||''});
+      }
+    }
+    if(!rijen.length){
+      el.innerHTML='<div class="card"><p style="color:var(--mid);font-size:14px;">Geen openstaande aanvragen.</p></div>';
+      return;
+    }
+    rijen.sort((a,b)=>b.datum.localeCompare(a.datum));
+    const rows=rijen.map(r=>{
+      const tab=_dienstTab[r.dienst]||'rapport';
+      const datum=r.datum?'<span style="font-size:11px;color:var(--light);">'+r.datum+'</span>':'';
+      return '<tr>'
+        +'<td style="font-weight:600;">'+UI.esc(r.klant)+'</td>'
+        +'<td>'+UI.esc(r.dienst)+'</td>'
+        +'<td>'+datum+'</td>'
+        +'<td><button onclick="Aanvragen.naarKlant(\'' +r.klant.replace(/'/g,"\\'")+ '\',\''+tab+'\')\" style="background:var(--blue);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">'
+        +'📋 Open bij klant</button></td>'
+        +'</tr>';
+    }).join('');
+    el.innerHTML='<div class="card"><table class="tbl"><thead><tr><th>Klant</th><th>Dienst</th><th>Datum</th><th>Actie</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  },
+  naarKlant(klantNaam,tab){
+    _adminKlant=klantNaam;
+    _adminPeriode=null;
+    Nav.gaRapport(tab);
+  },
+};
 
 (function init(){
   try{emailjs.init(Config.pubkey());}catch{}
