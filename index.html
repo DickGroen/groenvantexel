@@ -359,6 +359,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <div id="cs-validatie" style="display:none;padding:0 4px;"></div>
     <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div></div>
     <!-- Admin notitieveld -->
+    <div id="herleesbox" style="display:none;margin-bottom:12px;">
+      <div class="card" style="background:#FEF9EC;border-color:#F59E0B;">
+        <div class="card-title" style="color:#92400E;">📂 Upload opnieuw uitlezen</div>
+        <p style="font-size:13px;color:#78350F;margin-bottom:12px;">De eerder geüploade PDF opnieuw uitlezen — handig als de cijfers leeg waren (gescande PDF). Dit overschrijft de opgeslagen tekst.</p>
+        <button class="btn" style="background:#F59E0B;color:#fff;" onclick="Rapport.herleesUpload()">🔄 Herleees upload</button>
+        <span id="herlees-status" style="font-size:12px;color:#92400E;margin-left:12px;"></span>
+      </div>
+    </div>
     <div id="admin-notitie-box" style="display:none;margin-bottom:20px;">
       <div class="card">
         <div class="card-title">📝 Interne notitie (alleen zichtbaar voor Groen van Texel)</div>
@@ -2161,6 +2169,7 @@ const Rapport={
       rhEl.appendChild(div);
     }
     // ── PUNT 5: Notitieveld laden ──
+    const herleesBox=document.getElementById('herleesbox');if(herleesBox)herleesBox.style.display='';
     const notitieBox=document.getElementById('admin-notitie-box');
     if(notitieBox){
       const bestaandeNotitie=await Store.getNotitie(_adminKlant);
@@ -2229,6 +2238,7 @@ const Rapport={
   _reset(behoudHeader=false){
     if(!behoudHeader)setHTML('r-header','');
     const nb=document.getElementById('admin-notitie-box');if(nb)nb.style.display='none';
+    const hb=document.getElementById('herleesbox');if(hb)hb.style.display='none';
     hide('ai-box');setTxt('ai-status','');hide('ai-tekst');setTxt('ai-tekst','');
     hide('ai-acties');hide('prev-box');hide('bs-prev-box');hide('cs-prev-box');hide('ds-prev-box');hide('om-prev-box');hide('fiscaal-prev-box');hide('inkoop-prev-box');hide('verzeker-prev-box');hide('personeel-prev-box');hide('exit-prev-box');hide('klant-eenpager');hide('klant-basisscan');hide('klant-cashflow');hide('klant-debiteuren');hide('klant-offerte');hide('klant-fiscaal');hide('klant-inkoop');hide('klant-verzeker');hide('klant-personeel');hide('klant-exit');hide('klant-subsidiescan');hide('r-leeg');
   },
@@ -8325,6 +8335,37 @@ document.addEventListener('click', e => {
   document.addEventListener(ev,()=>{if(sessie)Auth._resetInactiviteitTimer();},{passive:true})
 );
 
+
+// ===== HERLEES UPLOAD =====
+Rapport.herleesUpload = async function(){
+  if(!_adminKlant||!_adminPeriode){UI.warn('Selecteer eerst klant en periode');return;}
+  const status=$('herlees-status');
+  // Maak een tijdelijk file input
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.pdf,.xlsx,.xls';
+  inp.onchange=async()=>{
+    const file=inp.files?.[0];
+    if(!file)return;
+    if(status)status.textContent='⏳ Bezig met uitlezen...';
+    try{
+      const tekst=await Bestanden.lees(file);
+      if(!tekst||tekst.startsWith('[')){
+        if(status)status.textContent='❌ Kon bestand niet uitlezen: '+tekst;
+        return;
+      }
+      // Haal bestaande upload op en update pdfTekst
+      const alleUpl=await Store.getUploads();
+      const upload=alleUpl.find(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
+      if(!upload){if(status)status.textContent='❌ Geen upload gevonden voor deze klant/periode';return;}
+      await Store.upsertUpload({...upload,pdfTekst:tekst.substring(0,80000)});
+      if(status)status.textContent='✅ Upload bijgewerkt — '+tekst.length+' tekens uitgelezen. Genereer nu het rapport.';
+      UI.toast('Upload opnieuw uitgelezen — je kunt nu het rapport genereren');
+    }catch(e){
+      if(status)status.textContent='❌ Fout: '+e.message;
+    }
+  };
+  inp.click();
+};
 
 // ===== AANVRAGEN =====
 const _dienstTab={
