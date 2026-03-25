@@ -8343,35 +8343,31 @@ document.addEventListener('click', e => {
 Rapport.herleesUpload = async function(){
   if(!_adminKlant||!_adminPeriode){UI.warn('Selecteer eerst klant en periode');return;}
   const status=$('herlees-status');
-  // Meerdere bestanden selecteren (V&W + balans etc.)
   const inp=document.createElement('input');
   inp.type='file';inp.accept='.pdf,.xlsx,.xls';inp.multiple=true;
-  inp.onchange=async()=>{
-    const files=[...inp.files||[]];
+  inp.onchange=async function(){
+    const files=Array.from(inp.files||[]);
     if(!files.length)return;
-    if(status)status.textContent='⏳ '+files.length+' bestand(en) uitlezen...';
+    if(status)status.textContent='Bezig: '+files.length+' bestand(en) uitlezen...';
     try{
-      let pdfTekst='';
-      for(let i=0;i<files.length;i++){
-        const file=files[i];
-        if(status)status.textContent='⏳ Bestand '+(i+1)+' van '+files.length+' — '+file.name;
-        const tekst=await Bestanden.lees(file);
-        pdfTekst+='
-=== '+file.name+' ===
-'+tekst+'
-';
+      var pdfTekst='';
+      for(var i=0;i<files.length;i++){
+        var file=files[i];
+        if(status)status.textContent='Bezig: bestand '+(i+1)+' van '+files.length+' — '+file.name;
+        var tekst=await Bestanden.lees(file);
+        pdfTekst+='\n=== '+file.name+' ===\n'+tekst+'\n';
       }
       if(!pdfTekst.trim()){
-        if(status)status.textContent='❌ Geen tekst uitgelezen';return;
+        if(status)status.textContent='Fout: geen tekst uitgelezen';return;
       }
-      const alleUpl=await Store.getUploads();
-      const upload=alleUpl.find(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
-      if(!upload){if(status)status.textContent='❌ Geen upload gevonden voor deze klant/periode';return;}
-      await Store.upsertUpload({...upload,pdfTekst:pdfTekst.substring(0,80000)});
-      if(status)status.textContent='✅ '+files.length+' bestand(en) uitgelezen — '+pdfTekst.length+' tekens opgeslagen. Genereer nu het rapport.';
-      UI.toast('Upload opnieuw uitgelezen — je kunt nu het rapport genereren');
+      var alleUpl=await Store.getUploads();
+      var upload=alleUpl.find(function(u){return u.bedrijf===_adminKlant&&u.periode===_adminPeriode;});
+      if(!upload){if(status)status.textContent='Fout: geen upload gevonden voor deze klant/periode';return;}
+      await Store.upsertUpload(Object.assign({},upload,{pdfTekst:pdfTekst.substring(0,80000)}));
+      if(status)status.textContent='Klaar: '+files.length+' bestand(en) uitgelezen ('+pdfTekst.length+' tekens). Genereer nu het rapport.';
+      UI.toast('Upload opnieuw uitgelezen — genereer nu het rapport');
     }catch(e){
-      if(status)status.textContent='❌ Fout: '+e.message;
+      if(status)status.textContent='Fout: '+e.message;
     }
   };
   inp.click();
