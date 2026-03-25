@@ -7767,7 +7767,6 @@ const Monitoring = {
       const sector=klantObj?.sector||'—';
       const maandNaam=new Date(this._maand+'-01').toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
       const klanttypeMon=klantObj?.klantType||klantObj?.klanttype||'monitoring';
-      const aantalRapportenMon=gepubOverzichten.length; // al berekend hierboven
 
       const bsRefTekst=bsRef?'BASISSCAN REFERENTIE:\n'+bsRef.replace(/<[^>]+>/g,' ').substring(0,3000):'';
 
@@ -7803,6 +7802,7 @@ const Monitoring = {
       // Historische data voor trendvergelijking + narratief geheugen
       const alleOverzichten=await Store.getMaandoverzichten(this._klant);
       const gepubOverzichten=alleOverzichten.filter(o=>o.gepubliceerd&&o.periode!==this._maand).sort((a,b)=>b.periode.localeCompare(a.periode));
+      const aantalRapportenMon=gepubOverzichten.length;
       const isEersteMaand=gepubOverzichten.length===0;
 
       let trendContext='';
