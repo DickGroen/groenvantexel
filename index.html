@@ -1257,7 +1257,7 @@ const Diensten = {
       </div>`;
     }
 
-    html+='<h2 style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--blue);margin-bottom:6px;">Wat kunnen wij nog meer voor u doen?</h2>';
+    html+='<h2 style="font-family:DM Serif Display,serif;font-size:24px;color:var(--blue);margin-bottom:6px;">Wat kunnen wij nog meer voor u doen?</h2>';
     html+='<p style="color:var(--mid);font-size:14px;margin-bottom:28px;">Groen van Texel biedt financiële analyses en scans voor het MKB. Hieronder een overzicht afgestemd op uw bedrijfsgrootte. Bel of mail ons voor meer informatie.</p>';
 
     // Klein MKB sectie
@@ -1503,8 +1503,10 @@ const Monitoring = {
     const sectie=naam=>{const re=new RegExp('=='+naam+'==([\s\S]*?)(?===|$)','i');return(tekst.match(re)||[])[1]?.trim()||'';};
     const signalen=sectie('SIGNALEN').split('\n').filter(l=>l.includes('|')&&/SIGNAAL/i.test(l)).map(l=>{
       const parts=l.replace(/^SIGNAAL_\d+:/i,'').split('|').map(s=>s.trim());
-      const st=(parts[1]||'').toLowerCase();const icoon=st.includes('slecht')||st.includes('rood')?'🔴':st.includes('waarschuwing')||st.includes('oranje')?'⚠':'✅';
+      const st=(parts[1]||'').toLowerCase();
+      const icoon=st.includes('slecht')||st.includes('rood')?'rood':st.includes('waarschuwing')||st.includes('oranje')?'waarschuwing':'ok';
       return{naam:parts[0]||'',icoon,waarde:parts[2]||'—',norm:parts[3]||'—',toelichting:parts[4]||''};
+    });
     return{
       samenvatting:sectie('SAMENVATTING'),
       signalen,
@@ -1516,8 +1518,8 @@ const Monitoring = {
   _bouw(tekst,bedrijf,periode,maandNaam,sector) {
     const p=Monitoring._parseer(tekst);
     const datum=UI.datumNL();
-    const icoonKleur=i=>i==='✅'?'#1E8449':i==='🔴'?'#C0392B':'#E67E22';
-    const icoonBg=i=>i==='✅'?'#E8F5E9':i==='🔴'?'#FDECEA':'#FDEBD0';
+    const icoonKleur=i=>{if(i==='ok')return'#1E8449';if(i==='slecht'||i==='rood')return'#C0392B';return'#E67E22';};
+    const icoonBg=i=>{if(i==='ok')return'#E8F5E9';if(i==='slecht'||i==='rood')return'#FDECEA';return'#FDEBD0';};
 
     const signaalHTML=p.signalen.map(s=>`
       <div style="background:${icoonBg(s.icoon)};border-radius:8px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;">
