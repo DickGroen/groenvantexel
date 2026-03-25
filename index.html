@@ -227,6 +227,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
     </div>
     <div id="r-header"></div>
+    <div id="herleesbox" style="display:none;margin-bottom:16px;">
+      <div style="background:#FEF9EC;border:1.5px solid #F59E0B;border-radius:10px;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:20px;">📂</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:2px;">Upload opnieuw uitlezen</div>
+          <div style="font-size:12px;color:#78350F;">Cijfers leeg of gescande PDF? Selecteer de originele PDF om opnieuw uit te lezen.</div>
+        </div>
+        <button class="btn" style="background:#F59E0B;color:#fff;white-space:nowrap;" onclick="Rapport.herleesUpload()">🔄 Herlees upload</button>
+        <span id="herlees-status" style="font-size:12px;color:#92400E;"></span>
+      </div>
+    </div>
     <div id="ai-box" style="display:none;" class="ai-box">
       <h3>🤖 AI-analyse — MKB Stresstest Methode™</h3>
       <p>Analyseer de geüploade jaarcijfers en genereer rapporten</p>
@@ -359,14 +370,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <div id="cs-validatie" style="display:none;padding:0 4px;"></div>
     <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div></div>
     <!-- Admin notitieveld -->
-    <div id="herleesbox" style="display:none;margin-bottom:12px;">
-      <div class="card" style="background:#FEF9EC;border-color:#F59E0B;">
-        <div class="card-title" style="color:#92400E;">📂 Upload opnieuw uitlezen</div>
-        <p style="font-size:13px;color:#78350F;margin-bottom:12px;">De eerder geüploade PDF opnieuw uitlezen — handig als de cijfers leeg waren (gescande PDF). Dit overschrijft de opgeslagen tekst.</p>
-        <button class="btn" style="background:#F59E0B;color:#fff;" onclick="Rapport.herleesUpload()">🔄 Herleees upload</button>
-        <span id="herlees-status" style="font-size:12px;color:#92400E;margin-left:12px;"></span>
-      </div>
-    </div>
     <div id="admin-notitie-box" style="display:none;margin-bottom:20px;">
       <div class="card">
         <div class="card-title">📝 Interne notitie (alleen zichtbaar voor Groen van Texel)</div>
