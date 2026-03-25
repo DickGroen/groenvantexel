@@ -2029,11 +2029,11 @@ Groen van Texel
   },
 };
 
-let _adminKlant=null,_adminPeriode=null;
+let _adminKlant=null,_adminPeriode=null,_adminDienst=null;
 
 const Rapport={
   adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.ga('rapport');},
-  async laadVoorAdmin(){Rapport._reset();show('admin-selectie');await Rapport._vulKlantDropdown();if(_adminKlant)await Rapport.onKlantSelect();},
+  async laadVoorAdmin(){Rapport._reset();show('admin-selectie');await Rapport._vulKlantDropdown();if(_adminKlant)await Rapport.onKlantSelect();if(_adminDienst){const dienstKnopMap={"personeel-klant":"btn-personeel","offerte-klant":"btn-offerte","cashflow-klant":"btn-cashflow","debiteuren-klant":"btn-debiteuren","fiscaal-klant":"btn-fiscaal","inkoop-klant":"btn-inkoop","verzeker-klant":"btn-verzeker","exit-klant":"btn-exit"};const knopId=dienstKnopMap[_adminDienst];if(knopId){const k=$(knopId);if(k){k.scrollIntoView({behavior:"smooth",block:"center"});k.style.outline="3px solid #F59E0B";setTimeout(()=>{k.style.outline="";},3000);}}_adminDienst=null;}},
   async _vulKlantDropdown(){
     const sel=$('r-klant');if(!sel)return;
     const kl=await Store.getKlanten();
@@ -8321,9 +8321,8 @@ const Aanvragen={
     el.innerHTML='<div class="card"><table class="tbl"><thead><tr><th>Klant</th><th>Dienst</th><th>Datum</th><th>Actie</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   },
   naarKlant(klantNaam,tab){
-    _adminKlant=klantNaam;
-    _adminPeriode=null;
-    Nav.ga('rapport');
+    _adminDienst=tab;
+    Rapport.adminNaar(klantNaam);
   },
 };
 
