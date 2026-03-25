@@ -7545,7 +7545,11 @@ ${uploads[0].pdfTekst || ''}`;
   async reset() {
     if (!_adminKlant || !_adminPeriode) return;
     if (!confirm('Cashflow Stresstest verwijderen voor ' + _adminKlant + '?')) return;
-    await Store.delCashflowStresstest(_adminKlant + '-' + _adminPeriode); hide('cs-prev-box'); UI.toast('Cashflow Stresstest verwijderd');
+    await Store.delCashflowStresstest(_adminKlant + '-' + _adminPeriode);
+    hide('cs-prev-box');
+    setHTML('cs-prev-inhoud','');
+    const csKnop=$('btn-cashflow');if(csKnop){csKnop.disabled=false;csKnop.textContent='💸 Genereer Cashflow Stresstest';csKnop.style.display='';}
+    UI.toast('Cashflow Stresstest verwijderd — klik op Genereer om opnieuw te maken');
   },
 
   downloadPDF() {
