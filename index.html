@@ -4012,7 +4012,52 @@ function laadScript(src){if(_scripts[src])return _scripts[src];_scripts[src]=new
 
 const Bestanden={
   async lees(file){if(!file?.name)return '[Ongeldig bestand]';const delen=file.name.split('.');const ext=delen.length>1?(delen.pop()||'').toLowerCase():'';if(ext==='pdf')return Bestanden.leesPDF(file);if(ext==='xlsx'||ext==='xls')return Bestanden.leesExcel(file);return '[formaat niet ondersteund: '+(ext?'.'+ext:'geen extensie')+']';},
-  async leesPDF(file){try{if(!window.pdfjsLib)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[PDF is leeg]';const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;let t='';for(let i=1;i<=Math.min(pdf.numPages,12);i++){const pg=await pdf.getPage(i);const c=await pg.getTextContent();t+='\n--- Pagina '+i+' ---\n'+c.items.map(x=>x.str).join(' ');}return t.trim()||'[Geen tekst gevonden]';}catch(e){return '[PDF leesfout: '+e.message+']';}},
+  async leesPDF(file){
+    // Stap 1: probeer tekst extraheren via pdf.js
+    try{
+      if(!window.pdfjsLib)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const buf=await file.arrayBuffer();
+      if(!buf||buf.byteLength===0)return '[PDF is leeg]';
+      const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+      let t='';
+      for(let i=1;i<=Math.min(pdf.numPages,12);i++){
+        const pg=await pdf.getPage(i);
+        const c=await pg.getTextContent();
+        t+='\n--- Pagina '+i+' ---\n'+c.items.map(x=>x.str).join(' ');
+      }
+      const tekst=t.trim();
+      if(tekst&&tekst.length>100&&!tekst.includes('[Geen tekst gevonden]'))return tekst;
+    }catch(e){console.warn('pdf.js fout:',e);}
+    // Stap 2: gescande PDF — lees elke pagina als afbeelding via Claude vision
+    try{
+      if(!window.pdfjsLib)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const buf2=await file.arrayBuffer();
+      const pdf2=await window.pdfjsLib.getDocument({data:new Uint8Array(buf2)}).promise;
+      let resultaat='';
+      for(let i=1;i<=Math.min(pdf2.numPages,6);i++){
+        const pg=await pdf2.getPage(i);
+        const vp=pg.getViewport({scale:2});
+        const canvas=document.createElement('canvas');
+        canvas.width=vp.width;canvas.height=vp.height;
+        const ctx=canvas.getContext('2d');
+        await pg.render({canvasContext:ctx,viewport:vp}).promise;
+        const b64=canvas.toDataURL('image/jpeg',0.85).split(',')[1];
+        const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',max_tokens:2000,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+            {type:'text',text:'Dit is pagina '+i+' van een financieel document (V&W of balans). Lees alle cijfers, labels en bedragen nauwkeurig over als platte tekst. Behoud de structuur. Geef alleen de tekst terug, geen uitleg.'}
+          ]}]
+        })});
+        const d=await resp.json();
+        const tekst=d.content?.find(b=>b.type==='text')?.text||'';
+        if(tekst)resultaat+='\n--- Pagina '+i+' (gescand) ---\n'+tekst;
+      }
+      return resultaat.trim()||'[Scan kon niet worden uitgelezen]';
+    }catch(e){return '[PDF leesfout: '+e.message+']';}
+  },
   async leesExcel(file){try{if(!window.XLSX)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[Excel: leeg]';const wb=window.XLSX.read(new Uint8Array(buf),{type:'array'});if(!wb.SheetNames.length)return '[Excel: geen tabbladen]';return wb.SheetNames.map(n=>'\n--- '+n+' ---\n'+window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:' | '})).join('');}catch(e){return '[Excel leesfout: '+e.message+']';}},
   koppelListeners(){[['f-vw1','f-vw1-naam'],['f-balans1','f-balans1-naam'],['f-vw2','f-vw2-naam'],['f-balans2','f-balans2-naam'],['f-vw3','f-vw3-naam'],['f-balans3','f-balans3-naam']].forEach(([inp,nm])=>{const el=$(inp);if(!el)return;el.addEventListener('change',()=>setTxt(nm,el.files?.[0]?'✔ '+el.files[0].name:''));});},
 };
