@@ -3831,7 +3831,7 @@ const Formulier={
   async bestelDienst(knop, dienst){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     if(knop){knop.disabled=true;knop.textContent='✅ Aanvraag ontvangen';knop.style.opacity='0.7';}
-    UI.toast('Aanvraag ontvangen — Groen van Texel neemt contact met u op');
+    UI.toast('Aanvraag ontvangen — na betaling ontvangt u het rapport binnen 5 werkdagen');
     // Sla aanvraag op in database
     await Store.addAanvraag(sessie.naam||'onbekend', dienst);
     // Mail naar admin
@@ -3840,7 +3840,7 @@ const Formulier={
     const klEmail2=sessie?.email||(await Store.getKlanten().then(kl=>kl.find(k=>k.naam===sessie?.naam)?.email||'').catch(()=>''));
     if(klEmail2){
       try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:dienst,name:sessie.naam||'Klant',time:UI.datumNL(),to_email:klEmail2,
-        message:(function(){var lnk=Config.getBetaallink(dienst);var br=lnk&&!lnk.startsWith('BETAALLINK')?'\n\n✅ Betaal direct ('+lnk+')\n\nNa betaling starten wij direct.':'\n\nGroen van Texel neemt binnen 1 werkdag contact op voor de betaling.';return 'Beste '+sessie.naam+',\n\nBedankt voor uw aanvraag van de '+dienst+'.'+br+'\n\nNa betaling ontvangt u het rapport binnen 3-5 werkdagen.\n\nVragen? Bel 06 4215 2499\n\nMet vriendelijke groet,\nGroen van Texel';})(),
+        message:(function(){var lnk=Config.getBetaallink(dienst);var br=lnk&&!lnk.startsWith('BETAALLINK')?'\n\n✅ Betaal direct ('+lnk+')\n\nNa betaling starten wij direct.':'\n\nNa betaling ontvangt u het rapport binnen 5 werkdagen.';return 'Beste '+sessie.naam+',\n\nBedankt voor uw aanvraag van de '+dienst+'.'+br+'\n\nVragen? Bel 06 4215 2499\n\nMet vriendelijke groet,\nGroen van Texel';})(),
       });}catch(e){console.warn('Bevestiging dienst:',e);}
     }
   },
