@@ -228,14 +228,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     </div>
     <div id="r-header"></div>
     <div id="herleesbox" style="display:none;margin-bottom:16px;">
-      <div style="background:#FEF9EC;border:1.5px solid #F59E0B;border-radius:10px;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-        <div style="font-size:20px;">📂</div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:2px;">Upload opnieuw uitlezen</div>
-          <div style="font-size:12px;color:#78350F;">Cijfers leeg of gescande PDF? Selecteer de originele PDF om opnieuw uit te lezen.</div>
+      <div style="background:#FEF9EC;border:1.5px solid #F59E0B;border-radius:10px;padding:16px 20px;">
+        <div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:10px;">📂 Upload opnieuw uitlezen — selecteer V&amp;W en/of Balans</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#78350F;margin-bottom:4px;">V&amp;W</div>
+            <label style="display:flex;align-items:center;gap:8px;border:1.5px dashed #F59E0B;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:12px;color:#92400E;background:#fffbeb;">
+              <input type="file" id="herlees-vw" accept=".pdf,.xlsx,.xls" style="display:none;" onchange="document.getElementById('herlees-vw-naam').textContent=this.files[0]?this.files[0].name:'Kies bestand'">
+              📄 <span id="herlees-vw-naam">Kies bestand</span>
+            </label>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#78350F;margin-bottom:4px;">Balans</div>
+            <label style="display:flex;align-items:center;gap:8px;border:1.5px dashed #F59E0B;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:12px;color:#92400E;background:#fffbeb;">
+              <input type="file" id="herlees-balans" accept=".pdf,.xlsx,.xls" style="display:none;" onchange="document.getElementById('herlees-balans-naam').textContent=this.files[0]?this.files[0].name:'Kies bestand'">
+              📄 <span id="herlees-balans-naam">Kies bestand</span>
+            </label>
+          </div>
+          <button class="btn" style="background:#F59E0B;color:#fff;" onclick="Rapport.herleesUpload()">🔄 Herlees</button>
         </div>
-        <button class="btn" style="background:#F59E0B;color:#fff;white-space:nowrap;" onclick="Rapport.herleesUpload()">🔄 Herlees upload</button>
-        <span id="herlees-status" style="font-size:12px;color:#92400E;"></span>
+        <div id="herlees-status" style="font-size:12px;color:#92400E;margin-top:8px;"></div>
       </div>
     </div>
     <div id="ai-box" style="display:none;" class="ai-box">
@@ -8298,34 +8310,29 @@ document.addEventListener('click', e => {
 Rapport.herleesUpload = async function(){
   if(!_adminKlant||!_adminPeriode){UI.warn('Selecteer eerst klant en periode');return;}
   const status=$('herlees-status');
-  const inp=document.createElement('input');
-  inp.type='file';inp.accept='.pdf,.xlsx,.xls';inp.multiple=true;
-  inp.onchange=async function(){
-    const files=Array.from(inp.files||[]);
-    if(!files.length)return;
-    if(status)status.textContent='Bezig: '+files.length+' bestand(en) uitlezen...';
-    try{
-      var pdfTekst='';
-      for(var i=0;i<files.length;i++){
-        var file=files[i];
-        if(status)status.textContent='Bezig: bestand '+(i+1)+' van '+files.length+' — '+file.name;
-        var tekst=await Bestanden.lees(file);
-        pdfTekst+='\n=== '+file.name+' ===\n'+tekst+'\n';
-      }
-      if(!pdfTekst.trim()){
-        if(status)status.textContent='Fout: geen tekst uitgelezen';return;
-      }
-      var alleUpl=await Store.getUploads();
-      var upload=alleUpl.find(function(u){return u.bedrijf===_adminKlant&&u.periode===_adminPeriode;});
-      if(!upload){if(status)status.textContent='Fout: geen upload gevonden voor deze klant/periode';return;}
-      await Store.upsertUpload(Object.assign({},upload,{pdfTekst:pdfTekst.substring(0,80000)}));
-      if(status)status.textContent='Klaar: '+files.length+' bestand(en) uitgelezen ('+pdfTekst.length+' tekens). Genereer nu het rapport.';
-      UI.toast('Upload opnieuw uitgelezen — genereer nu het rapport');
-    }catch(e){
-      if(status)status.textContent='Fout: '+e.message;
+  const vwFile=$('herlees-vw')?.files?.[0]||null;
+  const balansFile=$('herlees-balans')?.files?.[0]||null;
+  const bestanden=[vwFile,balansFile].filter(Boolean);
+  if(!bestanden.length){UI.warn('Selecteer minimaal een V&W of Balans bestand');return;}
+  if(status)status.textContent='Bezig met uitlezen...';
+  try{
+    var pdfTekst='';
+    for(var i=0;i<bestanden.length;i++){
+      var file=bestanden[i];
+      if(status)status.textContent='Bezig: '+(i+1)+' van '+bestanden.length+' - '+file.name;
+      var tekst=await Bestanden.lees(file);
+      pdfTekst+='\n=== '+file.name+' ===\n'+tekst+'\n';
     }
-  };
-  inp.click();
+    if(!pdfTekst.trim()){if(status)status.textContent='Fout: geen tekst uitgelezen';return;}
+    var alleUpl=await Store.getUploads();
+    var upload=alleUpl.find(function(u){return u.bedrijf===_adminKlant&&u.periode===_adminPeriode;});
+    if(!upload){if(status)status.textContent='Fout: geen upload gevonden';return;}
+    await Store.upsertUpload(Object.assign({},upload,{pdfTekst:pdfTekst.substring(0,80000)}));
+    if(status)status.textContent='Klaar: '+bestanden.length+' bestand(en) uitgelezen ('+pdfTekst.length+' tekens). Genereer nu het rapport.';
+    UI.toast('Upload uitgelezen - genereer nu het rapport');
+  }catch(e){
+    if(status)status.textContent='Fout: '+e.message;
+  }
 };
 
 // ===== AANVRAGEN =====
