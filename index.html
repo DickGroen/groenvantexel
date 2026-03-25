@@ -766,7 +766,7 @@ ${uploads[0].pdfTekst||''}
 Genereer de Basisscan EXACT in dit formaat met ==SECTIE== scheidingstekens:
 
 ==SAMENVATTING==
-[3-4 zakelijke zinnen over financiële positie, grootste risico's en verbeterpotentieel]
+[3-4 zakelijke zinnen over financiële positie, grootste risico\'s en verbeterpotentieel]
 Score: XX/100
 Totaal verbeterpotentieel: € XX.XXX
 
@@ -1170,19 +1170,19 @@ const Diensten = {
 
   _alle: [
     {id:'basisscan',     naam:'Financiële Basisscan',        prijs:'€397',   eenheid:'excl. BTW', icon:'📊', kleur:'#1E8449', kleurBg:'#E8F5E9',
-     sub:'Ratio's vs sectornorm — verbeterpotentieel in euro's — concreet actieplan',
+     sub:'Ratio\u2019s vs sectornorm \u2014 verbeterpotentieel in euro\u2019s \u2014 concreet actieplan',
      levering:'Binnen 5 werkdagen', actief:true,
-     beschrijving:'Volledige doorlichting van uw financiële positie. U ziet exact waar geld weglekt en krijgt een concreet actieplan om het terug te halen.',
+     beschrijving:'Volledige doorlichting van uw financiële positie. U ziet exact waar geld weglekt en krijgt een concreet actieplan.',
      sectoren:null},
     {id:'cashflow',      naam:'Cashflow Stresstest',         prijs:'€297',   eenheid:'excl. BTW', icon:'💧', kleur:'#1F4E79', kleurBg:'#D6E4F0',
      sub:'Overleven en plannen — de grootste nachtmerrie voor klein MKB',
      levering:'Binnen 5 werkdagen',
-     beschrijving:'Diepgaande analyse van uw kasstromen, liquiditeitsrisico's en overlevingscapaciteit. Met drie stresstest-scenario's: wat als een grote klant wegvalt, wat als kosten 10% stijgen, wat als betaaltermijnen verlengen.',
+     beschrijving:'Diepgaande analyse van kasstromen, liquiditeitsrisico en overlevingscapaciteit. Met drie stresstest-scenario\u2019s: grote klant wegvalt, kosten stijgen, betaaltermijnen verlengen.',
      sectoren:['Installatietechniek','Bouw & Aannemerij','Transport & Logistiek','Groothandel']},
     {id:'debiteuren',    naam:'Debiteuren Stresstest',       prijs:'€247',   eenheid:'excl. BTW', icon:'📋', kleur:'#C0392B', kleurBg:'#FDECEA',
      sub:'Wie betaalt niet, wat kost dat, hoe lost u het op',
      levering:'Binnen 3 werkdagen',
-     beschrijving:'Analyse van uw debiteurenpositie: welke klanten betalen te laat, wat bindt dit aan werkkapitaal, en een concreet incasso-actieplan met verwacht resultaat in euro's.',
+     beschrijving:'Analyse van uw debiteurenpositie: welke klanten betalen te laat, wat bindt dit aan werkkapitaal, en een concreet incasso-actieplan met verwacht resultaat.',
      sectoren:['Installatietechniek','Bouw & Aannemerij','Zakelijke dienstverlening']},
     {id:'offerte',       naam:'Offerte & Marge Stresstest',  prijs:'€347',   eenheid:'excl. BTW', icon:'📝', kleur:'#E67E22', kleurBg:'#FDEBD0',
      sub:'Weet u wat u werkelijk verdient per klus?',
@@ -1207,7 +1207,7 @@ const Diensten = {
     {id:'inkoop',        naam:'Inkoopanalyse',               prijs:'€347',   eenheid:'excl. BTW', icon:'🛒', kleur:'#E67E22', kleurBg:'#FDEBD0',
      sub:'3 leveranciers heronderhandelen levert direct marge',
      levering:'Binnen 5 werkdagen',
-     beschrijving:'Analyse van uw inkooppatroon: welke leveranciers, welke volumes, welke prijzen. Met een concrete heronderhandelingsstrategie en verwachte margeverbeter in euro's per jaar.',
+     beschrijving:'Analyse van uw inkooppatroon: leveranciers, volumes, prijzen. Met een concrete heronderhandelingsstrategie en verwachte margeverbeter per jaar.',
      sectoren:['Installatietechniek','Groothandel','Bouw & Aannemerij']},
     {id:'verzeker',      naam:'Verzekerings Scan',           prijs:'€247',   eenheid:'excl. BTW', icon:'🛡', kleur:'#1F4E79', kleurBg:'#D6E4F0',
      sub:'Vaak over- of onderverzekerd zonder het te weten',
@@ -1224,8 +1224,8 @@ const Diensten = {
   // Sector-specifiek advies
   _advies: {
     'Installatietechniek': {titel:'Voor installatiebedrijven is cashflow het grootste risico', tekst:'Projectfacturen lopen weken achter, materiaalkosten zijn hoog en opdrachtgevers betalen laat. De Cashflow Stresstest en Offerte & Marge Stresstest zijn het meest relevant.', top:['cashflow','offerte','debiteuren']},
-    'Bouw & Aannemerij':   {titel:'Bouw draait op marges — en die zijn dunner dan u denkt',   tekst:'Projectrisico's, stelposten en inleen vreten aan uw marge. De Offerte & Marge Stresstest en Personeelskosten Stresstest geven het meeste inzicht.', top:['offerte','personeel','cashflow']},
-    'Transport & Logistiek':{titel:'Transport heeft structureel te maken met cashflow en brandstof', tekst:'Lange betaaltermijnen bij grote opdrachtgevers en stijgende brandstofkosten zijn de twee grootste risico's. Begin met de Cashflow Stresstest.', top:['cashflow','debiteuren','fiscaal']},
+    'Bouw & Aannemerij':   {titel:'Bouw draait op marges — en die zijn dunner dan u denkt',   tekst:'Projectrisico\'s, stelposten en inleen vreten aan uw marge. De Offerte & Marge Stresstest en Personeelskosten Stresstest geven het meeste inzicht.', top:['offerte','personeel','cashflow']},
+    'Transport & Logistiek':{titel:'Transport heeft structureel te maken met cashflow en brandstof', tekst:'Lange betaaltermijnen bij grote opdrachtgevers en stijgende brandstofkosten zijn de twee grootste risico\'s. Begin met de Cashflow Stresstest.', top:['cashflow','debiteuren','fiscaal']},
     'Groothandel':          {titel:'Groothandel laat geld liggen in inkoop en debiteuren',      tekst:'Inkoopvolumes zijn groot genoeg om te heronderhandelen. Debiteuren lopen snel op. De Inkoopanalyse en Debiteuren Stresstest leveren direct resultaat.', top:['inkoop','debiteuren','cashflow']},
     'Zakelijke dienstverlening':{titel:'Dienstverleners missen vaak subsidie en fiscale voordelen', tekst:'WBSO, innovatiebox en werkkostenregeling bieden veel mogelijkheden. De Subsidie Scan en Fiscale Optimalisatie Scan betalen zich snel terug.', top:['subsidie','fiscaal','personeel']},
   },
