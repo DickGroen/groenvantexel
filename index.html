@@ -2502,14 +2502,13 @@ JAARCIJFERS:
 ${uploads[0].pdfTekst||''}${!pdfCheckBS.ok?' [WAARSCHUWING: PDF-kwaliteit laag — '+pdfCheckBS.waarschuwingen.join('; ')+'. Maak aannames expliciet in het rapport.]':''}
 
 STRIKTE REKENREGELS VOOR VERBETERPOTENTIEEL:
-Alleen deze vier indicatoren mogen in het verbeterpotentieel en de actiepunten:
+Alleen deze vier indicatoren mogen in WAARDE_POTENTIEEL en ACTIEPUNTEN:
 1. Solvabiliteit: impact = (sectornorm_min% - werkelijk%) x balanstotaal — ALLEEN als werkelijk% < sectornorm_min%
 2. Brutomarge: impact = (sectornormgemiddelde% - werkelijk%) x omzet — ALLEEN als werkelijk% < sectornormgemiddelde%
 3. Debiteurendagen: impact = (werkelijk - norm_max) / 365 x omzet — ALLEEN als werkelijk STRIKT > norm_max
 4. Nettoresultaat: impact = (sectornorm_min% - werkelijk%) x omzet — ALLEEN als werkelijk% STRIKT < sectornorm_min%
-VERBODEN als verbeterpotentieel: kasoptimalisatie, rekening-courant, werkkapitaal, liquiditeit, voorraadbeheer, personeelskosten, uitbesteding, rentelasten.
-Totaal verbeterpotentieel = exacte optelsom van ALLEEN de gerapporteerde rekenregel-bevindingen.
-Het aantal actiepunten = het aantal bevindingen dat onder de norm scoort (kan 1, 2, 3 of 4 zijn).
+VERBODEN als verbeterpotentieel: debiteurenbeheer, kasoptimalisatie, rekening-courant afbouwen, werkkapitaal, liquiditeit, voorraadbeheer, personeelskosten, uitbesteding, rentelasten.
+Totaal verbeterpotentieel = exacte optelsom van ALLEEN de gerapporteerde rekenregel-bevindingen. Niet meer.
 
 Genereer het rapport EXACT in dit formaat:
 
@@ -2517,9 +2516,11 @@ Genereer het rapport EXACT in dit formaat:
 Score: [XX]/100
 Intro: [2 zinnen: kernkarakterisering van de financiële positie]
 Aandachtspunten:
-- [alleen bevindingen uit de vier rekenregels met eurobedrag — GEEN werkkapitaal, liquiditeit of kasoptimalisatie]
+- [aandachtspunt 1 met eurobedrag impact]
+- [aandachtspunt 2 met eurobedrag impact]
+- [aandachtspunt 3 met eurobedrag impact]
 Conclusie: [1 zin: waarschuwing of bevestiging van koers]
-Verbeterpotentieel: € [exacte optelsom van ALLEEN de rekenregel-bevindingen]
+Verbeterpotentieel: € [exacte optelsom van actiepunten 1+2+3]
 
 ==WINSTSTRUCTUUR==
 Brutomarge: [waarde]% | Norm: [norm]% | Trend: [Stabiel/Stijgend/Dalend] [✔/⚠/✗]
@@ -2528,8 +2529,8 @@ Kostenratio: [waarde]% | Norm: [norm]% | Trend: [trend] [✔/⚠/✗]
 Analyse: [2 zinnen interpretatie winststructuur]
 
 ==WERKKAPITAAL==
-Debiteurendagen: [waarde] dgn | Norm: [norm] dgn | Impact: € [bedrag of 0] [✔/⚠/✗]
-Voorraadratio: [waarde] dgn | Norm: [norm] dgn | Impact: € [bedrag of 0] [✔/⚠/✗]
+Debiteurendagen: [waarde] dgn | Norm: [norm] dgn | Impact: € [bedrag] [✔/⚠/✗]
+Voorraadratio: [waarde] dgn | Norm: [norm] dgn | Impact: € [bedrag] [✔/⚠/✗]
 Current ratio: [waarde] | Norm: [norm] | Beoordeling: [tekst] [✔/⚠/✗]
 Liquiditeit_vrij: € [min] – € [max]
 Analyse: [2 zinnen interpretatie werkkapitaal]
@@ -2541,32 +2542,25 @@ Bijzonderheden: [1 zin of "Geen bijzondere kostenposten geconstateerd"]
 Interpretatie: [2 zinnen]
 
 ==WAARDE_POTENTIEEL==
-[Alleen bevindingen uit de vier rekenregels — kan 1 tot 4 bulletpunten zijn, elk: — [omschrijving]: € [bedrag berekend via rekenregel] [concrete actie]]
-Totaal: € [exacte optelsom — niet meer en niet minder]
+[ALLEEN bevindingen uit rekenregels: solvabiliteit, brutomarge, debiteurendagen, nettoresultaat. VERBODEN: debiteurenbeheer, kasoptimalisatie, rekening-courant, werkkapitaal, liquiditeit. Kan 1, 2, 3 of 4 bulletpunten zijn.]
+Totaal: € [exacte optelsom van alleen rekenregel-bevindingen]
 
 ==RISICOS==
 [3 bulletpunten continuïteitsrisico's, elk: — [risico]: [toelichting 1 zin]]
 
 ==ACTIEPUNTEN==
-Één fase per rekenregel-bevinding. Niet meer fasen dan bevindingen. Fase 3 alleen als er drie bevindingen zijn, anders weglaten of als borgingsfase gebruiken zonder eurobedrag.
-Fase1_naam: [naam van bevinding 1]
+VERPLICHT: Genereer EXACT het aantal fasen dat overeenkomt met het aantal bevindingen in WAARDE_POTENTIEEL. Niet meer, niet minder. Als WAARDE_POTENTIEEL 2 bevindingen heeft, genereer alleen Fase1 en Fase2. Fase3 NIET invullen.
+Fase1_naam: [naam van WAARDE_POTENTIEEL bevinding 1]
 Fase1_termijn: 0-30 dagen
-Fase1_resultaat: € [bedrag bevinding 1]
+Fase1_resultaat: € [bedrag van WAARDE_POTENTIEEL bevinding 1]
 Fase1_bullets:
 - [concrete stap 1 specifiek voor deze klant en sector]
 - [concrete stap 2 specifiek voor deze klant en sector]
 
-Fase2_naam: [naam van bevinding 2 — weglaten als er maar 1 bevinding is]
+Fase2_naam: [naam van WAARDE_POTENTIEEL bevinding 2]
 Fase2_termijn: 30-60 dagen
-Fase2_resultaat: € [bedrag bevinding 2]
+Fase2_resultaat: € [bedrag van WAARDE_POTENTIEEL bevinding 2]
 Fase2_bullets:
-- [concrete stap 1 specifiek voor deze klant en sector]
-- [concrete stap 2 specifiek voor deze klant en sector]
-
-Fase3_naam: [naam van bevinding 3 of borgingsfase — weglaten als er maar 1 of 2 bevindingen zijn]
-Fase3_termijn: 60-90 dagen
-Fase3_resultaat: € [bedrag bevinding 3 of leeg als borgingsfase]
-Fase3_bullets:
 - [concrete stap 1 specifiek voor deze klant en sector]
 - [concrete stap 2 specifiek voor deze klant en sector]
 
