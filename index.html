@@ -205,6 +205,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
           <button id="btn-pub" class="btn btn-ghost" style="padding:7px 14px;font-size:12px;" onclick="Rapport.publiceer()">✅ Publiceer naar klant</button>
         </div>
       </div>
+      <div id="pub-status" style="display:none;margin:8px 0;padding:10px 14px;border-radius:6px;font-size:13px;font-weight:600;"></div>
       <div id="prev-inhoud"></div>
     </div>
     <div id="bs-prev-box" style="display:none;margin-bottom:20px;">
@@ -791,15 +792,23 @@ const Rapport={
     $('prev-box')?.scrollIntoView({behavior:'smooth',block:'start'});
   },
   async publiceer(){
-    if(!_adminKlant||!_adminPeriode){UI.warn('Geen klant of periode geselecteerd');return;}
-    const inhoud=$('prev-inhoud');if(!inhoud||!inhoud.innerHTML.trim()){UI.warn('Genereer eerst een 1-pager');return;}
-    setTxt('btn-pub','Bezig...');
+    const status=$('pub-status');
+    const knop=$('btn-pub');
+    const toon=(msg,kleur)=>{if(status){status.style.display='block';status.style.background=kleur==='rood'?'#FDECEA':kleur==='groen'?'#E8F5E9':'#FFF3E0';status.style.color=kleur==='rood'?'#B71C1C':kleur==='groen'?'#1B5E20':'#E65100';status.style.border='1px solid '+(kleur==='rood'?'#FFCDD2':kleur==='groen'?'#C8E6C9':'#FFE0B2');status.textContent=msg;}};
+    if(!_adminKlant||!_adminPeriode){toon('Geen klant of periode geselecteerd — selecteer eerst een klant en periode.','oranje');return;}
+    const inhoud=$('prev-inhoud');
+    if(!inhoud||!inhoud.innerHTML.trim()){toon('Genereer eerst een 1-pager via de knop hierboven.','oranje');return;}
+    if(knop){knop.disabled=true;knop.textContent='Bezig met opslaan...';}
+    if(status) status.style.display='none';
     try{
       await Store.set1Pager(_adminKlant+'-'+_adminPeriode,{html:inhoud.innerHTML,gepubliceerd:true,datum:UI.datumNL()});
-      setTxt('btn-pub','Gepubliceerd');UI.toast('1-pager gepubliceerd — klant ziet hem nu in zijn portaal');
+      if(knop){knop.disabled=false;knop.textContent='✅ Gepubliceerd';}
+      toon('Gepubliceerd — klant ziet de 1-pager nu in zijn portaal.','groen');
+      UI.toast('1-pager gepubliceerd — klant ziet hem nu');
     }catch(e){
-      setTxt('btn-pub','Publiceer naar klant');
-      UI.error('Publicatie mislukt: '+e.message);
+      if(knop){knop.disabled=false;knop.textContent='✅ Publiceer naar klant';}
+      toon('Publiceren mislukt: '+e.message,'rood');
+      console.error('publiceer fout:', e);
     }
   },
   async reset1Pager(){
@@ -1475,15 +1484,62 @@ const Fin={
   },
   bevindingen(d,sector){
     const sn=Sectornormen.get(sector||'Overig');
-    const fmtEur=n=>n!=null?'€ '+Math.round(n).toLocaleString('nl-NL'):'€ —';
     const neg=[];
-    if(d.debiteurendagen&&d.debiteurendagen>sn.debiteur[1]){const extra=d.omzet?Math.round((d.debiteurendagen-sn.debiteur[1])/365*d.omzet):null;neg.push({t:'Debiteurenprobleem',tx:'Debiteurenbeheer ligt boven de sectornorm ('+sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn). Dit bindt onnodig werkkapitaal.',bedrag:extra,k:'#C0392B'});}
-    if(d.ebitda!==null&&d.ebitda<sn.netto[0]){const gemist=d.omzet?Math.round(((sn.netto[0]+sn.netto[1])/2-d.ebitda)/100*d.omzet):null;neg.push({t:'Winstgevendheidsprobleem',tx:'Winstgevendheid ('+d.ebitda+'%) ligt onder de sectornorm van '+sn.netto[0]+'-'+sn.netto[1]+'%.',bedrag:gemist,k:'#E67E22'});}
-    if(d.solvabiliteit!==null&&d.solvabiliteit<sn.solv[0]){const tekort=d.balanstotaal?Math.round(((sn.solv[0]+sn.solv[1])/2-d.solvabiliteit)/100*d.balanstotaal):null;neg.push({t:'Solvabiliteitsprobleem',tx:'Solvabiliteit is '+d.solvabiliteit+'% — onder de sectornorm van '+sn.solv[0]+'-'+sn.solv[1]+'%.',bedrag:tekort,k:'#C0392B'});}
-    if(d.personeelskosten&&d.personeelskosten>sn.personeel[1]){const extra=d.omzet?Math.round((d.personeelskosten-(sn.personeel[0]+sn.personeel[1])/2)/100*d.omzet):null;neg.push({t:'Personeelskosten hoog',tx:'Personeelskosten zijn '+d.personeelskosten+'% van omzet — boven de sectornorm van '+sn.personeel[0]+'-'+sn.personeel[1]+'%.',bedrag:extra,k:'#C0392B'});}
-    if(d.brutomarge!==null&&d.brutomarge<sn.brutomarge[0]){const gemist=d.omzet?Math.round(((sn.brutomarge[0]+sn.brutomarge[1])/2-d.brutomarge)/100*d.omzet):null;neg.push({t:'Brutomarge laag',tx:'Brutomarge is '+d.brutomarge+'% — onder de sectornorm van '+sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%.',bedrag:gemist,k:'#C0392B'});}
-    const pos=[{t:'Solvabiliteit gezond',tx:`Solvabiliteit van ${d.solvabiliteit!=null?d.solvabiliteit+'%':'—'} valt binnen de sectornorm.`,bedrag:null,k:'#27AE60'},{t:'Brutomarge op niveau',tx:`Brutomarge van ${d.brutomarge!=null?d.brutomarge+'%':'—'} is gezond.`,bedrag:null,k:'#27AE60'},{t:'Financiële basis stabiel',tx:'De overige indicatoren vallen binnen de sectornorm.',bedrag:null,k:'#27AE60'}];
-    const res=neg.slice(0,3);let pi=0;while(res.length<3){res.push(pos[pi%pos.length]);pi++;}return res;
+
+    // ── Klassieke grensoverschrijdingen ─────────────────────────────────
+    if(d.debiteurendagen&&d.debiteurendagen>sn.debiteur[1]){
+      const extra=d.omzet?Math.round((d.debiteurendagen-sn.debiteur[1])/365*d.omzet):null;
+      neg.push({t:'Debiteurenprobleem',tx:'Debiteurenbeheer ('+d.debiteurendagen+' dgn) ligt boven de sectornorm van '+sn.debiteur[0]+'–'+sn.debiteur[1]+' dgn. Dit bindt onnodig werkkapitaal.',bedrag:extra,k:'#C0392B'});
+    }
+    if(d.ebitda!==null&&d.ebitda<sn.netto[0]){
+      const gemist=d.omzet?Math.round(((sn.netto[0]+sn.netto[1])/2-d.ebitda)/100*d.omzet):null;
+      neg.push({t:'Winstgevendheid onder norm',tx:'Nettoresultaat ('+d.ebitda+'%) ligt onder de sectornorm van '+sn.netto[0]+'–'+sn.netto[1]+'%.',bedrag:gemist,k:'#C0392B'});
+    }
+    if(d.solvabiliteit!==null&&d.solvabiliteit<sn.solv[0]){
+      const tekort=d.balanstotaal?Math.round(((sn.solv[0]+sn.solv[1])/2-d.solvabiliteit)/100*d.balanstotaal):null;
+      neg.push({t:'Solvabiliteit onder norm',tx:'Solvabiliteit ('+d.solvabiliteit+'%) ligt onder de sectornorm van '+sn.solv[0]+'–'+sn.solv[1]+'%.',bedrag:tekort,k:'#C0392B'});
+    }
+    if(d.brutomarge!==null&&d.brutomarge<sn.brutomarge[0]){
+      const gemist=d.omzet?Math.round(((sn.brutomarge[0]+sn.brutomarge[1])/2-d.brutomarge)/100*d.omzet):null;
+      neg.push({t:'Brutomarge onder norm',tx:'Brutomarge ('+d.brutomarge+'%) ligt onder de sectornorm van '+sn.brutomarge[0]+'–'+sn.brutomarge[1]+'%.',bedrag:gemist,k:'#C0392B'});
+    }
+    if(d.personeelskosten&&d.personeelskosten>sn.personeel[1]){
+      const extra=d.omzet?Math.round((d.personeelskosten-(sn.personeel[0]+sn.personeel[1])/2)/100*d.omzet):null;
+      neg.push({t:'Personeelskosten hoog',tx:'Personeelskosten ('+d.personeelskosten+'%) liggen boven de sectornorm van '+sn.personeel[0]+'–'+sn.personeel[1]+'%.',bedrag:extra,k:'#C0392B'});
+    }
+
+    // ── Verbeterpotentieel binnen de band ────────────────────────────────
+    // Debiteurendagen: ≥80% van de bovengrens → werkkapitaal kans
+    if(d.debiteurendagen&&d.debiteurendagen<=sn.debiteur[1]&&d.debiteurendagen>=sn.debiteur[1]*0.8){
+      const doel=Math.round((sn.debiteur[0]+sn.debiteur[1])/2);
+      const winst=d.omzet?Math.round((d.debiteurendagen-doel)/365*d.omzet):null;
+      if(winst&&winst>0) neg.push({t:'Werkkapitaal vrijmaken',tx:'Debiteurendagen ('+d.debiteurendagen+' dgn) zitten aan de bovenkant van de sector. Terugbrengen naar '+doel+' dgn maakt cashflow vrij.',bedrag:winst,k:'#E67E22'});
+    }
+    // Brutomarge: onder midpoint van de band → opwaarts potentieel
+    const brutoMid=(sn.brutomarge[0]+sn.brutomarge[1])/2;
+    if(d.brutomarge!==null&&d.brutomarge>=sn.brutomarge[0]&&d.brutomarge<brutoMid){
+      const winst=d.omzet?Math.round((brutoMid-d.brutomarge)/100*d.omzet):null;
+      if(winst&&winst>0) neg.push({t:'Brutomarge kan omhoog',tx:'Brutomarge ('+d.brutomarge+'%) zit in de onderste helft van de sector ('+sn.brutomarge[0]+'–'+sn.brutomarge[1]+'%). Richting sector-gemiddelde is haalbaar.',bedrag:winst,k:'#E67E22'});
+    }
+    // Nettoresultaat: onder bovenste helft van de band → rendementsverbetering
+    const nettoMid=(sn.netto[0]+sn.netto[1])/2;
+    if(d.ebitda!==null&&d.ebitda>=sn.netto[0]&&d.ebitda<nettoMid){
+      const winst=d.omzet?Math.round((nettoMid-d.ebitda)/100*d.omzet):null;
+      if(winst&&winst>0) neg.push({t:'Rendement kan beter',tx:'Nettoresultaat ('+d.ebitda+'%) zit in de onderste helft van de sector ('+sn.netto[0]+'–'+sn.netto[1]+'%). Er is ruimte richting het sector-gemiddelde.',bedrag:winst,k:'#E67E22'});
+    }
+    // Solvabiliteit: binnen band maar onder midpoint → bufferverbetering
+    const solvMid=(sn.solv[0]+sn.solv[1])/2;
+    if(d.solvabiliteit!==null&&d.solvabiliteit>=sn.solv[0]&&d.solvabiliteit<solvMid){
+      const winst=d.balanstotaal?Math.round((solvMid-d.solvabiliteit)/100*d.balanstotaal):null;
+      if(winst&&winst>0) neg.push({t:'Buffer versterken',tx:'Solvabiliteit ('+d.solvabiliteit+'%) zit in de onderste helft van de sector ('+sn.solv[0]+'–'+sn.solv[1]+'%). Versterking verlaagt risico bij tegenvallers.',bedrag:winst,k:'#E67E22'});
+    }
+
+    // Sorteer op bedrag desc, pak top 3
+    neg.sort((a,b)=>(b.bedrag||0)-(a.bedrag||0));
+    const res=neg.filter(x=>x.bedrag&&x.bedrag>0).slice(0,3);
+    // Vul aan met informatieve punten als er minder dan 3 zijn met bedragen
+    const info=neg.filter(x=>!x.bedrag||x.bedrag<=0).slice(0,3-res.length);
+    return [...res,...info];
   },
 };
 
