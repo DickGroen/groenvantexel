@@ -386,7 +386,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 
 <script>
 'use strict';
-const ADMIN_CODE='GvT2026admin';
+// Admin-authenticatie verloopt server-side
 const $=id=>document.getElementById(id)||null;
 const setTxt=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??'');};
 const setVal=(id,v)=>{const e=$(id);if(e)e.value=String(v??'');};
@@ -411,7 +411,10 @@ const API = {
   async call(body) {
     const r = await fetch('/api/analyse', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'X-App-Token': 'gvt-2026-frontend',
+      },
       body: JSON.stringify(body),
     });
     if (!r.ok) throw new Error('API fout ' + r.status);
@@ -537,25 +540,46 @@ const Store = {
 };
 
 const Config={
-  service(){return Store.getCfg('service','service_oqgsajg');},
-  template(){return Store.getCfg('template','template_q3aea4c');},
-  pubkey(){return Store.getCfg('pubkey','ubJuLGAX11M-mSoIZ');},
+  service(){return Store.getCfg('service','');},
+  template(){return Store.getCfg('template','');},
+  pubkey(){return Store.getCfg('pubkey','');},
   opslaan(){['service','template','pubkey'].forEach(k=>{const el=$('cfg-'+k);if(el&&el.value.trim())Store.setCfg(k,el.value.trim());});try{emailjs.init(Config.pubkey());}catch{}UI.toast('Instellingen opgeslagen');},
   herstelUI(){['service','template','pubkey'].forEach(k=>{const v=Store.getCfg(k);if(v)setVal('cfg-'+k,v);});},
   async opruimenUploads(){const alle=await Store.getUploads();const map=new Map();[...alle].sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0)).forEach(u=>{const k=u.bedrijf+'|'+u.periode;if(!map.has(k))map.set(k,u);});const n=alle.length-map.size;if(n===0){UI.toast('Geen duplicaten gevonden');return;}UI.toast(n+' duplicaten gevonden — worden server-side bijgehouden');},
 };
 
-const Email={async stuur(p){if(typeof emailjs==='undefined')throw new Error('EmailJS niet geladen');await emailjs.send(Config.service(),Config.template(),p);}};
+const Email={
+  async stuur(p){
+    // Stuur via server - keys staan als CF environment variables
+    try {
+      await API.call({actie:'stuurEmail', data: p});
+    } catch(e) {
+      // Fallback naar directe EmailJS als server-route niet beschikbaar
+      if(typeof emailjs!=='undefined' && Config.service() && Config.template()){
+        await emailjs.send(Config.service(), Config.template(), p);
+      } else {
+        throw e;
+      }
+    }
+  }
+};
 
 let sessie=null;
 const Auth={
   login(){
     const code=($('login-code')?.value||'').trim();hide('login-error');if(!code)return;
-    if(code===ADMIN_CODE){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
-    Store.getKlanten().then(kl=>{
+    // Check eerst server-side of dit een admin-code is
+    API.call({actie:'checkLogin', code}).then(res=>{
+      if(res.type==='admin'){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
+      if(res.type==='klant'&&res.klant){Auth._open({type:'klant',...res.klant});Nav.bouw();KlantApp.init();return;}
+      show('login-error');
+    }).catch(()=>{
+      // Fallback: probeer als klant
+      Store.getKlanten().then(kl=>{
       const k=kl.find(k=>k.code===code);
       if(k){Auth._open({type:'klant',...k});Nav.bouw();KlantApp.init();return;}
-      show('login-error');
+        show('login-error');
+      }).catch(()=>show('login-error'));
     }).catch(()=>show('login-error'));
   },
   uitloggen(){sessie=null;sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');window.location.href=window.location.pathname;},
