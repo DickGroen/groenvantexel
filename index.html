@@ -254,6 +254,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.6;margin-bottom:2px;">Upload uw jaarcijfers en ontvang een heldere analyse met concrete verbeterpunten.</p>
         <p id="form-intro" style="color:var(--blue-pale);font-size:13px;"></p>
       </div>
+      <div style="background:#F0F7FF;border:1px solid #BFDBFE;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-weight:700;font-size:13px;color:#1E3A5F;margin-bottom:10px;">&#128338; Waarom ondernemers ons vertrouwen</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">&#10003;</span><span>Specialist in MKB financiële analyse</span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">&#10003;</span><span>Gebruikt door ondernemers in o.a. installatie, bouw en handel</span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">&#10003;</span><span>Volledig vertrouwelijke verwerking van uw cijfers</span></div>
+        </div>
+      </div>
       <div class="form-row cols2">
         <div class="form-group"><label class="form-label">Bedrijfsnaam <span class="req">*</span></label><input id="f-bedrijf" class="form-input" autocomplete="off"></div>
         <div class="form-group"><label class="form-label">Sector <span class="req">*</span></label>
@@ -294,7 +302,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
           <li>Concrete acties die direct resultaat opleveren</li>
         </ul>
       </div>
-      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">▶ Versturen</button>
+      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">Start analyse →</button>
+      <div id="f-micro-belofte" style="display:none;text-align:center;margin-top:12px;padding:10px 14px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:8px;font-size:13px;color:#166534;font-weight:500;">&#9203; Uw analyse wordt nu voorbereid — dit duurt ongeveer 30–60 seconden.</div>
       <p style="font-size:11px;color:var(--mid);text-align:center;margin-top:10px;">🔒 Uw gegevens worden vertrouwelijk behandeld en niet gedeeld met derden.</p>
       <div style="background:#F0F7F4;border:1px solid #A8D5B5;border-radius:10px;padding:16px 20px;margin-top:16px;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
@@ -393,6 +402,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span style="font-size:13px;color:#222;font-weight:600;">Waar cash vastzit in uw bedrijf</span></div>
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span style="font-size:13px;color:#222;font-weight:600;">Welke acties direct &euro; opleveren</span></div>
       </div>
+      <div style="background:#FFF7ED;border:1px solid #FCD34D;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400E;line-height:1.6;">&#128200; Ondernemers in uw situatie laten vaak <strong>€10.000 – €50.000 per jaar</strong> liggen zonder inzicht.</div>
       <button id="conv-modal-cta" onclick="Conversie.bevestigBasiscan()" style="background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:900;cursor:pointer;width:100%;margin-bottom:10px;box-shadow:0 6px 18px rgba(22,163,74,.28);">
         Start Basisscan &mdash; &euro;397
       </button>
@@ -429,13 +439,27 @@ const UI={
 // ─── API ──────────────────────────────────────────────────────────────────────
 const API = {
   async call(body) {
+    const jwt = sessionStorage.getItem('gvt_jwt') || '';
+    const headers = {'Content-Type': 'application/json'};
+    if (jwt) headers['Authorization'] = 'Bearer ' + jwt;
     const r = await fetch('/api/analyse', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers,
       body: JSON.stringify(body),
     });
-    if (!r.ok) throw new Error('API fout ' + r.status);
+    // 401 = verlopen of ongeldige token → terug naar login
+    if (r.status === 401 && body?.actie !== 'checkLogin' && body?.actie !== 'validateToken') {
+      Auth._forceerLogout('Uw sessie is verlopen. Log opnieuw in.');
+      throw new Error('Sessie verlopen');
+    }
+    if (!r.ok) {
+      let msg = 'API fout ' + r.status;
+      try { const e = await r.json(); msg = e?.error?.message || msg; } catch {}
+      throw new Error(msg);
+    }
     const d = await r.json();
+    // Vernieuw JWT als server een nieuw token stuurt (sliding expiry)
+    if (d.token && d.token !== jwt) sessionStorage.setItem('gvt_jwt', d.token);
     if (d.error) throw new Error(d.error.message);
     return d;
   },
@@ -572,36 +596,60 @@ const Auth={
   login(){
     const code=($('login-code')?.value||'').trim();hide('login-error');if(!code)return;
     API.call({actie:'checkLogin', code}).then(res=>{
-      if(res.type==='admin'){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
-      if(res.type==='klant'&&res.klant){Auth._open({type:'klant',...res.klant});Nav.bouw();KlantApp.init();return;}
+      if(res.token) sessionStorage.setItem('gvt_jwt', res.token);
+      if(res.type==='admin'){
+        sessie={type:'admin'};
+        Auth._open();Nav.bouw();Nav.ga('dashboard');return;
+      }
+      if(res.type==='klant'&&res.klant){
+        sessie={type:'klant',...res.klant};
+        Auth._open();Nav.bouw();KlantApp.init();return;
+      }
       show('login-error');
     }).catch(()=>show('login-error'));
   },
-  uitloggen(){sessie=null;sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');window.location.href=window.location.pathname;},
-  _open(s){sessie=s;hide('login-overlay');try{sessionStorage.setItem('gvt_sessie',JSON.stringify(s));}catch{}},
+  uitloggen(){
+    sessie=null;
+    sessionStorage.removeItem('gvt_jwt');
+    sessionStorage.removeItem('gvt_sessie');
+    sessionStorage.removeItem('gvt-user');
+    window.location.href=window.location.pathname;
+  },
+  _open(){hide('login-overlay');},
+  _forceerLogout(msg){
+    sessie=null;
+    sessionStorage.removeItem('gvt_jwt');
+    sessionStorage.removeItem('gvt_sessie');
+    sessionStorage.removeItem('gvt-user');
+    const overlay=$('login-overlay');if(overlay)overlay.style.display='flex';
+    if(msg){
+      const err=$('login-error');
+      if(err){err.textContent=msg;err.style.display='block';}
+    }
+  },
   async herstelSessie(){
-    const raw=sessionStorage.getItem('gvt_sessie')||sessionStorage.getItem('gvt-user');
-    if(!raw)return;
+    // Server is de bron van waarheid — valideer altijd via JWT
+    const jwt=sessionStorage.getItem('gvt_jwt');
+    if(!jwt){
+      // Geen token: verwijder eventuele oude sessiedata en stop
+      sessionStorage.removeItem('gvt_sessie');
+      sessionStorage.removeItem('gvt-user');
+      return;
+    }
     try{
-      let parsed=null;
-      try{parsed=JSON.parse(raw);}catch{parsed=null;}
-      if(parsed&&parsed.type){
-        sessie=parsed;
-        if(sessie.type==='klant'){
-          try{
-            const kl=await Store.getKlanten();
-            const k=kl.find(k=>k.code===sessie.code||k.naam===sessie.naam);
-            if(k)sessie={type:'klant',...k};
-          }catch(e){console.warn('Klant ophalen mislukt:',e);}
-        }
-      } else {
-        const naam=typeof parsed==='string'?parsed:raw;
-        if(naam==='admin')sessie={type:'admin'};
-      }
-      if(!sessie)return;
+      const res=await API.call({actie:'validateToken'});
+      if(!res.valid){Auth._forceerLogout();return;}
+      // Server bevestigt sessie — bouw state op basis van server response
+      sessie=res.type==='admin'
+        ? {type:'admin'}
+        : {type:'klant', naam:res.naam||'', ...(res.klant||{})};
+      // Vernieuwd token al opgeslagen door API.call
       hide('login-overlay');Nav.bouw();
       if(sessie.type==='admin'){Nav.ga('dashboard');}else{KlantApp.init();}
-    }catch{sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');}
+    }catch(e){
+      // Netwerk fout of verlopen token
+      Auth._forceerLogout();
+    }
   },
 };
 
@@ -1250,6 +1298,7 @@ const Formulier={
     const vw1=$('f-vw1')?.files?.[0];const balans=$('f-balans1')?.files?.[0];
     if(!vw1||!balans){Formulier._bezig=false;UI.warn('Upload minimaal V&W en balans');return;}
     if(btn){btn.textContent='Bezig met verwerken...';btn.disabled=true;}
+    const microBelofte=$('f-micro-belofte');if(microBelofte)microBelofte.style.display='block';
     try{
       const lijst=[{file:vw1,lbl:'VW_jaar1'},{file:balans,lbl:'Balans_jaar1'},{file:$('f-jaar2')?.files?.[0]||null,lbl:'VW_Balans_jaar2'},{file:$('f-jaar3')?.files?.[0]||null,lbl:'VW_Balans_jaar3'}];
       let pdfTekst='';
@@ -1262,7 +1311,7 @@ const Formulier={
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
       try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
-    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Versturen';}UI.error(e.message||'Er ging iets mis');}
+    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Start analyse →';}const _mb=$('f-micro-belofte');if(_mb)_mb.style.display='none';UI.error(e.message||'Er ging iets mis');}
   },
   async bestelBasiscan(){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
