@@ -121,12 +121,14 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify(data), { headers: cors });
     }
     if (actie === 'setRapport') {
-      const { sleutel, html, gepubliceerd, datum } = body;
+      const { sleutel, html, gepubliceerd, datum, pdf_url } = body;
       const bestaand = await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`);
       if (bestaand.length > 0) {
-        await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', { html, gepubliceerd, datum, bijgewerkt: new Date().toISOString() });
+        await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
+          html, gepubliceerd, datum, pdf_url, bijgewerkt: new Date().toISOString()
+        });
       } else {
-        await sb('rapporten', 'POST', { sleutel, html, gepubliceerd, datum });
+        await sb('rapporten', 'POST', { sleutel, html, gepubliceerd, datum, pdf_url });
       }
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
@@ -149,12 +151,14 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify(data), { headers: cors });
     }
     if (actie === 'setBasisscan') {
-      const { sleutel, html, gepubliceerd, datum } = body;
+      const { sleutel, html, gepubliceerd, datum, pdf_url } = body;
       const bestaand = await sb(`basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`);
       if (bestaand.length > 0) {
-        await sb(`basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', { html, gepubliceerd, datum, bijgewerkt: new Date().toISOString() });
+        await sb(`basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
+          html, gepubliceerd, datum, pdf_url, bijgewerkt: new Date().toISOString()
+        });
       } else {
-        await sb('basisscans', 'POST', { sleutel, html, gepubliceerd, datum });
+        await sb('basisscans', 'POST', { sleutel, html, gepubliceerd, datum, pdf_url });
       }
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
