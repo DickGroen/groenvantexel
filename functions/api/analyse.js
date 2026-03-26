@@ -212,7 +212,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (actie === 'setRapport') {
-      const { sleutel, html, gepubliceerd, datum, pdf_url } = body;
+      const { sleutel, html, gepubliceerd, datum } = body;
 
       if (!sleutel) {
         return new Response(
@@ -226,7 +226,6 @@ export async function onRequestPost({ request, env }) {
         html: String(html || '').substring(0, 120000),
         gepubliceerd: gepubliceerd === true || gepubliceerd === 'true',
         datum: datum || '',
-        pdf_url: pdf_url || '',
         bijgewerkt: new Date().toISOString(),
       };
 
