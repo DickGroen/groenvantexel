@@ -39,7 +39,7 @@ const ADMIN_ACTIES = new Set(['getKlanten','setKlant','delKlant','updateKlantTyp
   'delUpload','setAnalyse','setMaandoverzicht','delMaandoverzicht']);
 const KLANT_ACTIES = new Set(['getUploads','getRapporten','getBasisscans','getStresstesten',
   'getMaandoverzichten','getAnalyse','upsertUpload','stuurEmail']);
-const PUBLIEK_ACTIES = new Set(['checkLogin','analyse']);
+const PUBLIEK_ACTIES = new Set(['checkLogin','analyse','validateToken']);
 
 // functions/api/analyse.js — Groen van Texel
 // Cloudflare Pages Function — alle API calls
@@ -105,6 +105,24 @@ export async function onRequestPost({ request, env }) {
       });
       const data = await resp.json();
       return new Response(JSON.stringify(data), { headers: cors });
+    }
+
+    // ── SESSIE VALIDATIE ─────────────────────────────────────────────────────────
+    if (actie === 'validateToken') {
+      const authHeader = request.headers.get('Authorization') || '';
+      const jwtToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      const payload = await jwtVerify(jwtToken, env);
+      if (!payload) {
+        return new Response(JSON.stringify({ valid: false }), { status: 401, headers: cors });
+      }
+      // Verlengen: geef nieuw token als minder dan 2u resterend
+      const nu = Math.floor(Date.now()/1000);
+      let token = jwtToken;
+      if (payload.exp - nu < 7200) {
+        const nieuweExp = nu + 8*3600;
+        token = await jwtSign({ ...payload, exp: nieuweExp }, env);
+      }
+      return new Response(JSON.stringify({ valid: true, type: payload.type, naam: payload.naam || null, token }), { headers: cors });
     }
 
     // ── LOGIN CHECK ──────────────────────────────────────────────────────────
