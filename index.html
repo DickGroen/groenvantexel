@@ -415,7 +415,11 @@ const API = {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body),
     });
-    if (!r.ok) throw new Error('API fout ' + r.status);
+    if (!r.ok) {
+      let msg = 'Server fout ' + r.status;
+      try { const d = await r.json(); msg = d?.error?.message || msg; } catch {}
+      throw new Error(msg);
+    }
     const d = await r.json();
     if (d.error) throw new Error(d.error.message);
     return d;
@@ -477,7 +481,8 @@ const Store = {
     return map;
   },
   async set1Pager(sleutel, v) {
-    await API.call({actie:'setRapport', sleutel, html:v.html, gepubliceerd:v.gepubliceerd||false, datum:v.datum||'', pdf_url:v.pdf_url||''});
+    const htmlToSave = (v.html||'').substring(0, 200000); // max 200KB
+    await API.call({actie:'setRapport', sleutel, html:htmlToSave, gepubliceerd:v.gepubliceerd||false, datum:v.datum||'', pdf_url:v.pdf_url||''});
     this._rapporten = null;
   },
   async del1Pager(sleutel) {
