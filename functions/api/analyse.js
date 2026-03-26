@@ -125,10 +125,10 @@ export async function onRequestPost({ request, env }) {
       const bestaand = await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`);
       if (bestaand.length > 0) {
         await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
-          html, gepubliceerd, datum, ...(pdf_url ? {pdf_url} : {})
+          html: (html||'').substring(0,200000), gepubliceerd: gepubliceerd===true || gepubliceerd==='true', datum, ...(pdf_url ? {pdf_url} : {})
         });
       } else {
-        await sb('rapporten', 'POST', { sleutel, html, gepubliceerd, datum, ...(pdf_url ? {pdf_url} : {}) });
+        await sb('rapporten', 'POST', { sleutel, html: (html||'').substring(0,200000), gepubliceerd: gepubliceerd===true || gepubliceerd==='true', datum, ...(pdf_url ? {pdf_url} : {}) });
       }
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
