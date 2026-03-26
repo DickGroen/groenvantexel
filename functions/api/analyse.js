@@ -1,3 +1,46 @@
+// ── JWT helpers (Web Crypto API — beschikbaar in CF Workers) ─────────────────
+const jwtSecret = async (env) => {
+  const secret = (env && env.JWT_SECRET) || 'gvt-dev-secret-change-in-production';
+  return crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
+  );
+};
+
+const jwtSign = async (payload, env) => {
+  const key = await jwtSecret(env);
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g,'');
+  const body   = btoa(JSON.stringify(payload)).replace(/=/g,'');
+  const data   = header + '.' + body;
+  const sig    = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  return data + '.' + sigB64;
+};
+
+const jwtVerify = async (token, env) => {
+  if (!token) return null;
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  try {
+    const key  = await jwtSecret(env);
+    const data = parts[0] + '.' + parts[1];
+    const sig  = Uint8Array.from(atob(parts[2].replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
+    const ok   = await crypto.subtle.verify('HMAC', key, sig, new TextEncoder().encode(data));
+    if (!ok) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && payload.exp < Math.floor(Date.now()/1000)) return null;
+    return payload;
+  } catch { return null; }
+};
+
+// Rollen per actie
+const ADMIN_ACTIES = new Set(['getKlanten','setKlant','delKlant','updateKlantType',
+  'setRapport','setBasisscan','setStresstest','delRapport','delBasisscan','delStresstest',
+  'delUpload','setAnalyse','setMaandoverzicht','delMaandoverzicht']);
+const KLANT_ACTIES = new Set(['getUploads','getRapporten','getBasisscans','getStresstesten',
+  'getMaandoverzichten','getAnalyse','upsertUpload','stuurEmail']);
+const PUBLIEK_ACTIES = new Set(['checkLogin','analyse']);
+
 // functions/api/analyse.js — Groen van Texel
 // Cloudflare Pages Function — alle API calls
 
@@ -36,11 +79,18 @@ export async function onRequestPost({ request, env }) {
     const body = await request.json();
     const { actie } = body;
 
-    // ── Security: valideer app-token ─────────────────────────────────────────
-    const token = request.headers.get('X-App-Token');
-    const validToken = (env && env.APP_TOKEN) || 'gvt-2026-frontend';
-    if(token !== validToken) {
-      return new Response(JSON.stringify({ error: { message: 'Ongeautoriseerd' } }), { status: 401, headers: cors });
+    // ── Auth: JWT verificatie + rolcontrole per actie ─────────────────────────
+    let jwtPayload = null;
+    if (!PUBLIEK_ACTIES.has(actie)) {
+      const authHeader = request.headers.get('Authorization') || '';
+      const jwtToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      jwtPayload = await jwtVerify(jwtToken, env);
+      if (!jwtPayload) {
+        return new Response(JSON.stringify({ error: { message: 'Niet ingelogd of sessie verlopen' } }), { status: 401, headers: cors });
+      }
+      if (ADMIN_ACTIES.has(actie) && jwtPayload.type !== 'admin') {
+        return new Response(JSON.stringify({ error: { message: 'Geen toegang — admin vereist' } }), { status: 403, headers: cors });
+      }
     }
 
     // ── AI ANALYSE ────────────────────────────────────────────────────────
@@ -62,16 +112,26 @@ export async function onRequestPost({ request, env }) {
       const { code } = body;
       const adminCode = (env && env.ADMIN_CODE) || '';
       if (!adminCode) {
-        return new Response(JSON.stringify({ error: { message: 'Admin-code niet geconfigureerd' } }), { headers: cors });
+        return new Response(JSON.stringify({ error: { message: 'ADMIN_CODE niet geconfigureerd als environment variable' } }), { headers: cors });
       }
+      // Admin check
       if (code === adminCode) {
-        return new Response(JSON.stringify({ type: 'admin' }), { headers: cors });
+        const exp = Math.floor(Date.now()/1000) + 8*3600; // 8 uur geldig
+        const token = await jwtSign({ type: 'admin', exp }, env);
+        return new Response(JSON.stringify({ type: 'admin', token }), { headers: cors });
       }
-      // Check als klant
+      // Klant check
       const klanten = await sb('klanten');
       const klant = Array.isArray(klanten) ? klanten.find(k => k.code === code) : null;
       if (klant) {
-        return new Response(JSON.stringify({ type: 'klant', klant }), { headers: cors });
+        const exp = Math.floor(Date.now()/1000) + 8*3600;
+        const token = await jwtSign({ type: 'klant', code: klant.code, naam: klant.naam, exp }, env);
+        // Stuur minimale klantinfo terug (geen wachtwoord/codes)
+        return new Response(JSON.stringify({
+          type: 'klant',
+          token,
+          klant: { naam: klant.naam, email: klant.email||'', sector: klant.sector||'', klanttype: klant.klanttype||'lead', code: klant.code }
+        }), { headers: cors });
       }
       return new Response(JSON.stringify({ type: 'onbekend' }), { headers: cors });
     }
