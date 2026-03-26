@@ -122,6 +122,7 @@ export async function onRequestPost({ request, env }) {
     }
     if (actie === 'setRapport') {
       const { sleutel, html, gepubliceerd, datum, pdf_url } = body;
+      if (!sleutel) return new Response(JSON.stringify({ error: { message: 'setRapport: sleutel ontbreekt' } }), { headers: cors });
       const bestaand = await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`);
       if (bestaand.length > 0) {
         await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
@@ -220,6 +221,7 @@ export async function onRequestPost({ request, env }) {
     return new Response(JSON.stringify({ error: { message: 'Onbekende actie: ' + actie } }), { headers: cors });
 
   } catch (e) {
+    console.error('[analyse.js] fout bij actie', body?.actie, ':', e.message);
     return new Response(JSON.stringify({ error: { message: e.message } }), { status: 500, headers: cors });
   }
 }
