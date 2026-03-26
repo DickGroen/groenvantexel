@@ -26,7 +26,7 @@ const sb = async (path, method = 'GET', body = null) => {
 
 export async function onRequestPost({ request, env }) {
   const cors = {
-    'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
+    'Access-Control-Allow-Origin': (env && env.ALLOWED_ORIGIN) || '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ export async function onRequestPost({ request, env }) {
 
     // ── RAPPORTEN 1-PAGER ─────────────────────────────────────────────────
     if (actie === 'getRapporten') {
-      const data = await sb('rapporten?order=bijgewerkt.desc');
+      const data = await sb('rapporten');
       return new Response(JSON.stringify(data), { headers: cors });
     }
     if (actie === 'setRapport') {
@@ -147,7 +147,7 @@ export async function onRequestPost({ request, env }) {
 
     // ── BASISSCANS ────────────────────────────────────────────────────────
     if (actie === 'getBasisscans') {
-      const data = await sb('basisscans?order=bijgewerkt.desc');
+      const data = await sb('basisscans');
       return new Response(JSON.stringify(data), { headers: cors });
     }
     if (actie === 'setBasisscan') {
@@ -227,7 +227,7 @@ export async function onRequestPost({ request, env }) {
 export async function onRequestOptions() {
   return new Response(null, {
     headers: {
-      'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
+      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
