@@ -871,7 +871,7 @@ const Rapport={
           +'<div style="width:4px;min-width:4px;border-radius:4px;background:'+b.kleur+';align-self:stretch;"></div>'
           +'<div style="font-size:14px;color:#222;line-height:1.75;">'+b.tekst+'</div>'
           +'</div>').join('')
-      : '<div style="font-size:13px;color:#555;padding:6px 0;">Uw kerncijfers laten geen directe alarmsignalen zien.</div>';
+      : '<div style="font-size:13px;color:#555;line-height:1.7;padding:6px 0;">Uw cijfers laten op hoofdlijnen een stabiele basis zien. Op basis van de huidige invoer zijn er geen directe verbeterpunten met concrete euro-impact berekend.</div>';
 
     const geldHtml = top3.length
       ? top3.map(b=>
@@ -879,7 +879,7 @@ const Rapport={
           +'<div style="font-size:14px;color:#333;">'+UI.esc(b.t||b.titel||'Verbeterkans')+'</div>'
           +'<div style="font-size:18px;font-weight:800;color:#1E8449;">'+euro(b.bedrag)+'</div>'
           +'</div>').join('')
-      : '<div style="color:#888;font-size:13px;">Geen directe verbeterpunten gevonden.</div>';
+      : '<div style="font-size:13px;color:#666;line-height:1.7;">Op basis van de huidige gegevens is nog geen concreet verbeterpotentieel met euro-impact vastgesteld.</div>';
 
     return `<div id="eenpager-content" style="font-family:'DM Sans',Arial,sans-serif;max-width:720px;margin:0 auto;color:#1A1A1A;">
 
@@ -911,14 +911,18 @@ const Rapport={
 
   <!-- D: GELDBLOK -->
   <div style="background:#FFFBF0;border:1.5px solid #F0D080;border-radius:14px;padding:22px 24px;margin-bottom:20px;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#B07830;margin-bottom:4px;">Direct verbeterbaar:</div>
-    <div style="font-size:16px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#92620A;margin-bottom:4px;">Waar het geld zit</div>
-    <div style="font-size:13px;color:#A07040;margin-bottom:16px;">Deze punten kosten u nu direct winst</div>
+    ${totaal>0
+      ? '<div style=\"font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#B07830;margin-bottom:4px;\">Direct verbeterbaar:</div>'
+        +'<div style=\"font-size:16px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#92620A;margin-bottom:4px;\">Waar het geld zit</div>'
+        +'<div style=\"font-size:13px;color:#A07040;margin-bottom:16px;\">Deze punten kosten u nu direct winst</div>'
+      : '<div style=\"font-size:15px;font-weight:700;color:#92620A;margin-bottom:8px;\">Financieel inzicht</div>'
+    }
     ${geldHtml}
-    <div style="font-size:11px;color:#B07830;margin-top:14px;">Conservatieve inschatting op basis van aangeleverde jaarcijfers.</div>
+    ${totaal>0 ? '<div style=\"font-size:11px;color:#B07830;margin-top:14px;\">Conservatieve inschatting op basis van aangeleverde jaarcijfers.</div>' : ''}
   </div>
 
   <!-- E: CTA -->
+  ${totaal>0 ? `
   <div style="background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%);border:2px solid #2563EB;border-radius:18px;padding:32px 32px;margin-bottom:16px;text-align:center;">
     <div style="font-size:21px;font-weight:900;color:#1A3F6F;margin-bottom:12px;line-height:1.3;">Dit geld zit al in uw bedrijf<br><span style="color:#DC2626;">maar wordt nu niet benut</span></div>
     <p style="font-size:14px;color:#374151;line-height:1.8;margin:0 auto 24px;max-width:520px;">De Basisscan laat exact zien waar het zit en wat u moet doen om het terug te halen.</p>
@@ -926,7 +930,15 @@ const Rapport={
       Ontdek waar u ${heroStr} laat liggen &rarr;
     </button>
     <div style="font-size:12px;color:#6B8AAA;margin-top:12px;">&euro;397 excl. BTW &bull; binnen 5 werkdagen &bull; eenmalig</div>
-  </div>
+  </div>` : `
+  <div style="background:#F8FAFC;border:1.5px solid #CBD5E1;border-radius:18px;padding:28px 28px;margin-bottom:16px;text-align:center;">
+    <div style="font-size:18px;font-weight:700;color:#334155;margin-bottom:10px;line-height:1.4;">Wilt u dieper laten uitwerken waar nog ruimte zit in marge, cashflow en werkkapitaal?</div>
+    <p style="font-size:13px;color:#64748B;line-height:1.8;margin:0 auto 20px;max-width:500px;">Op basis van de huidige cijfers zijn nog geen concrete bedragen berekend. Een volledige Basisscan werkt dit uit per post, klant en project.</p>
+    <button onclick="Conversie.openBasisscanModal()" style="background:#1F4E79;color:#fff;border:none;border-radius:10px;padding:15px 28px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">
+      Laat uw Basisscan uitwerken
+    </button>
+    <div style="font-size:11px;color:#94A3B8;margin-top:10px;">&euro;397 excl. BTW &bull; binnen 5 werkdagen &bull; eenmalig</div>
+  </div>`}
 
   <!-- F: FOOTER -->
   <div style="padding:12px 4px;">
