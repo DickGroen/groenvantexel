@@ -821,6 +821,10 @@ const Rapport={
     const totaal    = bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s, 0);
     const totaalStr = totaal>0 ? euro(totaal) : null;
     const heroStr   = totaalStr || '\u20AC\u00A0\u2014';
+    const heroTitel = totaal > 0
+      ? `${bedrijf}, u laat ${euro(totaal)} per jaar liggen`
+      : `${bedrijf}, hier ligt onbenut financieel potentieel`;
+    const heroSub = 'Op basis van uw cijfers \u2014 zonder extra omzet';
 
     const top3 = bev
       .filter(b=>b&&b.bedrag!=null&&b.bedrag>0)
@@ -857,20 +861,18 @@ const Rapport={
         ).join('')
       : '<div style="font-size:13px;color:#555;">Geen directe knelpunten zichtbaar op basis van de aangeleverde cijfers.</div>';
 
-    const moneyHtml = top3.length
-      ? top3.map(b=>
-          '<div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-bottom:1px dashed rgba(0,0,0,.07);">'
-          +'<div>'
-          +'<div style="font-size:14px;font-weight:700;color:#1A1A1A;margin-bottom:3px;">'+UI.esc(b.t)+'</div>'
-          +'<div style="font-size:12px;color:#666;line-height:1.6;">'+UI.esc(b.tx)+'</div>'
-          +'</div>'
-          +'<div style="text-align:right;flex-shrink:0;">'
-          +'<div style="font-size:11px;color:#999;margin-bottom:2px;">per jaar</div>'
-          +'<div style="font-size:20px;font-weight:800;color:'+b.k+';">'+euro(b.bedrag)+'</div>'
-          +'</div>'
-          +'</div>'
-        ).join('')
-      : '<div style="font-size:13px;color:#777;">Onvoldoende gegevens voor een concrete top\u00A03.</div>';
+    const geldHtml = top3.length
+      ? top3.map(b => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">
+      <div style="font-size:14px;color:#333;">
+        ${UI.esc(b.t || b.titel || 'Verbeterkans')}
+      </div>
+      <div style="font-size:18px;font-weight:800;color:#1E8449;">
+        ${euro(b.bedrag)}
+      </div>
+    </div>
+  `).join('')
+      : '<div style="color:#888;">Geen directe verbeterpunten gevonden</div>';
 
     const kpiCard = (lbl,waarde,norm,s) =>
       '<div style="background:'+cardBg(s.k)+';border:1.5px solid '+(s.k==='#16A34A'?'#BBF7D0':s.k==='#DC2626'?'#FECACA':'#FDE68A')+';border-radius:12px;padding:16px 18px;">'
@@ -882,6 +884,24 @@ const Rapport={
       +'</div>'
       +'</div>';
 
+    const ctaHtml = `
+  <div style="margin-top:32px;background:#1F4E79;color:#fff;border-radius:12px;padding:24px;text-align:center;">
+    <div style="font-size:18px;font-weight:800;margin-bottom:10px;">
+      Dit geld zit al in uw bedrijf — maar wordt nu niet benut
+    </div>
+    <div style="font-size:14px;line-height:1.7;color:#D6E4F0;max-width:560px;margin:0 auto 14px;">
+      De 1-pager laat zien dát er geld blijft liggen. De Basisscan laat exact zien waar het weglekt en wat u moet doen.
+    </div>
+    <button onclick="Conversie.openBasisscanModal()"
+      style="margin-top:10px;background:#1E8449;color:#fff;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:800;cursor:pointer;">
+      Ontdek waar u ${heroStr} laat liggen →
+    </button>
+    <div style="font-size:12px;color:#cbd5f5;margin-top:8px;">
+      €397 excl. BTW • binnen 5 werkdagen
+    </div>
+  </div>
+`;
+
     return `<div id="eenpager-content" style="font-family:'DM Sans',Arial,sans-serif;max-width:720px;margin:0 auto;color:#1A1A1A;">
 
   <!-- A: HERO -->
@@ -890,12 +910,10 @@ const Rapport={
       Groen van Texel &nbsp;&bull;&nbsp; Financi\u00ebele Snapshot
     </div>
     <div style="font-size:32px;font-weight:900;line-height:1.15;margin-bottom:14px;max-width:620px;">
-      ${UI.esc(bedrijf)}, u laat<br>
-      <span style="color:#FCD34D;font-size:38px;">${heroStr}</span><br>
-      per jaar liggen
+      ${heroTitel}
     </div>
     <div style="font-size:14px;color:rgba(255,255,255,.78);margin-bottom:22px;">
-      Op basis van uw cijfers \u2014 zonder extra omzet
+      ${heroSub}
     </div>
     <div style="display:flex;gap:28px;flex-wrap:wrap;padding-top:16px;border-top:1px solid rgba(255,255,255,.15);">
       <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);font-weight:700;margin-bottom:3px;">Sector</div><div style="font-size:13px;font-weight:700;">${UI.esc(sector)}</div></div>
@@ -930,9 +948,11 @@ const Rapport={
         ${heroStr} verbeterbaar
       </div>
     </div>
-    ${moneyHtml}
+    ${geldHtml}
     <div style="font-size:11px;color:#B07830;margin-top:14px;">Conservatieve inschatting op basis van uw aangeleverde jaarcijfers.</div>
   </div>
+
+  ${ctaHtml}
 
   <!-- E: CTA -->
   <div style="background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%);border:2px solid #2563EB;border-radius:18px;padding:26px 28px;margin-bottom:16px;text-align:center;">
