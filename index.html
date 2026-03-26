@@ -250,7 +250,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-aanleveren" class="view">
     <div class="card" style="max-width:660px;margin:0 auto;">
       <div style="background:var(--blue);margin:-24px -24px 24px;padding:24px 24px 20px;border-radius:11px 11px 0 0;">
-        <h2 style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;">Ontdek waar uw winst blijft liggen</h2>
+        <h2 style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;">Zie binnen 2 minuten waar uw winst weglekt — en hoe u dit direct oplost</h2>
         <p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.6;margin-bottom:2px;">Upload uw jaarcijfers en ontvang een heldere analyse met concrete verbeterpunten.</p>
         <p id="form-intro" style="color:var(--blue-pale);font-size:13px;"></p>
       </div>
@@ -406,7 +406,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 
 <script>
 'use strict';
-const ADMIN_CODE='GvT2026admin';
+// Admin-authenticatie verloopt server-side via checkLogin
 const $=id=>document.getElementById(id)||null;
 const setTxt=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??'');};
 const setVal=(id,v)=>{const e=$(id);if(e)e.value=String(v??'');};
@@ -571,10 +571,9 @@ let sessie=null;
 const Auth={
   login(){
     const code=($('login-code')?.value||'').trim();hide('login-error');if(!code)return;
-    if(code===ADMIN_CODE){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
-    Store.getKlanten().then(kl=>{
-      const k=kl.find(k=>k.code===code);
-      if(k){Auth._open({type:'klant',...k});Nav.bouw();KlantApp.init();return;}
+    API.call({actie:'checkLogin', code}).then(res=>{
+      if(res.type==='admin'){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
+      if(res.type==='klant'&&res.klant){Auth._open({type:'klant',...res.klant});Nav.bouw();KlantApp.init();return;}
       show('login-error');
     }).catch(()=>show('login-error'));
   },
