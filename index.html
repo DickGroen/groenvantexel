@@ -409,11 +409,12 @@ const UI={
 // ─── API ──────────────────────────────────────────────────────────────────────
 const API = {
   async call(body) {
+    const jwt = sessionStorage.getItem('gvt_jwt') || '';
     const r = await fetch('/api/analyse', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-App-Token': 'gvt-2026-frontend',
+        ...(jwt ? {'Authorization': 'Bearer ' + jwt} : {}),
       },
       body: JSON.stringify(body),
     });
@@ -550,17 +551,8 @@ const Config={
 
 const Email={
   async stuur(p){
-    // Stuur via server - keys staan als CF environment variables
-    try {
-      await API.call({actie:'stuurEmail', data: p});
-    } catch(e) {
-      // Fallback naar directe EmailJS als server-route niet beschikbaar
-      if(typeof emailjs!=='undefined' && Config.service() && Config.template()){
-        await emailjs.send(Config.service(), Config.template(), p);
-      } else {
-        throw e;
-      }
-    }
+    // Altijd via server - geen client-side fallback
+    await API.call({actie:'stuurEmail', data: p});
   }
 };
 
@@ -570,20 +562,15 @@ const Auth={
     const code=($('login-code')?.value||'').trim();hide('login-error');if(!code)return;
     // Check eerst server-side of dit een admin-code is
     API.call({actie:'checkLogin', code}).then(res=>{
-      if(res.type==='admin'){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
-      if(res.type==='klant'&&res.klant){Auth._open({type:'klant',...res.klant});Nav.bouw();KlantApp.init();return;}
+      if(res.type==='admin'){Auth._open({type:'admin'}, res.token);Nav.bouw();Nav.ga('dashboard');return;}
+      if(res.type==='klant'&&res.klant){Auth._open({type:'klant',...res.klant}, res.token);Nav.bouw();KlantApp.init();return;}
       show('login-error');
     }).catch(()=>{
-      // Fallback: probeer als klant
-      Store.getKlanten().then(kl=>{
-      const k=kl.find(k=>k.code===code);
-      if(k){Auth._open({type:'klant',...k});Nav.bouw();KlantApp.init();return;}
-        show('login-error');
-      }).catch(()=>show('login-error'));
-    }).catch(()=>show('login-error'));
+      show('login-error');
+    });
   },
-  uitloggen(){sessie=null;sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');window.location.href=window.location.pathname;},
-  _open(s){sessie=s;hide('login-overlay');try{sessionStorage.setItem('gvt_sessie',JSON.stringify(s));}catch{}},
+  uitloggen(){sessie=null;sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');sessionStorage.removeItem('gvt_jwt');window.location.href=window.location.pathname;},
+  _open(s,token){sessie=s;hide('login-overlay');try{sessionStorage.setItem('gvt_sessie',JSON.stringify(s));if(token)sessionStorage.setItem('gvt_jwt',token);}catch{}},
   async herstelSessie(){
     const raw=sessionStorage.getItem('gvt_sessie')||sessionStorage.getItem('gvt-user');
     if(!raw)return;
@@ -593,11 +580,7 @@ const Auth={
       if(parsed&&parsed.type){
         sessie=parsed;
         if(sessie.type==='klant'){
-          try{
-            const kl=await Store.getKlanten();
-            const k=kl.find(k=>k.code===sessie.code||k.naam===sessie.naam);
-            if(k)sessie={type:'klant',...k};
-          }catch(e){console.warn('Klant ophalen mislukt:',e);}
+          // JWT zit in sessionStorage - geen extra client-side lookup nodig
         }
       } else {
         const naam=typeof parsed==='string'?parsed:raw;
