@@ -41,10 +41,10 @@ export async function onRequestPost({ request, env }) {
     // KLANTEN
     // ========================
 
-    if (actie === 'getKlanten') {
-      const data = await sb('klanten?order=naam.asc');
-      return new Response(JSON.stringify(data), { headers: cors });
-    }
+ if (actie === 'getKlanten') {
+  const data = await sb('klanten?order=naam.asc');
+  return new Response(JSON.stringify(data), { headers: cors });
+}
 
     if (actie === 'setKlant') {
       const { naam, code, klanttype, email, sector } = body;
