@@ -2,7 +2,7 @@
 // Cloudflare Pages Function — alle API calls
 
 const SUPABASE_URL = 'https://yhctamsjmbkkqhndaiov.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_0vdwwnPaC30Y-XcAoBZVjQ_ZJq7tvNs';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_0vdwwnPaC30Y-XcAoBZVjQ_ZJq7tvNs';
 
 const sb = async (path, method = 'GET', body = null) => {
   const opts = {
@@ -26,7 +26,7 @@ const sb = async (path, method = 'GET', body = null) => {
 
 export async function onRequestPost({ request, env }) {
   const cors = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json',
@@ -125,10 +125,10 @@ export async function onRequestPost({ request, env }) {
       const bestaand = await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`);
       if (bestaand.length > 0) {
         await sb(`rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
-          html, gepubliceerd, datum, pdf_url, bijgewerkt: new Date().toISOString()
+          html, gepubliceerd, datum, ...(pdf_url ? {pdf_url} : {})
         });
       } else {
-        await sb('rapporten', 'POST', { sleutel, html, gepubliceerd, datum, pdf_url });
+        await sb('rapporten', 'POST', { sleutel, html, gepubliceerd, datum, ...(pdf_url ? {pdf_url} : {}) });
       }
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
@@ -155,10 +155,10 @@ export async function onRequestPost({ request, env }) {
       const bestaand = await sb(`basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`);
       if (bestaand.length > 0) {
         await sb(`basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
-          html, gepubliceerd, datum, pdf_url, bijgewerkt: new Date().toISOString()
+          html, gepubliceerd, datum, ...(pdf_url ? {pdf_url} : {})
         });
       } else {
-        await sb('basisscans', 'POST', { sleutel, html, gepubliceerd, datum, pdf_url });
+        await sb('basisscans', 'POST', { sleutel, html, gepubliceerd, datum, ...(pdf_url ? {pdf_url} : {}) });
       }
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
@@ -171,7 +171,6 @@ export async function onRequestPost({ request, env }) {
     // ── MAANDOVERZICHTEN ─────────────────────────────────────────────────
     // ── STRESSTESTEN ──────────────────────────────────────────────────────────────
     if (actie === 'getStresstesten') {
-      const d = await sb('basisscans?sleutel=like.*-cashflow,basisscans?sleutel=like.*-debiteuren,basisscans?sleutel=like.*-offerte');
       // Use a separate query per type or just get all and filter client-side
       const all = await sb('basisscans');
       const stresstypes = ['cashflow','debiteuren','offerte'];
@@ -228,7 +227,7 @@ export async function onRequestPost({ request, env }) {
 export async function onRequestOptions() {
   return new Response(null, {
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
