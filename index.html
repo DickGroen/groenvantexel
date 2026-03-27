@@ -456,8 +456,8 @@ const SECTOR_CONTENT = {
     impact: "Bouwbedrijven laten vaak €30.000 – €100.000 per jaar liggen door inefficiëntie en faalkosten.",
     trustTitle: "Waarom bouwbedrijven ons vertrouwen",
     trustBullets: [
-      "Specialist in financiële analyse voor bouwbedrijven",
-      "Herkenning van faalkosten, projectdruk en rendementsverlies",
+      "Inzicht in projectrendement en faalkosten",
+      "Herkenning van margedruk in planning en uitvoering",
       "Volledig vertrouwelijke verwerking van uw cijfers"
     ]
   },
@@ -475,9 +475,28 @@ const SECTOR_CONTENT = {
     impact: "Transportbedrijven laten vaak €25.000 – €90.000 per jaar liggen door inefficiënt gebruik en kosten.",
     trustTitle: "Waarom transportbedrijven ons vertrouwen",
     trustBullets: [
-      "Specialist in financiële analyse voor transportbedrijven",
-      "Herkenning van ritrendement, brandstofdruk en bezettingsgraad",
+      "Inzicht in ritrendement en bezettingsgraad",
+      "Analyse van brandstof-, voertuig- en personeelskosten",
       "Volledig vertrouwelijke verwerking van uw cijfers"
+    ]
+  },
+  ecommerce: {
+    hero: "Zie binnen 2 minuten waar uw webshop winst laat liggen — en hoeveel dat kost",
+    sub: "Upload uw cijfers en krijg direct inzicht in marges, retouren en advertentiekosten — specifiek voor e-commerce.",
+    bullets: [
+      "Waar uw marge verdwijnt door retouren en kortingen",
+      "Welke producten of campagnes verlies opleveren",
+      "Waar advertentiekosten niet renderen"
+    ],
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw webshop",
+    upsell: "Wilt u exact weten waar uw webshop winst laat liggen? Ontvang een volledige doorlichting met concrete verbeteracties.",
+    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
+    impact: "Webshops laten vaak €20.000 – €100.000 per jaar liggen door inefficiënte advertenties, retouren en marges.",
+    trustTitle: "Waarom e-commerce bedrijven ons vertrouwen",
+    trustBullets: [
+      "Inzicht in marges per product en kanaal",
+      "Analyse van advertentierendement en retouren",
+      "Volledig vertrouwelijke verwerking van uw data"
     ]
   },
   algemeen: {
@@ -499,38 +518,24 @@ const SECTOR_CONTENT = {
       "Volledig vertrouwelijke verwerking van uw cijfers"
     ]
   }
-  ecommerce: {
-    hero: "Zie binnen 2 minuten waar uw webshop winst laat liggen — en hoeveel dat kost",
-    sub: "Upload uw cijfers en krijg direct inzicht in marges, retouren en advertentiekosten — specifiek voor e-commerce.",
-    bullets: [
-      "Waar uw marge verdwijnt door retouren en kortingen",
-      "Welke producten of campagnes verlies opleveren",
-      "Waar advertentiekosten niet renderen"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw webshop",
-    upsell: "Wilt u exact weten waar uw webshop winst laat liggen? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Webshops laten vaak €20.000 – €100.000 per jaar liggen door inefficiënte advertenties, retouren en marges.",
-    trustTitle: "Gebouwd voor e-commerce bedrijven",
-    trustBullets: [
-      "Inzicht in marges per product en kanaal",
-      "Analyse van advertentierendement en retouren",
-      "Volledig vertrouwelijke verwerking van uw data"
-    ]
-  },
-
 };
 
 const SECTOR_MAP = {
-  'installatie':'installatie','installatietechniek':'installatie','installateur':'installatie',
-  'bouw':'bouw','bouw & aannemerij':'bouw','aannemer':'bouw',
-  'transport':'transport','transport & logistiek':'transport','logistiek':'transport'
-  "ecommerce": "ecommerce",
-  "e-commerce": "ecommerce",
-  "webshop": "ecommerce",
-  "webwinkel": "ecommerce",
-  "online shop": "ecommerce",
-  "e-commerce / webshop": "ecommerce",
+  'installatie': 'installatie',
+  'installatietechniek': 'installatie',
+  'installateur': 'installatie',
+  'bouw': 'bouw',
+  'bouw & aannemerij': 'bouw',
+  'aannemer': 'bouw',
+  'transport': 'transport',
+  'transport & logistiek': 'transport',
+  'logistiek': 'transport',
+  'ecommerce': 'ecommerce',
+  'e-commerce': 'ecommerce',
+  'webshop': 'ecommerce',
+  'webwinkel': 'ecommerce',
+  'online shop': 'ecommerce',
+  'e-commerce / webshop': 'ecommerce'
 };
 
 const SECTOR_ANALYSIS_CONTENT = {
@@ -556,14 +561,13 @@ const SECTOR_ANALYSIS_CONTENT = {
       "scheid service, projecten en onderhoud in winstbijdrage"
     ]
   },
-
   bouw: {
     aiContext: "U analyseert een bouwbedrijf. Focus op projectrendement, faalkosten, meer- en minderwerk, personeelsinzet, onderaanneming, materiaalverbruik, planning, kostprijsbeheersing, termijnfacturatie en kostenoverschrijding.",
     reportIntro: "Op basis van uw cijfers zien we waar in uw bouwbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
     actionFocus: "Leg nadruk op faalkosten, projectoverschrijdingen, inefficiënte planning, kostprijsbeheersing, termijnfacturatie en margeverlies in uitvoering.",
     upsellDetail: "Wilt u exact weten waar uw bouwprojecten rendement verliezen? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenstructuur en uitvoering.",
     reportTitle: "Dit zijn de belangrijkste winstkansen in uw bouwbedrijf",
-    promptExtra: "Benoem specifiek: faalkosten, kostenoverschrijdingen per project, meer- en minderwerk, inzet onderaannemers versus eigen personeel, materiaalverspilling en planningsproblemen die marge kosten.",
+    promptExtra: "Benoem specifiek: faalkosten per project, afwijkingen tussen begroting en realisatie, margeverlies in uitvoering, onderaanneming, materiaalverbruik en termijnfacturatie.",
     observations: [
       "projectkosten lopen uit ten opzichte van begroting",
       "faalkosten drukken de marge",
@@ -579,14 +583,13 @@ const SECTOR_ANALYSIS_CONTENT = {
       "versnel termijnfacturatie en opvolging"
     ]
   },
-
   transport: {
     aiContext: "U analyseert een transportbedrijf. Focus op ritrendement, brandstofkosten, bezettingsgraad, personeelskosten, onderhoud, stilstand, route-efficiëntie, voertuigkosten, planning en kosten per rit of voertuig.",
     reportIntro: "Op basis van uw cijfers zien we waar in uw transportbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
     actionFocus: "Leg nadruk op verlieslatende ritten, inefficiënte inzet, brandstofdruk, onderhoudskosten, stilstand en onderbenutting van capaciteit.",
     upsellDetail: "Wilt u exact weten waar uw transportbedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties voor ritten, kosten en bezettingsgraad.",
     reportTitle: "Dit zijn de belangrijkste winstkansen in uw transportbedrijf",
-    promptExtra: "Benoem specifiek: ritrendement per voertuig, brandstofkosten versus omzet, bezettingsgraad, stilstandtijd, onderhoudskosten, verlieslatende routes en inzet chauffeurs versus gefactureerde uren.",
+    promptExtra: "Benoem specifiek: rendement per rit of voertuig, brandstofdruk, benuttingsgraad, onderhoudskosten, stilstand en prijsdruk per klant of traject.",
     observations: [
       "ritten leveren onvoldoende marge op",
       "brandstofkosten drukken het resultaat sterker dan nodig",
@@ -602,29 +605,6 @@ const SECTOR_ANALYSIS_CONTENT = {
       "herprijs verlieslatende klanten of rittypes"
     ]
   },
-
-  algemeen: {
-    aiContext: "U analyseert een mkb-bedrijf. Focus op brutomarge, kostenstructuur, cashflow, winstgevendheid en directe verbeterkansen.",
-    reportIntro: "Op basis van uw cijfers zien we waar marge verloren gaat en waar direct verbetering mogelijk is.",
-    actionFocus: "Leg nadruk op margeverbetering, kostenbeheersing, cashflow en concrete acties met directe impact.",
-    upsellDetail: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    reportTitle: "Dit zijn de 3 belangrijkste kansen om uw resultaat te verbeteren",
-    promptExtra: "Benoem de 3 grootste kostenposten en margelekken. Wees concreet over bedragen en percentages.",
-    observations: [
-      "brutomarge blijft achter",
-      "kostenstructuur is zwaarder dan nodig",
-      "cashflow staat onder druk",
-      "winstgevendheid verschilt waarschijnlijk per activiteit",
-      "er zijn directe verbeterkansen in prijs, kosten of werkkapitaal"
-    ],
-    actions: [
-      "maak winstbijdrage per activiteit zichtbaar",
-      "stuur strakker op kosten en cashflow",
-      "versnel facturatie en incasso",
-      "herzie prijsstelling of inkoop",
-      "prioriteer acties met directe financiële impact"
-    ]
-  }
   ecommerce: {
     aiContext: "U analyseert een e-commerce bedrijf. Focus op brutomarge per product, retourpercentages, kortingen, advertentiekosten (ROAS), conversie, verzendkosten en winst per kanaal.",
     reportIntro: "Op basis van uw cijfers zien we waar in uw webshop marge verloren gaat en waar direct verbetering mogelijk is.",
@@ -647,7 +627,28 @@ const SECTOR_ANALYSIS_CONTENT = {
       "stuur op winst per kanaal in plaats van omzet"
     ]
   },
-
+  algemeen: {
+    aiContext: "U analyseert een mkb-bedrijf. Focus op brutomarge, kostenstructuur, cashflow, winstgevendheid en directe verbeterkansen.",
+    reportIntro: "Op basis van uw cijfers zien we waar marge verloren gaat en waar direct verbetering mogelijk is.",
+    actionFocus: "Leg nadruk op margeverbetering, kostenbeheersing, cashflow en concrete acties met directe impact.",
+    upsellDetail: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw bedrijf",
+    promptExtra: "Benoem specifiek: margeontwikkeling, kostenstructuur, cashflowdruk, werkkapitaal en directe winstverbetering.",
+    observations: [
+      "brutomarge blijft achter",
+      "kostenstructuur is zwaarder dan nodig",
+      "cashflow staat onder druk",
+      "winstgevendheid verschilt waarschijnlijk per activiteit",
+      "er zijn directe verbeterkansen in prijs, kosten of werkkapitaal"
+    ],
+    actions: [
+      "maak winstbijdrage per activiteit zichtbaar",
+      "stuur strakker op kosten en cashflow",
+      "versnel facturatie en incasso",
+      "herzie prijsstelling of inkoop",
+      "prioriteer acties met directe financiële impact"
+    ]
+  }
 };
 
 const SectorCopy = {
