@@ -315,7 +315,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Begeleiding</h2>
       <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Doorlopende begeleiding en maandoverzichten beheren</p>
       <div class="card">
-        <div class="card-title">Nieuw maandoverzicht genereren</div>
+        <div class="card-title">Nieuw begeleidingsrapport genereren</div>
         <div class="form-row cols2" style="max-width:480px;">
           <div class="form-group"><label class="form-label">Klant</label>
             <select id="mon-klant" class="form-select" onchange="Monitoring.onKlantSelect()"><option value="">— Selecteer klant —</option></select>
@@ -336,7 +336,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
       <div id="mon-prev-box" style="display:none;margin-bottom:20px;">
         <div class="prev-balk" style="background:var(--blue-mid);">
-          <span>📅 Maandoverzicht preview — controleer vóór publicatie</span>
+          <span>📅 Begeleidingsrapport preview — controleer vóór publicatie</span>
           <div class="prev-balk-r">
             <button class="btn btn-danger" style="padding:7px 14px;font-size:12px;" onclick="Monitoring.reset()">🗑 Reset</button>
             <button id="btn-mon-pub" class="btn btn-ghost" style="padding:7px 14px;font-size:12px;" onclick="Monitoring.publiceer()">✅ Publiceer naar klant</button>
@@ -345,7 +345,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div id="mon-prev-inhoud"></div>
       </div>
       <div id="mon-geschiedenis" style="display:none;" class="card">
-        <div class="card-title">Eerdere maandoverzichten</div>
+        <div class="card-title">Eerdere begeleidingsrapporten</div>
         <div id="mon-geschiedenis-inhoud"></div>
       </div>
     </div>
@@ -400,7 +400,7 @@ const UI={
   warn(msg){UI.toast(msg,'#E67E22');},
   error(msg){UI.toast(msg,'#C0392B');},
   esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');},
-  typeBadge(t){const m={lead:'<span class="badge badge-lead">🎯 Lead</span>',doorlichting:'<span class="badge badge-doorlichting">🔍 Doorlichting</span>',monitoring:'<span class="badge badge-monitoring">📅 Monitoring</span>'};return m[t]||'<span class="badge badge-lead">—</span>';},
+  typeBadge(t){const m={lead:'<span class="badge badge-lead">🎯 Lead</span>',doorlichting:'<span class="badge badge-doorlichting">🔍 Doorlichting</span>',monitoring:'<span class="badge badge-monitoring">📅 Begeleiding</span>'};return m[t]||'<span class="badge badge-lead">—</span>';},
   datumNL(d=new Date()){return d.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});},
   openModal(){const m=$('conv-modal');if(m){m.style.display='flex';}},
   sluitModal(){const m=$('conv-modal');if(m){m.style.display='none';}},
@@ -603,10 +603,10 @@ const Auth={
 const Nav={
   bouw(){
     const nav=$('topnav');if(!nav||!sessie)return;
-    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
+    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellingen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
     else{
       const kt=sessie?.klanttype||sessie?.klantType||'lead';
-      const monBtn=kt==='monitoring'?`<button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Monitoring</button>`:'';
+      const monBtn=kt==='monitoring'?`<button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button>`:'';
       nav.innerHTML=`<button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">📄 Mijn rapport</button>${monBtn}<button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">✨ Meer diensten</button><button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;
     }
   },
@@ -677,7 +677,7 @@ const Klanten={
     }catch(e){UI.error('Fout: '+e.message);}
   },
   async verwijder(code){if(!confirm('Klant verwijderen?'))return;try{await Store.delKlant(code);Klanten.laadTabel();UI.toast('Klant verwijderd');}catch(e){UI.error('Fout: '+e.message);}},
-  async _upgradeNaarMonitoring(naam){if(!naam)return;const kl=await Store.getKlanten();const k=kl.find(x=>x.naam===naam);if(!k){UI.warn('Klant niet gevonden');return;}if(k.klantType==='monitoring'){UI.toast('Klant heeft al monitoring');return;}if(!confirm('Klant '+naam+' upgraden naar Monitoring?'))return;await Store.updateKlantType(k.code,'monitoring');UI.toast(''+naam+' is nu Monitoring klant');},
+  async _upgradeNaarMonitoring(naam){if(!naam)return;const kl=await Store.getKlanten();const k=kl.find(x=>x.naam===naam);if(!k){UI.warn('Klant niet gevonden');return;}if(k.klantType==='monitoring'){UI.toast('Klant heeft al begeleiding');return;}if(!confirm('Klant '+naam+' upgraden naar begeleiding?'))return;await Store.updateKlantType(k.code,'monitoring');UI.toast(''+naam+' is nu begeleidingsklant');},
 };
 
 let _adminKlant=null,_adminPeriode=null;
@@ -776,7 +776,7 @@ const Rapport={
           if(pdfLink){pdfLink.href=allBs[sl].pdf_url;pdfLink.style.display='inline-flex';}
         }
         show('klant-basisscan');
-        // Toon monitoring upsell als klant nog geen monitoring heeft
+        // Toon monitoring upsell als klant nog geen begeleiding heeft
         const _kt2=sessie.klanttype||sessie.klantType||'lead';
         if(_kt2!=='monitoring') Conversie.toonMonitoringUpsell();
         return;
