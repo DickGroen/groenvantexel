@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Groen van Texel v3.1 — Financieel Platform</title>
+<title>Groen van Texel — Financieel Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -182,7 +182,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <div id="r-header"></div>
     <div id="ai-box" style="display:none;" class="ai-box">
       <h3>🤖 AI-analyse — MKB Stresstest Methode™</h3>
-      <p>Analyseer de geüploade jaarcijfers en genereer rapporten. Extra modules zoals Basisscan, Cashflow, Debiteuren, Offerte &amp; Marge en fiscale scans zijn nu zichtbaar in het platform.</p>
+      <p>Analyseer de geüploade jaarcijfers en genereer rapporten</p>
       <div class="ai-row">
         <select id="ai-sector" class="ai-select"><option value="">— Sector —</option><option>Installatietechniek</option><option>Bouw &amp; Aannemerij</option><option>Groothandel</option><option>Detailhandel</option><option>Zakelijke dienstverlening</option><option>Horeca</option><option>Transport &amp; Logistiek</option><option>Zorg</option><option>ICT</option><option>E-commerce / Webshop</option><option>Overig</option></select>
         <button id="btn-analyseer" class="btn btn-primary" onclick="Analyse.start()">🚀 Analyseer gegevens</button>
@@ -218,7 +218,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
       <div id="bs-prev-inhoud"></div>
     </div>
-    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div><div id="rapport-soft-cta" style="margin-top:16px;background:linear-gradient(135deg,#1E8449,#27AE60);border-radius:12px;padding:20px 22px;color:#fff;display:none;"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:.75;font-weight:700;margin-bottom:8px;">Vervolgstap</div><div style="font-size:18px;font-weight:800;line-height:1.3;margin-bottom:10px;">Blijf niet achteraf corrigeren — stuur maandelijks bij</div><div id="rapport-soft-cta-text" style="font-size:13px;line-height:1.7;opacity:.95;margin-bottom:14px;">Met doorlopende begeleiding ziet u eerder waar marge wegvalt, waar kosten oplopen en waar u direct moet ingrijpen.</div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,.14);padding:12px 16px;border-radius:8px;margin-bottom:14px;"><div style="font-size:13px;font-weight:700;">Doorlopende begeleiding</div><div style="font-size:22px;font-weight:800;color:#FFD700;">€249<span style="font-size:12px;font-weight:500;color:rgba(255,255,255,.8)"> per maand</span></div></div><button id="rapport-soft-cta-btn" onclick="Conversie.aanvraagMonitoring()" style="width:100%;border:none;border-radius:10px;padding:14px 16px;background:#fff;color:#1E8449;font-size:15px;font-weight:800;cursor:pointer;">Start begeleiding →</button><div style="text-align:center;margin-top:8px;font-size:11px;opacity:.8;">Maandelijks opzegbaar — geen verplichtingen</div></div></div>
+    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div><div id="rapport-soft-cta" style="margin-top:16px;background:linear-gradient(135deg,#1E8449,#27AE60);border-radius:12px;padding:20px 22px;color:#fff;display:none;"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:.75;font-weight:700;margin-bottom:8px;">Vervolgstap</div><div style="font-size:18px;font-weight:800;line-height:1.3;margin-bottom:10px;">De grootste winst zit in wat u hierna doet</div><div id="rapport-soft-cta-text" style="font-size:13px;line-height:1.7;opacity:.95;margin-bottom:14px;">De meeste bedrijven zien waar het misgaat, maar sturen hier niet structureel op.<br><br>Met begeleiding (€249/mnd) zorgen we dat u:<br>• maandelijks stuurt op de juiste cijfers<br>• direct bijstuurt waar marge wegvalt<br>• structureel meer winst realiseert</div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,.14);padding:12px 16px;border-radius:8px;margin-bottom:14px;"><div style="font-size:13px;font-weight:700;">Doorlopende begeleiding</div><div style="font-size:22px;font-weight:800;color:#FFD700;">€249<span style="font-size:12px;font-weight:500;color:rgba(255,255,255,.8)"> per maand</span></div></div><button id="rapport-soft-cta-btn" onclick="Conversie.aanvraagMonitoring()" style="width:100%;border:none;border-radius:10px;padding:14px 16px;background:#fff;color:#1E8449;font-size:15px;font-weight:800;cursor:pointer;">Start begeleiding →</button><div style="text-align:center;margin-top:8px;font-size:11px;opacity:.8;">Maandelijks opzegbaar — geen verplichtingen</div></div></div>
     <div id="klant-basisscan" style="display:none;">
       <div id="klant-basisscan-inhoud"></div>
       <div style="text-align:center;margin-top:20px;padding-bottom:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
@@ -377,19 +377,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div style="color:#fff;font-size:20px;font-weight:800;line-height:1.3;" id="conv-modal-titel">U laat aantoonbaar geld liggen &mdash; haal het terug</div>
     </div>
     <div style="padding:22px 28px;">
-      <div style="font-size:14px;color:#333;line-height:1.7;margin-bottom:16px;" id="conv-modal-tekst" style="font-size:14px;line-height:1.6;margin-bottom:16px;">
-U ziet zo direct waar uw webshop winst laat liggen.<br><br>
+      <div style="font-size:14px;color:#333;line-height:1.7;margin-bottom:16px;" id="conv-modal-tekst">
+U ziet zo direct waar uw bedrijf winst laat liggen.<br><br>
 Maar zonder verdieping mist u:
 </div>
-      <div style="background:#FEF3C7;padding:12px;border-radius:8px;margin-top:4px;margin-bottom:16px;font-size:13px;font-weight:700;color:#92400E;">Dit is precies waar veel ondernemers jaarlijks duizenden euro’s laten liggen.</div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-1" style="font-size:13px;font-weight:600;">• welke producten structureel verlies maken</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-2" style="font-size:13px;font-weight:600;">• waar advertentiebudget niet rendeert (ROAS)</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-3" style="font-size:13px;font-weight:600;">• waar retouren uw marge uithollen</span></div>
+      <div style="background:#FEF3C7;padding:12px;border-radius:8px;margin-top:4px;margin-bottom:16px;font-size:13px;font-weight:700;color:#92400E;">Dit is precies waar de meeste bedrijven €20.000+ per jaar laten liggen.</div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-1" style="font-size:13px;font-weight:600;">welke onderdelen structureel verlies maken</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-2" style="font-size:13px;font-weight:600;">waar kosten geen rendement opleveren</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-3" style="font-size:13px;font-weight:600;">waar u direct moet bijsturen voor meer winst</span></div>
       </div>
       <button id="conv-modal-cta" onclick="Conversie.bevestigBasiscan()" style="background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:900;cursor:pointer;width:100%;margin-bottom:10px;box-shadow:0 6px 18px rgba(22,163,74,.28);">
-        Ontvang uw winstscan &mdash; €397
+        Ontvang mijn volledige winstscan →
       </button>
-      <div id="conv-modal-impact" style="font-size:11px;color:#888;text-align:center;margin-bottom:8px;">eenmalig • geen abonnement • direct toepasbaar</div>
+      <div style="font-size:12px;color:#888;margin-top:8px;text-align:center;">✔ Gratis • geen verplichtingen • binnen 3 werkdagen</div><div id="conv-modal-impact" style="font-size:11px;color:#888;text-align:center;margin-bottom:8px;">eenmalig • geen abonnement • direct toepasbaar</div>
       <button onclick="UI.sluitModal()" style="background:none;border:none;color:#aaa;font-size:12px;cursor:pointer;width:100%;padding:4px;">Nee, ik laat dit geld liggen</button>
     </div>
   </div>
@@ -399,8 +399,7 @@ Maar zonder verdieping mist u:
 
 <script>
 'use strict';
-console.log("🚀 Groen van Texel v3.1 geladen");
-window.onerror = function (msg, src, line, col, err) { console.error("💥 JS ERROR:", msg, "at", line, col, err || ""); };
+const ADMIN_CODE='GvT2026admin';
 const $=id=>document.getElementById(id)||null;
 const setTxt=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??'');};
 const setVal=(id,v)=>{const e=$(id);if(e)e.value=String(v??'');};
@@ -676,7 +675,7 @@ const Auth={
 const Nav={
   bouw(){
     const nav=$('topnav');if(!nav||!sessie)return;
-    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">✨ Diensten</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
+    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
     else{
       const kt=sessie?.klanttype||sessie?.klantType||'lead';
       const monBtn=kt==='monitoring'?`<button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button>`:'';
@@ -1179,7 +1178,9 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
     const win=window.open('','_blank');
     win.document.write('<html><head><title>Basisscan '+UI.esc(klant)+'</title><style>body{font-family:Arial,sans-serif;margin:0;}@media print{@page{margin:15mm;}}</style></head><body>');
     win.document.write(el.outerHTML);
-    win.document.write('</body></html>');
+    win.document.write('
+<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.2 live</div>
+</body></html>');
     win.document.close();win.focus();
     setTimeout(()=>{win.print();},600);
   },
@@ -1188,6 +1189,7 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
 const KlantApp={
   async init(){
     // Haal altijd verse klantdata op
+    try{const kl=await Store.getKlanten();const k=kl.find(k=>k.code===sessie.code||k.naam===sessie.naam);if(k)sessie={...sessie,...k};}catch{}
     // Formulier altijd alvast instellen (ook als we naar rapport gaan)
     const fB=$('f-bedrijf');if(fB){fB.value=sessie.naam||'';fB.readOnly=true;}
     if(sessie.email)setVal('f-email',sessie.email);
@@ -1267,7 +1269,7 @@ const Conversie={
     div.style.cssText='margin-top:24px;padding:0 0 32px;';
     div.innerHTML='<div style="background:linear-gradient(135deg,#1E8449,#27AE60);border-radius:12px;padding:24px 28px;">'
       +'<div style="color:rgba(255,255,255,.65);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:6px;">Volgende stap</div>'
-      +'<div style="color:#fff;font-size:18px;font-weight:800;line-height:1.3;margin-bottom:8px;">Blijf niet achteraf corrigeren — stuur maandelijks bij</div>'
+      +'<div style="color:#fff;font-size:18px;font-weight:800;line-height:1.3;margin-bottom:8px;">De grootste winst zit in wat u hierna doet</div>'
       +'<p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.7;margin:0 0 14px;">Met doorlopende begeleiding op uw cijfers voorkomt u dat winst weglekt en houdt u grip op uw resultaat.</p>'
       +'<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:rgba(255,255,255,.75);margin-bottom:16px;">'
       +'<span>✓ Inzicht waar u moet bijsturen</span><span>·</span><span>✓ Concrete acties per periode</span><span>·</span><span>✓ Geen verrassingen achteraf</span>'
@@ -1325,7 +1327,7 @@ const Formulier={
       const prob=['[PDF leesfout','[Geen tekst','[formaat niet ondersteund','[Ongeldig','[Excel leesfout','[PDF is leeg','[Excel: bestand is leeg'];
       const leeg=!pdfTekst.trim()||prob.some(p=>pdfTekst.includes(p));
       if(leeg)UI.warn('Bestanden konden niet worden uitgelezen — upload gaat door, handmatige controle nodig.');
-      const klantType=sessie?.klanttype||sessie?.klantType||'lead';
+      const klArr=await Store.getKlanten();const klantType=sessie?.klanttype||sessie?.klantType||klArr.find(k=>k.naam===bedrijf)?.klanttype||klArr.find(k=>k.naam===bedrijf)?.klantType||'lead';
       const periode=klantType+'-'+jaar;const datum=UI.datumNL();
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
       const scanType = currentScanType();
@@ -1761,6 +1763,25 @@ function renderAnalyse(sector) {
   if (ctaBtn) ctaBtn.textContent = currentScanType() === 'belasting' ? 'Start fiscale begeleiding →' : 'Start begeleiding →';
 }
 
+
+const CONVERSIE_AFSLUITER = `
+Dit zijn signalen op hoofdlijnen.
+
+Wat hierbij belangrijk is:
+de grootste winst zit meestal niet in één aanpassing, maar in structureel bijsturen.
+
+In vergelijkbare bedrijven zien we dat dit soort patronen jaarlijks €20.000 – €80.000 aan winst beïnvloeden.
+
+Zonder maandelijkse sturing blijven deze lekken terugkomen.
+
+Met begeleiding ziet u:
+• waar marge direct wegvalt
+• waar kosten oplopen zonder rendement
+• waar u concreet moet bijsturen
+
+Dit is precies waar structurele winstverbetering ontstaat.
+`;
+
 const Analyse={
   async start(){
     if(!_adminKlant||!_adminPeriode){UI.warn('Selecteer klant en periode');return;}
@@ -1830,6 +1851,7 @@ ${uploads[0].pdfTekst||''}`;
       if(!resp.ok){let msg='API fout '+resp.status;try{const d=await resp.json();msg=d?.error?.message||msg;}catch{}throw new Error(msg);}
       const data=await resp.json();if(data.error)throw new Error(data.error.message);
       const tekst=data.content?.find(b=>b.type==='text')?.text||'Geen resultaat';
+      tekst += '\n\n' + CONVERSIE_AFSLUITER;
       await Store.setAnalyse(_adminKlant+'-'+_adminPeriode,tekst);
       output.textContent=tekst;output.style.display='';acties.style.display='flex';status.textContent='Analyse gereed';
       const rapport = document.getElementById('rapport-analyse'); if(rapport) rapport.textContent = tekst;
@@ -1848,7 +1870,7 @@ ${uploads[0].pdfTekst||''}`;
       if(bestaand){output.textContent=bestaand;output.style.display='';acties.style.display='flex';}
       else {
         const fallback = generateSectorAnalyse(sector);
-        output.textContent = fallback;
+        output.textContent = fallback + '\n\n' + CONVERSIE_AFSLUITER;
         output.style.display='';
         acties.style.display='flex';
         const rapport = document.getElementById('rapport-analyse'); if(rapport) rapport.textContent = fallback;
@@ -2545,25 +2567,6 @@ const Diensten = {
 
     let html='';
 
-    html+=`<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:18px 20px;margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1F4E79;margin-bottom:8px;">Nu zichtbaar in het platform</div>
-      <div style="font-size:18px;font-weight:800;color:#1A1A1A;margin-bottom:8px;">Beschikbare modules en scans</div>
-      <div style="font-size:13px;color:#475569;line-height:1.8;margin-bottom:12px;">
-        Naast de Winstscan zijn in dit platform ook aanvullende modules beschikbaar, waaronder de Belasting optimalisatie scan, Financiële Basisscan, Cashflow Stresstest, Debiteuren Stresstest, Offerte &amp; Marge Stresstest, Personeelskosten Stresstest, Subsidie Scan en Fiscale Optimalisatie Scan.
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;">
-        <span style="background:#E8F5E9;color:#1E8449;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Winstscan</span>
-        <span style="background:#D6E4F0;color:#1F4E79;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Belasting scan</span>
-        <span style="background:#EDE9FE;color:#5B21B6;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Basisscan</span>
-        <span style="background:#D6E4F0;color:#1F4E79;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Cashflow</span>
-        <span style="background:#FDECEA;color:#C0392B;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Debiteuren</span>
-        <span style="background:#FDEBD0;color:#E67E22;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Offerte &amp; Marge</span>
-        <span style="background:#EDE9FE;color:#5B21B6;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Personeel</span>
-        <span style="background:#D5F5E3;color:#27AE60;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Subsidie</span>
-        <span style="background:#D6E4F0;color:#1F4E79;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Fiscaal</span>
-      </div>
-    </div>`;
-
     // Persoonlijk advies op basis van sector
     if(advies&&isKlant){
       html+=`<div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:12px;padding:20px 24px;margin-bottom:24px;">
@@ -2973,6 +2976,6 @@ const Monitoring = {
 })();
 </script>
 
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1 live</div>
+<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.2 live</div>
 </body>
 </html>
