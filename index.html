@@ -107,7 +107,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <p>Financiële Doorlichting &amp; Monitoring</p>
     <input id="login-code" type="password" class="login-input" placeholder="Inlogcode" autocomplete="off">
     <button class="login-btn" onclick="Auth.login()">Inloggen →</button>
-    <p style="font-size:11px;color:#9dc3e6;text-align:center;margin-top:8px;margin-bottom:0;">U ontvangt deze code persoonlijk van ons — uw gegevens blijven privé.</p>
     <div id="login-error" class="login-error">Inlogcode niet herkend.</div>
   </div>
 </div>
@@ -163,7 +162,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     </div>
     <div class="card">
       <div class="card-title">Alle klanten</div>
-      <table class="tbl"><thead><tr><th>Bedrijf</th><th>Persoonlijke toegangscode</th><th>Type</th><th>Sector</th><th>E-mail</th><th></th></tr></thead>
+      <table class="tbl"><thead><tr><th>Bedrijf</th><th>Inlogcode</th><th>Type</th><th>Sector</th><th>E-mail</th><th></th></tr></thead>
       <tbody id="kb-tbody"></tbody></table>
     </div>
   </div>
@@ -250,8 +249,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-aanleveren" class="view">
     <div class="card" style="max-width:660px;margin:0 auto;">
       <div style="background:var(--blue);margin:-24px -24px 24px;padding:24px 24px 20px;border-radius:11px 11px 0 0;">
-        <h2 style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;">Ontdek waar uw winst blijft liggen</h2>
-        <p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.6;margin-bottom:2px;">Upload uw jaarcijfers en ontvang een heldere analyse met concrete verbeterpunten.</p>
+        <h2 style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;">Jaarcijfers aanleveren</h2>
         <p id="form-intro" style="color:var(--blue-pale);font-size:13px;"></p>
       </div>
       <div class="form-row cols2">
@@ -286,27 +284,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div id="f-jaar3-naam" class="file-ok"></div>
       </div>
       <div style="background:var(--blue-pale);border-radius:8px;padding:14px 16px;margin-bottom:20px;">
-        <div style="font-weight:700;font-size:13px;color:var(--blue);margin-bottom:6px;">Wat ontvangt u?</div>
+        <div style="font-weight:700;font-size:13px;color:var(--blue);margin-bottom:4px;">Wat ontvangt u?</div>
         <div id="form-wat" style="font-size:13px;color:var(--blue);line-height:1.7;"></div>
-        <ul style="margin:6px 0 0 0;padding-left:18px;font-size:13px;color:var(--blue);line-height:1.8;">
-          <li>Inzicht waar marge verloren gaat</li>
-          <li>Waar cash vastzit in uw bedrijf</li>
-          <li>Concrete acties die direct resultaat opleveren</li>
-        </ul>
       </div>
       <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">▶ Versturen</button>
-      <p style="font-size:11px;color:var(--mid);text-align:center;margin-top:10px;">🔒 Uw gegevens worden vertrouwelijk behandeld en niet gedeeld met derden.</p>
-      <div style="background:#F0F7F4;border:1px solid #A8D5B5;border-radius:10px;padding:16px 20px;margin-top:16px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-            <span style="font-size:16px;">🔒</span>
-            <div style="font-weight:700;font-size:13px;color:#1E4D35;">Uw gegevens zijn veilig</div>
-          </div>
-          <ul style="margin:0;padding-left:18px;font-size:12px;color:#2D6A4F;line-height:1.9;">
-            <li>Alleen toegankelijk voor u en uw adviseur</li>
-            <li>Versleutelde verwerking en opslag</li>
-            <li>Worden nooit gedeeld met derden</li>
-          </ul>
-        </div>
     </div>
   </div>
 
@@ -384,10 +365,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div style="color:#fff;font-size:20px;font-weight:800;line-height:1.3;" id="conv-modal-titel">U laat aantoonbaar geld liggen &mdash; haal het terug</div>
     </div>
     <div style="padding:22px 28px;">
-      <div style="font-size:14px;color:#333;line-height:1.7;margin-bottom:8px;" id="conv-modal-tekst">
-        Op basis van uw cijfers laten wij exact zien waar uw winst weglekt en welke acties direct resultaat opleveren.
+      <div style="font-size:14px;color:#333;line-height:1.7;margin-bottom:16px;" id="conv-modal-tekst">
+        Wij laten exact zien waar uw winst weglekt en welke acties direct resultaat geven.
       </div>
-      <div style="font-size:13px;color:#1E8449;font-weight:600;margin-bottom:16px;">&#10003; Gemiddeld zien ondernemers binnen 3 maanden al meetbare verbetering.</div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span style="font-size:13px;color:#222;font-weight:600;">Waar uw marge verloren gaat</span></div>
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span style="font-size:13px;color:#222;font-weight:600;">Waar cash vastzit in uw bedrijf</span></div>
@@ -406,7 +386,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 
 <script>
 'use strict';
-const ADMIN_CODE='GvT2026admin';
+// Admin-authenticatie verloopt server-side
 const $=id=>document.getElementById(id)||null;
 const setTxt=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??'');};
 const setVal=(id,v)=>{const e=$(id);if(e)e.value=String(v??'');};
@@ -429,9 +409,13 @@ const UI={
 // ─── API ──────────────────────────────────────────────────────────────────────
 const API = {
   async call(body) {
+    const jwt = sessionStorage.getItem('gvt_jwt') || '';
     const r = await fetch('/api/analyse', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        ...(jwt ? {'Authorization': 'Bearer ' + jwt} : {}),
+      },
       body: JSON.stringify(body),
     });
     if (!r.ok) throw new Error('API fout ' + r.status);
@@ -557,29 +541,36 @@ const Store = {
 };
 
 const Config={
-  service(){return Store.getCfg('service','service_oqgsajg');},
-  template(){return Store.getCfg('template','template_q3aea4c');},
-  pubkey(){return Store.getCfg('pubkey','ubJuLGAX11M-mSoIZ');},
+  service(){return Store.getCfg('service','');},
+  template(){return Store.getCfg('template','');},
+  pubkey(){return Store.getCfg('pubkey','');},
   opslaan(){['service','template','pubkey'].forEach(k=>{const el=$('cfg-'+k);if(el&&el.value.trim())Store.setCfg(k,el.value.trim());});try{emailjs.init(Config.pubkey());}catch{}UI.toast('Instellingen opgeslagen');},
   herstelUI(){['service','template','pubkey'].forEach(k=>{const v=Store.getCfg(k);if(v)setVal('cfg-'+k,v);});},
   async opruimenUploads(){const alle=await Store.getUploads();const map=new Map();[...alle].sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0)).forEach(u=>{const k=u.bedrijf+'|'+u.periode;if(!map.has(k))map.set(k,u);});const n=alle.length-map.size;if(n===0){UI.toast('Geen duplicaten gevonden');return;}UI.toast(n+' duplicaten gevonden — worden server-side bijgehouden');},
 };
 
-const Email={async stuur(p){if(typeof emailjs==='undefined')throw new Error('EmailJS niet geladen');await emailjs.send(Config.service(),Config.template(),p);}};
+const Email={
+  async stuur(p){
+    // Altijd via server - geen client-side fallback
+    await API.call({actie:'stuurEmail', data: p});
+  }
+};
 
 let sessie=null;
 const Auth={
   login(){
     const code=($('login-code')?.value||'').trim();hide('login-error');if(!code)return;
-    if(code===ADMIN_CODE){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
-    Store.getKlanten().then(kl=>{
-      const k=kl.find(k=>k.code===code);
-      if(k){Auth._open({type:'klant',...k});Nav.bouw();KlantApp.init();return;}
+    // Check eerst server-side of dit een admin-code is
+    API.call({actie:'checkLogin', code}).then(res=>{
+      if(res.type==='admin'){Auth._open({type:'admin'}, res.token);Nav.bouw();Nav.ga('dashboard');return;}
+      if(res.type==='klant'&&res.klant){Auth._open({type:'klant',...res.klant}, res.token);Nav.bouw();KlantApp.init();return;}
       show('login-error');
-    }).catch(()=>show('login-error'));
+    }).catch(()=>{
+      show('login-error');
+    });
   },
-  uitloggen(){sessie=null;sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');window.location.href=window.location.pathname;},
-  _open(s){sessie=s;hide('login-overlay');try{sessionStorage.setItem('gvt_sessie',JSON.stringify(s));}catch{}},
+  uitloggen(){sessie=null;sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');sessionStorage.removeItem('gvt_jwt');window.location.href=window.location.pathname;},
+  _open(s,token){sessie=s;hide('login-overlay');try{sessionStorage.setItem('gvt_sessie',JSON.stringify(s));if(token)sessionStorage.setItem('gvt_jwt',token);}catch{}},
   async herstelSessie(){
     const raw=sessionStorage.getItem('gvt_sessie')||sessionStorage.getItem('gvt-user');
     if(!raw)return;
@@ -589,11 +580,7 @@ const Auth={
       if(parsed&&parsed.type){
         sessie=parsed;
         if(sessie.type==='klant'){
-          try{
-            const kl=await Store.getKlanten();
-            const k=kl.find(k=>k.code===sessie.code||k.naam===sessie.naam);
-            if(k)sessie={type:'klant',...k};
-          }catch(e){console.warn('Klant ophalen mislukt:',e);}
+          // JWT zit in sessionStorage - geen extra client-side lookup nodig
         }
       } else {
         const naam=typeof parsed==='string'?parsed:raw;
@@ -790,10 +777,7 @@ const Rapport={
     }
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
-      if(allPagers[sl]?.gepubliceerd&&allPagers[sl].html){
-        setHTML('klant-eenpager-inhoud',
-          '<div style="font-size:14px;font-weight:700;color:#1F4E79;margin-bottom:14px;padding:12px 16px;background:#EFF6FF;border-left:4px solid #2563EB;border-radius:0 8px 8px 0;">'          +'&#128270; Dit zijn de 3 belangrijkste kansen om uw resultaat te verbeteren.</div>'          +allPagers[sl].html          +'<div style="margin-top:12px;padding:12px 16px;background:#FFF7ED;border:1px solid #FCD34D;border-radius:8px;font-size:13px;color:#92400E;font-weight:600;">'          +'&#9200; Dit zijn directe verbeterpunten — hoe langer u wacht, hoe meer winst u laat liggen.</div>'          +'<div style="margin-top:16px;padding:20px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;">'          +'<div style="font-weight:700;font-size:14px;color:#166534;margin-bottom:10px;">&#128200; Resultaat bij vergelijkbare ondernemer</div>'          +'<div style="display:flex;flex-direction:column;gap:8px;">'          +'<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#166534;">'          +'<span style="color:#16A34A;font-size:16px;flex-shrink:0;">&#10003;</span>'          +'<span><strong>&#8364;18.000 verbetering in cashflow</strong> binnen 4 maanden</span></div>'          +'<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#166534;">'          +'<span style="color:#16A34A;font-size:16px;flex-shrink:0;">&#10003;</span>'          +'<span>Beter inzicht in marges en kostenstructuur</span></div>'          +'</div>'          +'<div style="margin-top:12px;font-size:11px;color:#6B7280;">Installatietechniek, 12 medewerkers — Groen van Texel doorlichting 2024</div>'          +'</div>'          +'<div style="margin-top:12px;padding:14px 16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;font-size:13px;color:#475569;">'          +'Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete acties en verbeterplan.'          +'</div>'        );
-        show('klant-eenpager');await StressTest.laadVoorKlant(sessie.naam);return;}
+      if(allPagers[sl]?.gepubliceerd&&allPagers[sl].html){setHTML('klant-eenpager-inhoud',allPagers[sl].html);show('klant-eenpager');await StressTest.laadVoorKlant(sessie.naam);return;}
     }
     show('r-leeg');setTxt('r-leeg-tekst','Uw rapport is nog niet beschikbaar. U ontvangt bericht zodra het klaarstaat.');
   },
@@ -1129,7 +1113,7 @@ const KlantApp={
     const fB=$('f-bedrijf');if(fB){fB.value=sessie.naam||'';fB.readOnly=true;}
     if(sessie.email)setVal('f-email',sessie.email);
     if(sessie.sector)setVal('f-sector',sessie.sector);
-    const intro={lead:'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.',doorlichting:'We analyseren nu waar uw bedrijf geld laat liggen — en waar direct winst te behalen is.',monitoring:'Lever uw maandelijkse cijfers aan voor uw maandoverzicht.'};
+    const intro={lead:'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.',doorlichting:'Upload uw jaarcijfers voor de Financiële Basisscan.',monitoring:'Lever uw maandelijkse cijfers aan voor uw maandoverzicht.'};
     const wat={lead:'Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm — gratis, binnen 3 werkdagen.',doorlichting:'De Financiële Basisscan (€397 excl. BTW) — volledige oorzaakanalyse, concreet actieplan en trendanalyse. Binnen 5 werkdagen.',monitoring:'Uw maandoverzicht met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.'};
     const kt=sessie.klanttype||sessie.klantType||'lead';
     setTxt('form-intro',intro[kt]||'');setTxt('form-wat',wat[kt]||'');
