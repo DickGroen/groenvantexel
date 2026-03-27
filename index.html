@@ -1538,15 +1538,36 @@ const Analyse={
     const mappedSector=SECTOR_MAP[rawSector]||'algemeen';
     const sectorAnalysis=SECTOR_ANALYSIS_CONTENT[mappedSector]||SECTOR_ANALYSIS_CONTENT.algemeen;
 
-    const prompt=`Je bent financieel adviseur voor MKB. Schrijf in helder Nederlands. Wees concreet en direct. Benoem geld, marge en rendement. Vermijd vage taal zoals "mogelijk interessant", "overweeg" of "zou kunnen".
+    const prompt = `U bent een scherpe financieel adviseur voor mkb-bedrijven.
+${sectorAnalysis.aiContext}
 
-SECTORCONTEXT: ${sectorAnalysis.aiContext}
+Schrijf in helder Nederlands.
+Schrijf concreet, zakelijk en direct.
+Gebruik branchetaal die past bij deze sector.
+Vermijd vage formuleringen zoals "mogelijk", "zou kunnen", "interessant", "overweeg".
 
-KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
+Analyseer de aangeleverde cijfers en geef output in deze structuur:
+1. Korte samenvatting in 3-4 zinnen
+2. 3 tot 5 belangrijkste observaties
+3. 3 concrete acties met directe financiële impact
+4. Een korte slotconclusie met de grootste winstkans
+
+Verwerk waar relevant deze invalshoeken:
+- ${sectorAnalysis.actionFocus}
+- Benoem geld, marge, rendement en cash
+- Maak het praktisch en direct toepasbaar
 
 ${Sectornormen.tekst(sector)}
 
-BEREKEN en presenteer EXACT in dit formaat:
+Gebruik bij observaties waar passend dit soort thema's:
+${sectorAnalysis.observations.map(x => "- " + x).join("\n")}
+
+Gebruik bij acties waar passend dit soort richtingen:
+${sectorAnalysis.actions.map(x => "- " + x).join("\n")}
+
+KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
+
+Bereken en presenteer de kengetallen EXACT in dit formaat:
 Totaal netto-omzet: € XX.XXX
 Brutomarge %: XX,X%
 Nettoresultaat %: XX,X%
@@ -1557,24 +1578,11 @@ Current ratio: X,X
 
 Presenteer daarna als tabel: Indicator | Werkelijk | Sectornorm | Beoordeling
 
-Geef vervolgens 3-5 concrete observaties (geen vage taal, benoem bedragen):
-${sectorAnalysis.actionFocus}
-
-${sectorAnalysis.promptExtra}
-
-Verwachte observaties voor deze sector (gebruik als leidraad, niet als template):
-${sectorAnalysis.observations.map((o,i)=>(i+1)+'. '+o).join('\n')}
-
-Verwachte acties (geef altijd euro-impact per actie):
-${sectorAnalysis.actions.map((a,i)=>(i+1)+'. '+a).join('\n')}
-
 Benoem de 3 grootste afwijkingen met financieel effect in euro.
 Totaal verbeterpotentieel: € XX.XXX
 Score: ___/100
 
-Geef tot slot 3 concrete acties. Elke actie moet een verwacht resultaat in euro benoemen.
-
-JAARCIJFERS:
+Aangeleverde cijfers:
 ${uploads[0].pdfTekst||''}`;
     try{
       const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
