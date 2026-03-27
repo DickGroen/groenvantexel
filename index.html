@@ -491,6 +491,41 @@ const SECTOR_MAP = {
   'transport':'transport','transport & logistiek':'transport','logistiek':'transport'
 };
 
+const SECTOR_ANALYSIS_CONTENT = {
+  installatie: {
+    aiContext: "U analyseert een installatiebedrijf. Focus op brutomarge, projectrendement, nacalculatie, materiaalverbruik, ureninzet, werkvoorbereiding, servicecontracten en geld dat blijft hangen in projecten.",
+    reportIntro: "Op basis van uw cijfers zien we waar in uw installatiebedrijf marge verloren gaat en waar direct verbetering mogelijk is.",
+    actionFocus: "Leg nadruk op projectmarge, inefficiënte uren, materiaalverbruik, planning, meerwerk en cash die vastzit in lopende projecten.",
+    upsellDetail: "Wilt u exact weten waar uw installatiebedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenpost en werkproces.",
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw installatiebedrijf",
+    promptExtra: "Benoem specifiek: projectmarge per opdracht, nacalculatie versus begroting, ureninzet versus omzet, materiaalverbruik, meerwerk dat niet gefactureerd is en servicecontracten als stabiele inkomstenbron."
+  },
+  bouw: {
+    aiContext: "U analyseert een bouwbedrijf. Focus op projectrendement, faalkosten, meer- en minderwerk, personeelsinzet, onderaanneming, materiaalverbruik, planning en kostenoverschrijding.",
+    reportIntro: "Op basis van uw cijfers zien we waar in uw bouwbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
+    actionFocus: "Leg nadruk op faalkosten, projectoverschrijdingen, inefficiënte planning, kostprijsbeheersing en margeverlies in uitvoering.",
+    upsellDetail: "Wilt u exact weten waar uw bouwprojecten rendement verliezen? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenstructuur en uitvoering.",
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw bouwbedrijf",
+    promptExtra: "Benoem specifiek: faalkosten, kostenoverschrijdingen per project, meer- en minderwerk, inzet onderaannemers versus eigen personeel, materiaalverspilling en planningsproblemen die marge kosten."
+  },
+  transport: {
+    aiContext: "U analyseert een transportbedrijf. Focus op ritrendement, brandstofkosten, bezettingsgraad, personeelskosten, onderhoud, stilstand, route-efficiëntie en kosten per voertuig of rit.",
+    reportIntro: "Op basis van uw cijfers zien we waar in uw transportbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
+    actionFocus: "Leg nadruk op verlieslatende ritten, inefficiënte inzet, brandstofdruk, onderhoudskosten en onderbenutting van capaciteit.",
+    upsellDetail: "Wilt u exact weten waar uw transportbedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties voor ritten, kosten en bezettingsgraad.",
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw transportbedrijf",
+    promptExtra: "Benoem specifiek: ritrendement per voertuig, brandstofkosten versus omzet, bezettingsgraad, stilstandtijd, onderhoudskosten, verlieslatende routes en inzet chauffeurs versus gefactureerde uren."
+  },
+  algemeen: {
+    aiContext: "U analyseert een mkb-bedrijf. Focus op brutomarge, kostenstructuur, cashflow, winstgevendheid en directe verbeterkansen.",
+    reportIntro: "Op basis van uw cijfers zien we waar marge verloren gaat en waar direct verbetering mogelijk is.",
+    actionFocus: "Leg nadruk op margeverbetering, kostenbeheersing, cashflow en concrete acties met directe impact.",
+    upsellDetail: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
+    reportTitle: "Dit zijn de 3 belangrijkste kansen om uw resultaat te verbeteren",
+    promptExtra: "Benoem de 3 grootste kostenposten en margelekken. Wees concreet over bedragen en percentages."
+  }
+};
+
 const SectorCopy = {
   map(raw){
     const key=String(raw||'').toLowerCase().trim();
@@ -511,6 +546,10 @@ const SectorCopy = {
     const bullets=$('sector-bullets');
     if(bullets) bullets.innerHTML = content.bullets.map(t=>`<li>${UI.esc(t)}</li>`).join('');
     return content;
+  },
+  getAnalysis(raw){
+    const mapped=this.map(raw);
+    return SECTOR_ANALYSIS_CONTENT[mapped] || SECTOR_ANALYSIS_CONTENT.algemeen;
   }
 };
 
@@ -920,6 +959,7 @@ const Rapport={
     const sn=Sectornormen.get(sector);const bev=Fin.bevindingen(d,sector);const datum=UI.datumNL();
     const jaar=(periode.match(/(\d{4})/)||[])[1]||periode;
     const sectorContent=SectorCopy.get(sector);
+    const sectorAnalysis=SectorCopy.getAnalysis(sector);
     const sig=(n,v)=>Fin.signaal(n,v,sector);
     const fmt=(v,e='%')=>(v!==null&&v!==undefined)?v+e:'—';
     const fmtEur=v=>v!=null?'€ '+Math.round(v).toLocaleString('nl-NL'):'€ —';
@@ -942,10 +982,10 @@ const Rapport={
       ? 'U laat nu geld liggen — dat hoeft niet.'
       : 'Uw cijfers zijn goed — maar nog niet optimaal benut.';
     const ctaText=heeftPotentieel
-      ? `Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. ${sectorContent.upsell}`
-      : sectorContent.upsell;
+      ? `Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. ${sectorAnalysis.upsellDetail||sectorContent.upsell}`
+      : (sectorAnalysis.upsellDetail||sectorContent.upsell);
     const ctaBtn=heeftPotentieel ? '✓ Ja, ik wil de Basisscan — €397' : 'Ontdek uw verborgen verbeterpotentieel →';
-    return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}-${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr></table></div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar zit ruimte voor verbetering?</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;"><div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">${ctaTitel}</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">${ctaText}</p><p style="font-size:12px;color:#2E75B6;margin:0 0 14px;">✓ Alle ratio's volledig onderbouwd &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Binnen 5 werkdagen</p><div style="text-align:center;"><button onclick="Conversie.openBasisscanModal()" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">${ctaBtn}</button></div></div></div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;"><strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
+    return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><div style="font-size:13px;color:#475569;line-height:1.7;padding:0 0 14px;margin-bottom:4px;">${sectorAnalysis.reportIntro}</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}-${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr></table></div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">${sectorAnalysis.reportTitle||"2 &nbsp; Waar zit ruimte voor verbetering?"}</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;"><div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">${ctaTitel}</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">${ctaText}</p><p style="font-size:12px;color:#2E75B6;margin:0 0 14px;">✓ Alle ratio's volledig onderbouwd &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Binnen 5 werkdagen</p><div style="text-align:center;"><button onclick="Conversie.openBasisscanModal()" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">${ctaBtn}</button></div></div></div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;"><strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
   },
 };
 
@@ -1421,7 +1461,14 @@ const Analyse={
     if(!uploads.length){UI.warn('Geen uploads gevonden');return;}
     status.textContent='Analyse bezig...';output.style.display='none';acties.style.display='none';
     if(knop){knop.disabled=true;knop.textContent='Bezig...';}
-    const prompt=`Je bent financieel analist voor MKB. Voer de MKB Stresstest Methode™ uit.
+    // Sectorspecifieke analyse-instructies
+    const rawSector=(sector||'').toLowerCase().trim();
+    const mappedSector=SECTOR_MAP[rawSector]||'algemeen';
+    const sectorAnalysis=SECTOR_ANALYSIS_CONTENT[mappedSector]||SECTOR_ANALYSIS_CONTENT.algemeen;
+
+    const prompt=`Je bent financieel adviseur voor MKB. Schrijf in helder Nederlands. Wees concreet en direct. Benoem geld, marge en rendement. Vermijd vage taal zoals "mogelijk interessant", "overweeg" of "zou kunnen".
+
+SECTORCONTEXT: ${sectorAnalysis.aiContext}
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -1437,9 +1484,17 @@ Solvabiliteit %: XX,X%
 Current ratio: X,X
 
 Presenteer daarna als tabel: Indicator | Werkelijk | Sectornorm | Beoordeling
-Benoem de 3 grootste afwijkingen met financieel effect in €.
+
+Geef vervolgens 3-5 concrete observaties (geen vage taal, benoem bedragen):
+${sectorAnalysis.actionFocus}
+
+${sectorAnalysis.promptExtra}
+
+Benoem de 3 grootste afwijkingen met financieel effect in euro.
 Totaal verbeterpotentieel: € XX.XXX
 Score: ___/100
+
+Geef tot slot 3 concrete acties. Elke actie moet een verwacht resultaat in euro benoemen.
 
 JAARCIJFERS:
 ${uploads[0].pdfTekst||''}`;
