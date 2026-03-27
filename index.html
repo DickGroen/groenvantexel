@@ -218,7 +218,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
       <div id="bs-prev-inhoud"></div>
     </div>
-    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div></div>
+    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div><div id="rapport-soft-cta" style="margin-top:16px;background:linear-gradient(135deg,#1E8449,#27AE60);border-radius:12px;padding:20px 22px;color:#fff;display:none;"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:.75;font-weight:700;margin-bottom:8px;">Vervolgstap</div><div style="font-size:18px;font-weight:800;line-height:1.3;margin-bottom:10px;">Blijf niet achteraf corrigeren — stuur maandelijks bij</div><div id="rapport-soft-cta-text" style="font-size:13px;line-height:1.7;opacity:.95;margin-bottom:14px;">Met doorlopende begeleiding ziet u eerder waar marge wegvalt, waar kosten oplopen en waar u direct moet ingrijpen.</div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,.14);padding:12px 16px;border-radius:8px;margin-bottom:14px;"><div style="font-size:13px;font-weight:700;">Doorlopende begeleiding</div><div style="font-size:22px;font-weight:800;color:#FFD700;">€249<span style="font-size:12px;font-weight:500;color:rgba(255,255,255,.8)"> per maand</span></div></div><button id="rapport-soft-cta-btn" onclick="Conversie.aanvraagMonitoring()" style="width:100%;border:none;border-radius:10px;padding:14px 16px;background:#fff;color:#1E8449;font-size:15px;font-weight:800;cursor:pointer;">Start begeleiding →</button><div style="text-align:center;margin-top:8px;font-size:11px;opacity:.8;">Maandelijks opzegbaar — geen verplichtingen</div></div></div>
     <div id="klant-basisscan" style="display:none;">
       <div id="klant-basisscan-inhoud"></div>
       <div style="text-align:center;margin-top:20px;padding-bottom:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
@@ -1504,7 +1504,9 @@ const SECTOR_ANALYSIS_CONTENT = {
       "inefficiënte uren",
       "materiaalverlies"
     ],
-    impact: "€20.000 – €80.000"
+    impact: "€20.000 – €80.000",
+    bedrijfLabel: "installatiebedrijf",
+    softCta: "Met doorlopende begeleiding ziet u eerder waar projectmarge wegvalt, waar uren uit de pas lopen en waar u direct moet bijsturen."
   },
   bouw: {
     focus: [
@@ -1513,7 +1515,9 @@ const SECTOR_ANALYSIS_CONTENT = {
       "planning",
       "marge per project"
     ],
-    impact: "€30.000 – €100.000"
+    impact: "€30.000 – €100.000",
+    bedrijfLabel: "bouwbedrijf",
+    softCta: "Met doorlopende begeleiding ziet u eerder waar faalkosten oplopen, waar projecten uit de bocht vliegen en waar u direct moet ingrijpen."
   },
   transport: {
     focus: [
@@ -1522,7 +1526,9 @@ const SECTOR_ANALYSIS_CONTENT = {
       "bezettingsgraad",
       "wagenpark inefficiëntie"
     ],
-    impact: "€25.000 – €90.000"
+    impact: "€25.000 – €90.000",
+    bedrijfLabel: "transportbedrijf",
+    softCta: "Met doorlopende begeleiding ziet u eerder waar ritrendement wegvalt, waar brandstofdruk oploopt en waar capaciteit onbenut blijft."
   },
   ecommerce: {
     focus: [
@@ -1531,7 +1537,9 @@ const SECTOR_ANALYSIS_CONTENT = {
       "ROAS (advertenties)",
       "fulfilmentkosten"
     ],
-    impact: "€20.000 – €100.000"
+    impact: "€20.000 – €100.000",
+    bedrijfLabel: "webshop",
+    softCta: "Met doorlopende begeleiding ziet u eerder waar productmarge wegvalt, waar advertenties niet renderen en waar retouren uw winst aantasten."
   },
   algemeen: {
     focus: [
@@ -1540,7 +1548,9 @@ const SECTOR_ANALYSIS_CONTENT = {
       "rendement",
       "inefficiëntie"
     ],
-    impact: "€10.000 – €50.000"
+    impact: "€10.000 – €50.000",
+    bedrijfLabel: "bedrijf",
+    softCta: "Met doorlopende begeleiding ziet u eerder waar marge wegvalt, waar kosten oplopen en waar u direct moet ingrijpen."
   }
 };
 
@@ -1624,46 +1634,83 @@ function generateSectorAnalyse(sector, data = {}) {
     : String(sector || 'algemeen').toLowerCase();
   const s = mapped || 'algemeen';
   const content = SECTOR_ANALYSIS_CONTENT[s] || SECTOR_ANALYSIS_CONTENT.algemeen;
-  const bedrijfsLabel = s === 'ecommerce' ? 'webshop' : (s === 'algemeen' ? 'bedrijf' : s + 'bedrijf');
+  const bedrijfsLabel = content.bedrijfLabel || (s === 'ecommerce' ? 'webshop' : (s === 'algemeen' ? 'bedrijf' : s + 'bedrijf'));
+
+  const omzet = data.omzet ? `Uw omzet komt uit op ${data.omzet}.` : '';
+  const brutomarge = data.brutomarge ? `Uw brutomarge ligt op ${data.brutomarge}.` : '';
+  const nettoresultaat = data.nettoresultaat ? `Uw nettoresultaat komt uit op ${data.nettoresultaat}.` : '';
+  const personeelskosten = data.personeelskosten ? `Uw personeelskosten liggen op ${data.personeelskosten} van de omzet.` : '';
+  const debiteurendagen = data.debiteurdagen ? `Uw debiteurendagen komen uit op ${data.debiteurdagen}.` : '';
+  const solvabiliteit = data.solvabiliteit ? `Uw solvabiliteit ligt op ${data.solvabiliteit}.` : '';
 
   return `
 In uw ${bedrijfsLabel} zien we een aantal duidelijke signalen dat er winst blijft liggen.
 
+${omzet} ${brutomarge} ${nettoresultaat} ${personeelskosten} ${debiteurendagen} ${solvabiliteit}`.trim() + `
+
 BELANGRIJKSTE INZICHTEN:
-• ${content.focus[0]} staat onder druk, wat direct impact heeft op uw winstgevendheid  
-• ${content.focus[1]} zorgt voor structureel verlies van rendement  
-• ${content.focus[2]} leidt tot inefficiënt gebruik van middelen  
-• ${content.focus[3]} beperkt uw schaalbaarheid en winstgroei  
+• ${content.focus[0]} staat onder druk, wat direct impact heeft op uw winstgevendheid
+• ${content.focus[1]} zorgt voor structureel verlies van rendement
+• ${content.focus[2]} leidt tot inefficiënt gebruik van middelen
+• ${content.focus[3]} beperkt uw schaalbaarheid en winstgroei
 
 WAAR LEKT DE WINST:
-Hier verliest u structureel marge doordat ${content.focus[0]} en ${content.focus[1]} niet optimaal worden aangestuurd.  
-Dit drukt uw rendement en zorgt ervoor dat winst niet wordt gerealiseerd.  
-Hier blijft geld liggen in ${content.focus[2]} en ${content.focus[3]}.  
+Hier verliest u structureel marge doordat ${content.focus[0]} en ${content.focus[1]} niet scherp genoeg worden aangestuurd.
+Dit drukt uw rendement en zorgt ervoor dat winst niet volledig wordt gerealiseerd.
+Hier blijft geld liggen in ${content.focus[2]} en ${content.focus[3]}.
 
 IMPACT:
 Op basis van vergelijkbare bedrijven gaat dit vaak om ${content.impact} per jaar.
 
 VERBETERKANSEN:
-• Breng ${content.focus[0]} structureel in kaart en stuur actief bij  
-• Optimaliseer ${content.focus[1]} om directe winstverbetering te realiseren  
-• Verlaag verliezen in ${content.focus[2]} door gerichte analyse  
-• Stuur op ${content.focus[3]} om rendement structureel te verhogen  
+• Breng ${content.focus[0]} structureel in kaart en stuur actief bij
+• Optimaliseer ${content.focus[1]} om directe winstverbetering te realiseren
+• Verlaag verliezen in ${content.focus[2]} door gerichte analyse
+• Stuur op ${content.focus[3]} om rendement structureel te verhogen
 
 Dit zijn signalen op hoofdlijnen. In een volledige analyse laten we exact zien waar u moet bijsturen en wat dit concreet oplevert.
 `.trim();
 }
 
+
+function extractAnalyseData(rawText = '') {
+  const text = String(rawText || '');
+  const pick = (re) => {
+    const m = text.match(re);
+    return m ? m[1].trim() : '';
+  };
+  return {
+    omzet: pick(/Totaal netto-omzet:\s*([^\n]+)/i),
+    brutomarge: pick(/Brutomarge\s*%:\s*([^\n]+)/i),
+    nettoresultaat: pick(/Nettoresultaat\s*%:\s*([^\n]+)/i),
+    personeelskosten: pick(/Personeelskosten\s*%:\s*([^\n]+)/i),
+    debiteurdagen: pick(/Debiteurendagen\s*=\s*([^\n]+)/i),
+    solvabiliteit: pick(/Solvabiliteit\s*%:\s*([^\n]+)/i),
+  };
+}
+
 function renderAnalyse(sector) {
-  const analyse = generateSectorAnalyse(sector);
+  const sourceText =
+    (document.getElementById('ai-tekst')?.textContent || '') ||
+    (document.getElementById('eenpager-content')?.textContent || '') ||
+    (document.getElementById('klant-eenpager-inhoud')?.textContent || '');
+  const analyseData = extractAnalyseData(sourceText);
+  const analyse = generateSectorAnalyse(sector, analyseData);
+
   const targets = [
-    document.getElementById('rapport-analyse'),
-    document.getElementById('ai-tekst')
+    document.getElementById('rapport-analyse')
   ].filter(Boolean);
 
   targets.forEach(el => {
     el.textContent = analyse;
-    if (el.id === 'ai-tekst') el.style.display = '';
   });
+
+  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : 'algemeen';
+  const cfg = SECTOR_ANALYSIS_CONTENT[mapped] || SECTOR_ANALYSIS_CONTENT.algemeen;
+  const cta = document.getElementById('rapport-soft-cta');
+  const ctaText = document.getElementById('rapport-soft-cta-text');
+  if (cta) cta.style.display = 'block';
+  if (ctaText) ctaText.textContent = cfg.softCta || '';
 }
 
 const Analyse={
@@ -1681,7 +1728,7 @@ const Analyse={
       ui: SectorCopy.get(sector),
       analysis: SectorCopy.getAnalysis(sector)
     };
-    const vooranalyse = generateSectorAnalyse(sector);
+    const vooranalyse = generateSectorAnalyse(sector, extractAnalyseData(uploads[0].pdfTekst||''));
     const prompt=`Je bent een senior financieel analist + sector specialist + conversion copywriter.
 
 Je schrijft GEEN generieke analyse, maar een sectorspecifieke winstscan die voelt als maatwerk.
@@ -1692,13 +1739,36 @@ ${sector}
 Voorbeeld van gewenste richting en toon:
 ${vooranalyse}
 
-Gebruik de geüploade cijfers als basis, maar behoud deze structuur:
-1. Opening
+Gebruik de daadwerkelijke cijfers uit de input expliciet in de tekst.
+Noem waar mogelijk:
+- omzet
+- brutomarge
+- nettoresultaat
+- personeelskosten
+- debiteurendagen
+- solvabiliteit
+- current ratio
+
+Werk met formuleringen zoals:
+- "Uw brutomarge komt uit op ..."
+- "Uw personeelskosten liggen op ..."
+- "Op dit punt blijft uw rendement achter ..."
+- "Hier zien we concreet dat marge verloren gaat ..."
+
+Vergelijk de gevonden cijfers kort met wat gebruikelijk is in deze sector.
+Maak het persoonlijk en concreet.
+Schrijf alsof u direct terugkoppelt op de cijfers van dit bedrijf.
+
+Gebruik deze structuur:
+1. Korte opening
 2. Belangrijkste inzichten
 3. Waar lekt de winst
 4. Impact
 5. Verbeterkansen
-6. Afsluiter
+6. Soft afsluiting richting doorlopende begeleiding
+
+Eindig met een zachte vervolgstap in deze strekking:
+"Dit zijn signalen op hoofdlijnen. De grootste winst zit meestal niet in één grote ingreep, maar in maandelijks bijsturen op de juiste cijfers."
 
 Schrijf zakelijk maar begrijpelijk.
 Geen vage taal.
@@ -1715,6 +1785,10 @@ ${uploads[0].pdfTekst||''}`;
       await Store.setAnalyse(_adminKlant+'-'+_adminPeriode,tekst);
       output.textContent=tekst;output.style.display='';acties.style.display='flex';status.textContent='Analyse gereed';
       const rapport = document.getElementById('rapport-analyse'); if(rapport) rapport.textContent = tekst;
+      const cta = document.getElementById('rapport-soft-cta'); if(cta) cta.style.display='block';
+      const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : 'algemeen';
+      const cfg = SECTOR_ANALYSIS_CONTENT[mapped] || SECTOR_ANALYSIS_CONTENT.algemeen;
+      const ctaText = document.getElementById('rapport-soft-cta-text'); if(ctaText) ctaText.textContent = cfg.softCta || '';
       if(knop){knop.disabled=false;knop.textContent='🚀 Analyseer gegevens';}
       const kl2=await Store.getKlanten();const klant=kl2.find(k=>k.naam===_adminKlant);
       const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display=klant?.klantType==='doorlichting'?'':'none';
@@ -1729,6 +1803,8 @@ ${uploads[0].pdfTekst||''}`;
         output.textContent = fallback;
         output.style.display='';
         acties.style.display='flex';
+        const rapport = document.getElementById('rapport-analyse'); if(rapport) rapport.textContent = fallback;
+        const cta = document.getElementById('rapport-soft-cta'); if(cta) cta.style.display='block';
       }
     }
   },
