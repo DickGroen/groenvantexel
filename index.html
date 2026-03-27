@@ -418,13 +418,32 @@ const UI={
 // ─── API ──────────────────────────────────────────────────────────────────────
 const API = {
   async call(body) {
+    const jwt = sessionStorage.getItem('gvt_jwt') || '';
+    const headers = {'Content-Type': 'application/json'};
+    if (jwt) headers['Authorization'] = 'Bearer ' + jwt;
+
     const r = await fetch('/api/analyse', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers,
       body: JSON.stringify(body),
     });
-    if (!r.ok) throw new Error('API fout ' + r.status);
+
+    if (r.status === 401 && body?.actie !== 'checkLogin' && body?.actie !== 'validateToken') {
+      Auth._forceerLogout('Uw sessie is verlopen. Log opnieuw in.');
+      throw new Error('Sessie verlopen');
+    }
+
+    if (!r.ok) {
+      let msg = 'API fout ' + r.status;
+      try {
+        const e = await r.json();
+        msg = e?.error?.message || msg;
+      } catch {}
+      throw new Error(msg);
+    }
+
     const d = await r.json();
+    if (d.token && d.token !== jwt) sessionStorage.setItem('gvt_jwt', d.token);
     if (d.error) throw new Error(d.error.message);
     return d;
   },
@@ -559,39 +578,93 @@ const Email={async stuur(p){if(typeof emailjs==='undefined')throw new Error('Ema
 let sessie=null;
 const Auth={
   login(){
-    const code=($('login-code')?.value||'').trim();hide('login-error');if(!code)return;
-    if(code===ADMIN_CODE){Auth._open({type:'admin'});Nav.bouw();Nav.ga('dashboard');return;}
-    Store.getKlanten().then(kl=>{
-      const k=kl.find(k=>k.code===code);
-      if(k){Auth._open({type:'klant',...k});Nav.bouw();KlantApp.init();return;}
-      show('login-error');
-    }).catch(()=>show('login-error'));
-  },
-  uitloggen(){sessie=null;sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');window.location.href=window.location.pathname;},
-  _open(s){sessie=s;hide('login-overlay');try{sessionStorage.setItem('gvt_sessie',JSON.stringify(s));}catch{}},
-  async herstelSessie(){
-    const raw=sessionStorage.getItem('gvt_sessie')||sessionStorage.getItem('gvt-user');
-    if(!raw)return;
-    try{
-      let parsed=null;
-      try{parsed=JSON.parse(raw);}catch{parsed=null;}
-      if(parsed&&parsed.type){
-        sessie=parsed;
-        if(sessie.type==='klant'){
-          try{
-            const kl=await Store.getKlanten();
-            const k=kl.find(k=>k.code===sessie.code||k.naam===sessie.naam);
-            if(k)sessie={type:'klant',...k};
-          }catch(e){console.warn('Klant ophalen mislukt:',e);}
-        }
-      } else {
-        const naam=typeof parsed==='string'?parsed:raw;
-        if(naam==='admin')sessie={type:'admin'};
+    const code=($('login-code')?.value||'').trim();
+    hide('login-error');
+    if(!code)return;
+
+    API.call({actie:'checkLogin', code}).then(res=>{
+      if(res.type==='admin'){
+        Auth._open({type:'admin'}, res.token);
+        Nav.bouw();
+        Nav.ga('dashboard');
+        return;
       }
-      if(!sessie)return;
-      hide('login-overlay');Nav.bouw();
-      if(sessie.type==='admin'){Nav.ga('dashboard');}else{KlantApp.init();}
-    }catch{sessionStorage.removeItem('gvt_sessie');sessionStorage.removeItem('gvt-user');}
+      if(res.type==='klant'&&res.klant){
+        Auth._open({type:'klant',...res.klant, code: res.klant.code || code}, res.token);
+        Nav.bouw();
+        KlantApp.init();
+        return;
+      }
+      show('login-error');
+    }).catch(()=>{
+      show('login-error');
+    });
+  },
+
+  uitloggen(){
+    sessie=null;
+    sessionStorage.removeItem('gvt_jwt');
+    sessionStorage.removeItem('gvt_sessie');
+    sessionStorage.removeItem('gvt-user');
+    window.location.href=window.location.pathname;
+  },
+
+  _open(s,token){
+    sessie=s;
+    hide('login-overlay');
+    try{
+      if(token) sessionStorage.setItem('gvt_jwt',token);
+      sessionStorage.setItem('gvt_sessie',JSON.stringify(s));
+    }catch{}
+  },
+
+  _forceerLogout(msg){
+    sessie=null;
+    sessionStorage.removeItem('gvt_jwt');
+    sessionStorage.removeItem('gvt_sessie');
+    sessionStorage.removeItem('gvt-user');
+    const overlay=$('login-overlay');
+    if(overlay) overlay.style.display='flex';
+    const err=$('login-error');
+    if(err){
+      err.textContent = msg || 'Uw sessie is verlopen. Log opnieuw in.';
+      err.style.display='block';
+    }
+  },
+
+  async herstelSessie(){
+    const jwt=sessionStorage.getItem('gvt_jwt');
+    if(!jwt){
+      sessionStorage.removeItem('gvt_sessie');
+      sessionStorage.removeItem('gvt-user');
+      return;
+    }
+    try{
+      const res=await API.call({actie:'validateToken'});
+      if(!res.valid){
+        Auth._forceerLogout();
+        return;
+      }
+
+      let stored = null;
+      try { stored = JSON.parse(sessionStorage.getItem('gvt_sessie') || 'null'); } catch {}
+
+      if(res.type==='admin'){
+        sessie={type:'admin'};
+      } else {
+        sessie={type:'klant', ...(stored||{}), naam: res.naam || stored?.naam || ''};
+      }
+
+      hide('login-overlay');
+      Nav.bouw();
+      if(sessie.type==='admin'){
+        Nav.ga('dashboard');
+      } else {
+        KlantApp.init();
+      }
+    }catch(e){
+      Auth._forceerLogout();
+    }
   },
 };
 
