@@ -44,8 +44,32 @@ const PUBLIEK_ACTIES = new Set(['checkLogin','analyse','validateToken']);
 // functions/api/analyse.js — Groen van Texel
 // Cloudflare Pages Function — alle API calls
 
-const SUPABASE_URL = 'https://yhctamsjmbkkqhndaiov.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_0vdwwnPaC30Y-XcAoBZVjQ_ZJq7tvNs';
+const SUPABASE_URL = 'https://...supabase.co';
+
+const sb = async (env, path, method = 'GET', body = null) => {
+  const SUPABASE_KEY = env.SUPABASE_KEY || 'sb_publishable_...';
+
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer': method === 'POST' ? 'return=representation' : '',
+    },
+  };
+
+  if (body) opts.body = JSON.stringify(body);
+
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, opts);
+  if (!r.ok) {
+    const err = await r.text();
+    throw new Error(`Supabase fout (${r.status}): ${err}`);
+  }
+
+  const txt = await r.text();
+  return txt ? JSON.parse(txt) : [];
+};
 
 const sb = async (path, method = 'GET', body = null) => {
   const opts = {
@@ -139,7 +163,7 @@ export async function onRequestPost({ request, env }) {
         return new Response(JSON.stringify({ type: 'admin', token }), { headers: cors });
       }
       // Klant check
-      const klanten = await sb('klanten');
+      const klanten = await sb(env, 'klanten');
       const klant = Array.isArray(klanten) ? klanten.find(k => k.code === code) : null;
       if (klant) {
         const exp = Math.floor(Date.now()/1000) + 8*3600;
