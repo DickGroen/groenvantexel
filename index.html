@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Groen van Texel — Financieel Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root{--green:#1E8449;--green-light:#27AE60;--green-pale:#D5F5E3;--blue:#1F4E79;--blue-mid:#2E75B6;--blue-pale:#D6E4F0;--red:#C0392B;--red-pale:#FDECEA;--orange:#E67E22;--orange-pale:#FDEBD0;--purple:#5B21B6;--purple-pale:#EDE9FE;--dark:#1A1A1A;--mid:#555;--light:#888;--bg:#F7F9F8;--white:#fff;--border:#E2E8E4;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -402,8 +402,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 
 <script>
 'use strict';
+console.time('gvt_boot');
 // Admin-authenticatie verloopt server-side
 const $=id=>document.getElementById(id)||null;
+window.addEventListener('load',()=>{try{console.timeEnd('gvt_boot');}catch(e){}});
 const setTxt=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??'');};
 const setVal=(id,v)=>{const e=$(id);if(e)e.value=String(v??'');};
 const setHTML=(id,v)=>{const e=$(id);if(e)e.innerHTML=String(v??'');};
@@ -1500,9 +1502,10 @@ const Formulier={
     if(!vw1||!balans){Formulier._bezig=false;UI.warn('Upload minimaal V&W en balans');return;}
     if(btn){btn.textContent='Bezig met verwerken...';btn.disabled=true;}const microBelofte=$('f-micro-belofte');if(microBelofte)microBelofte.style.display='block';
     try{
-      const lijst=[{file:vw1,lbl:'VW_jaar1'},{file:balans,lbl:'Balans_jaar1'},{file:$('f-jaar2')?.files?.[0]||null,lbl:'VW_Balans_jaar2'},{file:$('f-jaar3')?.files?.[0]||null,lbl:'VW_Balans_jaar3'}];
-      let pdfTekst='';
-      for(const item of lijst){if(!item.file)continue;if(btn)btn.textContent=item.lbl+' uitlezen...';pdfTekst+='\n=== '+item.lbl+' ===\n'+await Bestanden.lees(item.file)+'\n';}
+      const lijst=[{file:vw1,lbl:'VW_jaar1'},{file:balans,lbl:'Balans_jaar1'},{file:$('f-jaar2')?.files?.[0]||null,lbl:'VW_Balans_jaar2'},{file:$('f-jaar3')?.files?.[0]||null,lbl:'VW_Balans_jaar3'}].filter(item=>item.file);
+      if(btn)btn.textContent='Bestanden uitlezen...';
+      const uitgelezen = await Promise.all(lijst.map(async item => ({lbl:item.lbl, tekst: await Bestanden.lees(item.file)})));
+      let pdfTekst = uitgelezen.map(item => '\n=== '+item.lbl+' ===\n'+item.tekst+'\n').join('');
       const prob=['[PDF leesfout','[Geen tekst','[formaat niet ondersteund','[Ongeldig','[Excel leesfout','[PDF is leeg','[Excel: bestand is leeg'];
       const leeg=!pdfTekst.trim()||prob.some(p=>pdfTekst.includes(p));
       if(leeg)UI.warn('Bestanden konden niet worden uitgelezen — upload gaat door, handmatige controle nodig.');
@@ -1510,7 +1513,7 @@ const Formulier={
       const periode=klantType+'-'+jaar;const datum=UI.datumNL();
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
       try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')});}catch(e){console.warn('EmailJS:',e.message||e);}
-      Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
+      Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Start gratis winstscan →';}Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
     }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Start gratis winstscan →';}const _mb=$('f-micro-belofte');if(_mb)_mb.style.display='none';UI.error(e.message||'Er ging iets mis');}
   },
   async bestelBasiscan(){
