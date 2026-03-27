@@ -1000,10 +1000,17 @@ const Basisscan={
     const analyse=await Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
     if(!analyse){UI.warn('Draai eerst de AI-analyse');return;}
     const sector=($('ai-sector')?.value||'').trim()||klantObj?.sector||'—';
+    const bsSectorAnalysis=SectorCopy.getAnalysis(sector);
     const status=$('ai-status');if(status)status.textContent='Basisscan wordt gegenereerd...';
     const knop=$('btn-basisscan');if(knop){knop.disabled=true;knop.textContent='Bezig...';}
 
-    const prompt=`Je bent financieel adviseur voor MKB. Genereer een volledige Financiële Basisscan.
+    const prompt=`Je bent financieel adviseur voor MKB. Schrijf in helder Nederlands. Wees concreet en direct. Gebruik branchetaal, geen vage managementteksten.
+
+SECTORCONTEXT: ${bsSectorAnalysis.aiContext}
+
+RAPPORTINTRO: ${bsSectorAnalysis.reportIntro}
+
+FOCUS: ${bsSectorAnalysis.actionFocus}
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
@@ -2409,10 +2416,13 @@ const Monitoring = {
       const kl=await Store.getKlanten();
       const klantObj=kl.find(k=>k.naam===this._klant);
       const sector=klantObj?.sector||'—';
+      const monSectorAnalysis=SectorCopy.getAnalysis(sector);
       const maandNaam=new Date(this._maand+'-01').toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
 
       const bsRefTekst=bsRef?'BASISSCAN REFERENTIE (vergelijking):\n'+bsRef.replace(/<[^>]+>/g,' ').substring(0,2000):'';
-      const prompt='Je bent financieel adviseur voor MKB. Genereer een beknopt maandoverzicht.\n\n'
+      const prompt='Je bent financieel adviseur voor MKB. Schrijf in helder Nederlands. Gebruik branchetaal, geen vage teksten.\n\n'
+        +'SECTORCONTEXT: '+monSectorAnalysis.aiContext+'\n\n'
+        +'FOCUS: '+monSectorAnalysis.actionFocus+'\n\n'
         +'KLANT: '+this._klant+' | SECTOR: '+sector+' | MAAND: '+maandNaam+'\n\n'
         +'MAANDCIJFERS:\n'+tekst+'\n\n'
         +bsRefTekst+'\n\n'
