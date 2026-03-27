@@ -493,36 +493,95 @@ const SECTOR_MAP = {
 
 const SECTOR_ANALYSIS_CONTENT = {
   installatie: {
-    aiContext: "U analyseert een installatiebedrijf. Focus op brutomarge, projectrendement, nacalculatie, materiaalverbruik, ureninzet, werkvoorbereiding, servicecontracten en geld dat blijft hangen in projecten.",
+    aiContext: "U analyseert een installatiebedrijf. Focus op brutomarge, projectrendement, nacalculatie, materiaalverbruik, monteursuren, werkvoorbereiding, servicecontracten, meerwerk, facturatietempo en geld dat vastzit in lopende projecten.",
     reportIntro: "Op basis van uw cijfers zien we waar in uw installatiebedrijf marge verloren gaat en waar direct verbetering mogelijk is.",
-    actionFocus: "Leg nadruk op projectmarge, inefficiënte uren, materiaalverbruik, planning, meerwerk en cash die vastzit in lopende projecten.",
+    actionFocus: "Leg nadruk op projectmarge, inefficiënte uren, materiaalverbruik, planning, meerwerk, service-omzet en cash die vastzit in lopende projecten.",
     upsellDetail: "Wilt u exact weten waar uw installatiebedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenpost en werkproces.",
     reportTitle: "Dit zijn de belangrijkste winstkansen in uw installatiebedrijf",
-    promptExtra: "Benoem specifiek: projectmarge per opdracht, nacalculatie versus begroting, ureninzet versus omzet, materiaalverbruik, meerwerk dat niet gefactureerd is en servicecontracten als stabiele inkomstenbron."
+    promptExtra: "Benoem specifiek: projectmarge per opdracht, nacalculatie versus begroting, ureninzet versus omzet, materiaalverbruik, meerwerk dat niet gefactureerd is en servicecontracten als stabiele inkomstenbron.",
+    observations: [
+      "te lage brutomarge op projecten",
+      "uren lopen weg door inefficiënte planning of nacalculatie",
+      "materiaalverbruik en inkoop drukken de marge",
+      "meerwerk wordt niet volledig of te laat gefactureerd",
+      "cash blijft hangen in openstaande projecten of servicewerk"
+    ],
+    actions: [
+      "stuur strakker op nacalculatie per project",
+      "maak verschil zichtbaar tussen begrote en gerealiseerde uren",
+      "factureer meerwerk sneller en consequenter",
+      "herzie inkoop- en materiaalafspraken",
+      "scheid service, projecten en onderhoud in winstbijdrage"
+    ]
   },
+
   bouw: {
-    aiContext: "U analyseert een bouwbedrijf. Focus op projectrendement, faalkosten, meer- en minderwerk, personeelsinzet, onderaanneming, materiaalverbruik, planning en kostenoverschrijding.",
+    aiContext: "U analyseert een bouwbedrijf. Focus op projectrendement, faalkosten, meer- en minderwerk, personeelsinzet, onderaanneming, materiaalverbruik, planning, kostprijsbeheersing, termijnfacturatie en kostenoverschrijding.",
     reportIntro: "Op basis van uw cijfers zien we waar in uw bouwbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
-    actionFocus: "Leg nadruk op faalkosten, projectoverschrijdingen, inefficiënte planning, kostprijsbeheersing en margeverlies in uitvoering.",
+    actionFocus: "Leg nadruk op faalkosten, projectoverschrijdingen, inefficiënte planning, kostprijsbeheersing, termijnfacturatie en margeverlies in uitvoering.",
     upsellDetail: "Wilt u exact weten waar uw bouwprojecten rendement verliezen? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenstructuur en uitvoering.",
     reportTitle: "Dit zijn de belangrijkste winstkansen in uw bouwbedrijf",
-    promptExtra: "Benoem specifiek: faalkosten, kostenoverschrijdingen per project, meer- en minderwerk, inzet onderaannemers versus eigen personeel, materiaalverspilling en planningsproblemen die marge kosten."
+    promptExtra: "Benoem specifiek: faalkosten, kostenoverschrijdingen per project, meer- en minderwerk, inzet onderaannemers versus eigen personeel, materiaalverspilling en planningsproblemen die marge kosten.",
+    observations: [
+      "projectkosten lopen uit ten opzichte van begroting",
+      "faalkosten drukken de marge",
+      "meerwerk wordt te laat vastgelegd of gefactureerd",
+      "onderaanneming en materiaal drukken het rendement",
+      "cashflow komt onder druk door trage termijnfacturatie"
+    ],
+    actions: [
+      "maak projectafwijkingen eerder zichtbaar",
+      "leg meer- en minderwerk direct financieel vast",
+      "stuur scherper op faalkosten per projectfase",
+      "vergelijk begroting, uitvoering en nacalculatie structureel",
+      "versnel termijnfacturatie en opvolging"
+    ]
   },
+
   transport: {
-    aiContext: "U analyseert een transportbedrijf. Focus op ritrendement, brandstofkosten, bezettingsgraad, personeelskosten, onderhoud, stilstand, route-efficiëntie en kosten per voertuig of rit.",
+    aiContext: "U analyseert een transportbedrijf. Focus op ritrendement, brandstofkosten, bezettingsgraad, personeelskosten, onderhoud, stilstand, route-efficiëntie, voertuigkosten, planning en kosten per rit of voertuig.",
     reportIntro: "Op basis van uw cijfers zien we waar in uw transportbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
-    actionFocus: "Leg nadruk op verlieslatende ritten, inefficiënte inzet, brandstofdruk, onderhoudskosten en onderbenutting van capaciteit.",
+    actionFocus: "Leg nadruk op verlieslatende ritten, inefficiënte inzet, brandstofdruk, onderhoudskosten, stilstand en onderbenutting van capaciteit.",
     upsellDetail: "Wilt u exact weten waar uw transportbedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties voor ritten, kosten en bezettingsgraad.",
     reportTitle: "Dit zijn de belangrijkste winstkansen in uw transportbedrijf",
-    promptExtra: "Benoem specifiek: ritrendement per voertuig, brandstofkosten versus omzet, bezettingsgraad, stilstandtijd, onderhoudskosten, verlieslatende routes en inzet chauffeurs versus gefactureerde uren."
+    promptExtra: "Benoem specifiek: ritrendement per voertuig, brandstofkosten versus omzet, bezettingsgraad, stilstandtijd, onderhoudskosten, verlieslatende routes en inzet chauffeurs versus gefactureerde uren.",
+    observations: [
+      "ritten leveren onvoldoende marge op",
+      "brandstofkosten drukken het resultaat sterker dan nodig",
+      "voertuigen of capaciteit zijn niet optimaal benut",
+      "onderhoud en stilstand verhogen de kostprijs",
+      "planning en route-efficiëntie laten rendement liggen"
+    ],
+    actions: [
+      "maak rendement per rit of voertuig zichtbaar",
+      "stuur actiever op brandstofverbruik en route-efficiëntie",
+      "verhoog bezettingsgraad en inzet van materieel",
+      "analyseer stilstand en onderhoudskosten per voertuig",
+      "herprijs verlieslatende klanten of rittypes"
+    ]
   },
+
   algemeen: {
     aiContext: "U analyseert een mkb-bedrijf. Focus op brutomarge, kostenstructuur, cashflow, winstgevendheid en directe verbeterkansen.",
     reportIntro: "Op basis van uw cijfers zien we waar marge verloren gaat en waar direct verbetering mogelijk is.",
     actionFocus: "Leg nadruk op margeverbetering, kostenbeheersing, cashflow en concrete acties met directe impact.",
     upsellDetail: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
     reportTitle: "Dit zijn de 3 belangrijkste kansen om uw resultaat te verbeteren",
-    promptExtra: "Benoem de 3 grootste kostenposten en margelekken. Wees concreet over bedragen en percentages."
+    promptExtra: "Benoem de 3 grootste kostenposten en margelekken. Wees concreet over bedragen en percentages.",
+    observations: [
+      "brutomarge blijft achter",
+      "kostenstructuur is zwaarder dan nodig",
+      "cashflow staat onder druk",
+      "winstgevendheid verschilt waarschijnlijk per activiteit",
+      "er zijn directe verbeterkansen in prijs, kosten of werkkapitaal"
+    ],
+    actions: [
+      "maak winstbijdrage per activiteit zichtbaar",
+      "stuur strakker op kosten en cashflow",
+      "versnel facturatie en incasso",
+      "herzie prijsstelling of inkoop",
+      "prioriteer acties met directe financiële impact"
+    ]
   }
 };
 
@@ -1012,6 +1071,12 @@ RAPPORTINTRO: ${bsSectorAnalysis.reportIntro}
 
 FOCUS: ${bsSectorAnalysis.actionFocus}
 
+Typische bevindingen voor deze sector:
+${bsSectorAnalysis.observations.map((o,i)=>(i+1)+'. '+o).join('\n')}
+
+Verwachte concrete acties:
+${bsSectorAnalysis.actions.map((a,i)=>(i+1)+'. '+a).join('\n')}
+
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
 BESTAANDE ANALYSE:
@@ -1496,6 +1561,12 @@ Geef vervolgens 3-5 concrete observaties (geen vage taal, benoem bedragen):
 ${sectorAnalysis.actionFocus}
 
 ${sectorAnalysis.promptExtra}
+
+Verwachte observaties voor deze sector (gebruik als leidraad, niet als template):
+${sectorAnalysis.observations.map((o,i)=>(i+1)+'. '+o).join('\n')}
+
+Verwachte acties (geef altijd euro-impact per actie):
+${sectorAnalysis.actions.map((a,i)=>(i+1)+'. '+a).join('\n')}
 
 Benoem de 3 grootste afwijkingen met financieel effect in euro.
 Totaal verbeterpotentieel: € XX.XXX
@@ -2423,6 +2494,7 @@ const Monitoring = {
       const prompt='Je bent financieel adviseur voor MKB. Schrijf in helder Nederlands. Gebruik branchetaal, geen vage teksten.\n\n'
         +'SECTORCONTEXT: '+monSectorAnalysis.aiContext+'\n\n'
         +'FOCUS: '+monSectorAnalysis.actionFocus+'\n\n'
+        +'Let op deze signalen voor deze sector:\n'+monSectorAnalysis.observations.slice(0,3).map((o,i)=>(i+1)+'. '+o).join('\n')+'\n\n'
         +'KLANT: '+this._klant+' | SECTOR: '+sector+' | MAAND: '+maandNaam+'\n\n'
         +'MAANDCIJFERS:\n'+tekst+'\n\n'
         +bsRefTekst+'\n\n'
