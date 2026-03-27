@@ -249,8 +249,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-aanleveren" class="view">
     <div class="card" style="max-width:660px;margin:0 auto;">
       <div style="background:var(--blue);margin:-24px -24px 24px;padding:24px 24px 20px;border-radius:11px 11px 0 0;">
-        <h2 style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;">Jaarcijfers aanleveren</h2>
+        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:6px;">Zie binnen 2 minuten waar uw bedrijf winst laat liggen — en hoeveel dat kost</h2>
+        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Upload uw cijfers en ontvang direct inzicht in marge, kosten en verbeterkansen.</p>
         <p id="form-intro" style="color:var(--blue-pale);font-size:13px;"></p>
+      </div>
+      <div style="background:#F0F7FF;border:1px solid #BFDBFE;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
+        <div id="sector-trust-title" style="font-weight:700;font-size:13px;color:#1E3A5F;margin-bottom:10px;">Waarom ondernemers ons vertrouwen</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">✓</span><span id="sector-trust-1">Inzicht in marge, kosten en winstkansen</span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">✓</span><span id="sector-trust-2">Concreet en snel toepasbare verbeteracties</span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">✓</span><span id="sector-trust-3">Volledig vertrouwelijke verwerking van uw cijfers</span></div>
+        </div>
       </div>
       <div class="form-row cols2">
         <div class="form-group"><label class="form-label">Bedrijfsnaam <span class="req">*</span></label><input id="f-bedrijf" class="form-input" autocomplete="off"></div>
@@ -405,153 +414,6 @@ const UI={
   openModal(){const m=$('conv-modal');if(m){m.style.display='flex';}},
   sluitModal(){const m=$('conv-modal');if(m){m.style.display='none';}},
 };
-
-
-const SECTOR_CONTENT = {
-  installatie: {
-    hero: "Zie binnen 2 minuten waar uw installatiebedrijf winst laat liggen — en hoeveel dat kost",
-    sub: "Ontdek waar marge verdwijnt in uw projecten, waar kosten oplopen en waar u direct kunt bijsturen.",
-    bullets: [
-      "Waar uw marge onder druk staat",
-      "Waar geld blijft hangen in uw projecten",
-      "Welke acties direct resultaat opleveren"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw installatiebedrijf",
-    upsell: "Wilt u exact weten wat deze kansen voor uw installatiebedrijf betekenen? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Installatiebedrijven laten vaak €20.000 – €80.000 per jaar liggen zonder inzicht.",
-    trustTitle: "Waarom installatiebedrijven dit gebruiken",
-    trustBullets: [
-      "Inzicht in marge per project",
-      "Analyse van faalkosten en inefficiëntie",
-      "Volledig vertrouwelijke verwerking van uw cijfers"
-    ]
-  },
-  bouw: {
-    hero: "Zie binnen 2 minuten waar uw bouwbedrijf winst verliest — en hoeveel dat kost",
-    sub: "Krijg direct inzicht in faalkosten, projectrendement en waar uw marge onder druk staat.",
-    bullets: [
-      "Waar projectkosten uit de hand lopen",
-      "Waar faalkosten uw marge drukken",
-      "Welke verbeteringen direct rendement opleveren"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw bouwbedrijf",
-    upsell: "Wilt u exact weten waar uw bouwprojecten rendement verliezen? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Bouwbedrijven laten vaak €30.000 – €100.000 per jaar liggen door inefficiëntie en faalkosten.",
-    trustTitle: "Gebruikt door bouwbedrijven die grip willen op projecten",
-    trustBullets: [
-      "Inzicht in projectrendement",
-      "Analyse van faalkosten",
-      "Concrete verbeteracties per project"
-    ]
-  },
-  transport: {
-    hero: "Zie binnen 2 minuten waar uw transportbedrijf winst laat liggen — en hoeveel dat kost",
-    sub: "Ontdek welke ritten verlies maken, waar kosten oplopen en waar direct winst te behalen is.",
-    bullets: [
-      "Welke ritten onvoldoende rendement opleveren",
-      "Waar brandstof- en kostenstructuur inefficiënt is",
-      "Welke acties direct winst verbeteren"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw transportbedrijf",
-    upsell: "Wilt u exact zien waar uw transportbedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Transportbedrijven laten vaak €25.000 – €90.000 per jaar liggen door inefficiënt gebruik en kosten.",
-    trustTitle: "Specifiek ontwikkeld voor transportbedrijven",
-    trustBullets: [
-      "Inzicht in rendement per rit",
-      "Analyse van brandstof- en kostenstructuur",
-      "Direct toepasbare verbeteracties"
-    ]
-  },
-  ecommerce: {
-    hero: "Zie binnen 2 minuten waar uw webshop winst laat liggen — en hoeveel dat kost",
-    sub: "Ontdek waar marge verdwijnt door retouren, advertenties en kortingen.",
-    bullets: [
-      "Waar uw marge verdwijnt door retouren en kortingen",
-      "Welke producten of campagnes verlies opleveren",
-      "Waar advertentiekosten niet renderen"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw webshop",
-    upsell: "Wilt u exact weten waar uw webshop winst laat liggen? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Webshops laten vaak €20.000 – €100.000 per jaar liggen door inefficiënte advertenties, retouren en marges.",
-    trustTitle: "Gebouwd voor e-commerce bedrijven",
-    trustBullets: [
-      "Inzicht in marges per product en kanaal",
-      "Analyse van advertentierendement en retouren",
-      "Volledig vertrouwelijke verwerking van uw data"
-    ]
-  },
-  algemeen: {
-    hero: "Zie binnen 2 minuten waar uw bedrijf winst laat liggen — en hoeveel dat kost",
-    sub: "Upload uw cijfers en ontvang direct inzicht in marge, kosten en verbeterkansen.",
-    bullets: [
-      "Waar uw marge onder druk staat",
-      "Waar kosten onnodig oplopen",
-      "Welke acties direct resultaat opleveren"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw bedrijf",
-    upsell: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Veel bedrijven laten jaarlijks tienduizenden euro’s liggen zonder inzicht.",
-    trustTitle: "Waarom ondernemers ons vertrouwen",
-    trustBullets: [
-      "Inzicht in marge, kosten en winstkansen",
-      "Concreet en snel toepasbare verbeteracties",
-      "Volledig vertrouwelijke verwerking van uw cijfers"
-    ]
-  }
-};
-
-const SECTOR_MAP = {
-  "installatietechniek": "installatie",
-  "installatie": "installatie",
-  "bouw & aannemerij": "bouw",
-  "bouw": "bouw",
-  "transport & logistiek": "transport",
-  "transport": "transport",
-  "logistiek": "transport",
-  "ecommerce": "ecommerce",
-  "e-commerce": "ecommerce",
-  "webshop": "ecommerce",
-  "webwinkel": "ecommerce",
-  "online shop": "ecommerce",
-  "e-commerce / webshop": "ecommerce"
-};
-
-const SectorCopy = {
-  map(raw){
-    const key = String(raw || '').toLowerCase().trim();
-    return SECTOR_MAP[key] || 'algemeen';
-  },
-  get(raw){
-    return SECTOR_CONTENT[this.map(raw)] || SECTOR_CONTENT.algemeen;
-  },
-  apply(raw){
-    const content = this.get(raw);
-    setTxt('sector-hero', content.hero);
-    setTxt('sector-sub', content.sub);
-    setTxt('sector-trust-title', content.trustTitle);
-    setTxt('sector-trust-1', content.trustBullets[0] || '');
-    setTxt('sector-trust-2', content.trustBullets[1] || '');
-    setTxt('sector-trust-3', content.trustBullets[2] || '');
-    const bullets = $('sector-bullets');
-    if (bullets) bullets.innerHTML = (content.bullets || []).map(t => `<li>${UI.esc(t)}</li>`).join('');
-    return content;
-  },
-  applyModal(raw){
-    const content = this.get(raw);
-    setTxt('conv-modal-tekst', content.upsell);
-    setTxt('conv-modal-bullet-1', content.bullets?.[0] || '');
-    setTxt('conv-modal-bullet-2', content.bullets?.[1] || '');
-    setTxt('conv-modal-bullet-3', content.bullets?.[2] || '');
-    setTxt('conv-modal-impact', content.impact);
-    return content;
-  }
-};
-
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 const API = {
@@ -1253,10 +1115,12 @@ const KlantApp={
     const fB=$('f-bedrijf');if(fB){fB.value=sessie.naam||'';fB.readOnly=true;}
     if(sessie.email)setVal('f-email',sessie.email);
     if(sessie.sector)setVal('f-sector',sessie.sector);
-    const intro={lead:'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.',doorlichting:'Upload uw jaarcijfers voor de Financiële Basisscan.',monitoring:'Lever uw maandelijkse cijfers aan voor uw maandoverzicht.'};
-    const wat={lead:'Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm — gratis, binnen 3 werkdagen.',doorlichting:'De Financiële Basisscan (€397 excl. BTW) — volledige oorzaakanalyse, concreet actieplan en trendanalyse. Binnen 5 werkdagen.',monitoring:'Uw maandoverzicht met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.'};
+    const intro={lead:'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.',doorlichting:'Upload uw jaarcijfers voor de Financiële Basisscan.',monitoring:'Lever uw maandelijkse cijfers aan voor uw begeleidingsrapport.'};
+    const wat={lead:'Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm — gratis, binnen 3 werkdagen.',doorlichting:'De Financiële Basisscan (€397 excl. BTW) — volledige oorzaakanalyse, concreet actieplan en trendanalyse. Binnen 5 werkdagen.',monitoring:'Uw begeleidingsrapport met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.'};
     const kt=sessie.klanttype||sessie.klantType||'lead';
     setTxt('form-intro',intro[kt]||'');setTxt('form-wat',wat[kt]||'');
+    SectorCopy.apply(sessie.sector||$('f-sector')?.value||'algemeen');
+    SectorCopy.applyModal(sessie.sector||$('f-sector')?.value||'algemeen');
     // Bepaal startscherm: rapport als beschikbaar, anders aanleveren
     try{
       const _upl=await Store.getUploads();
@@ -1306,6 +1170,7 @@ const Conversie={
         ? 'U laat ' + bedrag + ' per jaar liggen — haal het terug'
         : 'U laat aantoonbaar geld liggen — haal het terug';
     }
+    SectorCopy.applyModal(sessie?.sector||$('f-sector')?.value||'algemeen');
     UI.openModal();
     const modal = $('conv-modal');
     if(modal) modal.onclick = e => { if(e.target === modal) UI.sluitModal(); };
@@ -1345,7 +1210,7 @@ const Conversie={
     const naam=sessie?.naam||'onbekend';
     try{
       await Email.stuur({
-        bedrijf:naam, periode:'Monitoring aanvraag',
+        bedrijf:naam, periode:'Begeleidingsaanvraag',
         name:naam, time:UI.datumNL(),
         message:'Klant '+naam+' vraagt doorlopende begeleiding aan (€249 per maand)'
       });
@@ -1363,7 +1228,7 @@ const Conversie={
 
 const Formulier={
   _bezig:false,
-  reset(){['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Start analyse →';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';}const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; Formulier._bezig=false;},
+  reset(){['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Start analyse →';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none';Formulier._bezig=false;},
   _ontvangenStaat(datum){const btn=$('f-submit');if(!btn)return;const kt=sessie?.klanttype||sessie?.klantType||'lead';const dagen=kt==='doorlichting'?'5':kt==='monitoring'?'3':'3';btn.textContent='Ontvangen op '+datum+' — uw rapport is binnen '+dagen+' werkdagen klaar';btn.classList.remove('btn-primary');btn.classList.add('btn-ghost');btn.style.cursor='default';btn.disabled=true;},
   async submit(){
     if(Formulier._bezig)return;Formulier._bezig=true;
@@ -1387,7 +1252,7 @@ const Formulier={
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
       try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
-    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Start analyse →';}UI.error(e.message||'Er ging iets mis');}
+    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Start analyse →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
   },
   async bestelBasiscan(){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
@@ -1404,6 +1269,192 @@ const Bestanden={
   async leesPDF(file){try{if(!window.pdfjsLib)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[PDF is leeg]';const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;let t='';for(let i=1;i<=Math.min(pdf.numPages,12);i++){const pg=await pdf.getPage(i);const c=await pg.getTextContent();t+='\n--- Pagina '+i+' ---\n'+c.items.map(x=>x.str).join(' ');}return t.trim()||'[Geen tekst gevonden]';}catch(e){return '[PDF leesfout: '+e.message+']';}},
   async leesExcel(file){try{if(!window.XLSX)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[Excel: leeg]';const wb=window.XLSX.read(new Uint8Array(buf),{type:'array'});if(!wb.SheetNames.length)return '[Excel: geen tabbladen]';return wb.SheetNames.map(n=>'\n--- '+n+' ---\n'+window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:' | '})).join('');}catch(e){return '[Excel leesfout: '+e.message+']';}},
   koppelListeners(){[['f-vw1','f-vw1-naam'],['f-balans1','f-balans1-naam'],['f-jaar2','f-jaar2-naam'],['f-jaar3','f-jaar3-naam']].forEach(([inp,nm])=>{const el=$(inp);if(!el)return;el.addEventListener('change',()=>setTxt(nm,el.files?.[0]?'Gekozen: '+el.files[0].name:''));});},
+};
+
+
+// ─── SECTOR COPY & AI-CONTEXT ────────────────────────────────────────────────
+const SECTOR_CONTENT = {
+  installatie: {
+    hero: "Zie binnen 2 minuten waar uw installatiebedrijf winst laat liggen — en hoeveel dat kost",
+    sub: "Ontdek waar marge verdwijnt in uw projecten, waar kosten oplopen en waar u direct kunt bijsturen.",
+    bullets: [
+      "Waar uw marge onder druk staat",
+      "Waar geld blijft hangen in uw projecten",
+      "Welke acties direct resultaat opleveren"
+    ],
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw installatiebedrijf",
+    upsell: "Wilt u exact weten wat deze kansen voor uw installatiebedrijf betekenen? Ontvang een volledige doorlichting met concrete verbeteracties.",
+    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
+    impact: "Installatiebedrijven laten vaak €20.000 – €80.000 per jaar liggen zonder inzicht.",
+    trustTitle: "Waarom installatiebedrijven dit gebruiken",
+    trustBullets: [
+      "Inzicht in marge per project",
+      "Analyse van faalkosten en inefficiëntie",
+      "Volledig vertrouwelijke verwerking van uw cijfers"
+    ]
+  },
+  bouw: {
+    hero: "Zie binnen 2 minuten waar uw bouwbedrijf winst verliest — en hoeveel dat kost",
+    sub: "Krijg direct inzicht in faalkosten, projectrendement en waar uw marge onder druk staat.",
+    bullets: [
+      "Waar projectkosten uit de hand lopen",
+      "Waar faalkosten uw marge drukken",
+      "Welke verbeteringen direct rendement opleveren"
+    ],
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw bouwbedrijf",
+    upsell: "Wilt u exact weten waar uw bouwprojecten rendement verliezen? Ontvang een volledige doorlichting met concrete verbeteracties.",
+    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
+    impact: "Bouwbedrijven laten vaak €30.000 – €100.000 per jaar liggen door inefficiëntie en faalkosten.",
+    trustTitle: "Gebruikt door bouwbedrijven die grip willen op projecten",
+    trustBullets: [
+      "Inzicht in projectrendement",
+      "Analyse van faalkosten",
+      "Concrete verbeteracties per project"
+    ]
+  },
+  transport: {
+    hero: "Zie binnen 2 minuten waar uw transportbedrijf winst laat liggen — en hoeveel dat kost",
+    sub: "Ontdek welke ritten verlies maken, waar kosten oplopen en waar direct winst te behalen is.",
+    bullets: [
+      "Welke ritten onvoldoende rendement opleveren",
+      "Waar brandstof- en kostenstructuur inefficiënt is",
+      "Welke acties direct winst verbeteren"
+    ],
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw transportbedrijf",
+    upsell: "Wilt u exact zien waar uw transportbedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties.",
+    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
+    impact: "Transportbedrijven laten vaak €25.000 – €90.000 per jaar liggen door inefficiënt gebruik en kosten.",
+    trustTitle: "Specifiek ontwikkeld voor transportbedrijven",
+    trustBullets: [
+      "Inzicht in rendement per rit",
+      "Analyse van brandstof- en kostenstructuur",
+      "Direct toepasbare verbeteracties"
+    ]
+  },
+  ecommerce: {
+    hero: "Zie binnen 2 minuten waar uw webshop winst laat liggen — en hoeveel dat kost",
+    sub: "Ontdek waar marge verdwijnt door retouren, advertenties en kortingen.",
+    bullets: [
+      "Waar uw marge verdwijnt door retouren en kortingen",
+      "Welke producten of campagnes verlies opleveren",
+      "Waar advertentiekosten niet renderen"
+    ],
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw webshop",
+    upsell: "Wilt u exact weten waar uw webshop winst laat liggen? Ontvang een volledige doorlichting met concrete verbeteracties.",
+    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
+    impact: "Webshops laten vaak €20.000 – €100.000 per jaar liggen door inefficiënte advertenties, retouren en marges.",
+    trustTitle: "Gebouwd voor e-commerce bedrijven",
+    trustBullets: [
+      "Inzicht in marges per product en kanaal",
+      "Analyse van advertentierendement en retouren",
+      "Volledig vertrouwelijke verwerking van uw data"
+    ]
+  },
+  algemeen: {
+    hero: "Zie binnen 2 minuten waar uw bedrijf winst laat liggen — en hoeveel dat kost",
+    sub: "Upload uw cijfers en ontvang direct inzicht in marge, kosten en verbeterkansen.",
+    bullets: [
+      "Waar uw marge onder druk staat",
+      "Waar kosten onnodig oplopen",
+      "Welke acties direct resultaat opleveren"
+    ],
+    reportTitle: "Dit zijn de belangrijkste winstkansen in uw bedrijf",
+    upsell: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
+    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
+    impact: "Veel bedrijven laten jaarlijks tienduizenden euro’s liggen zonder inzicht.",
+    trustTitle: "Waarom ondernemers ons vertrouwen",
+    trustBullets: [
+      "Inzicht in marge, kosten en winstkansen",
+      "Concreet en snel toepasbare verbeteracties",
+      "Volledig vertrouwelijke verwerking van uw cijfers"
+    ]
+  }
+};
+
+const SECTOR_MAP = {
+  'installatietechniek':'installatie',
+  'installatie':'installatie',
+  'installateur':'installatie',
+  'bouw & aannemerij':'bouw',
+  'bouw':'bouw',
+  'aannemer':'bouw',
+  'transport & logistiek':'transport',
+  'transport':'transport',
+  'logistiek':'transport',
+  'ecommerce':'ecommerce',
+  'e-commerce':'ecommerce',
+  'webshop':'ecommerce',
+  'webwinkel':'ecommerce',
+  'online shop':'ecommerce',
+  'e-commerce / webshop':'ecommerce'
+};
+
+const SECTOR_ANALYSIS_CONTENT = {
+  installatie: {
+    aiContext: "U analyseert een installatiebedrijf. Focus op brutomarge, projectrendement, nacalculatie, materiaalverbruik, monteursuren, werkvoorbereiding, servicecontracten, meerwerk, facturatietempo en geld dat vastzit in lopende projecten.",
+    actionFocus: "Leg nadruk op projectmarge, inefficiënte uren, materiaalverbruik, planning, meerwerk, service-omzet en cash die vastzit in lopende projecten.",
+    reportIntro: "Op basis van uw cijfers zien we waar in uw installatiebedrijf marge verloren gaat en waar direct verbetering mogelijk is.",
+    upsellDetail: "Wilt u exact weten waar uw installatiebedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenpost en werkproces."
+  },
+  bouw: {
+    aiContext: "U analyseert een bouwbedrijf. Focus op projectrendement, faalkosten, meer- en minderwerk, personeelsinzet, onderaanneming, materiaalverbruik, planning, kostprijsbeheersing, termijnfacturatie en kostenoverschrijding.",
+    actionFocus: "Leg nadruk op faalkosten, projectoverschrijdingen, inefficiënte planning, kostprijsbeheersing, termijnfacturatie en margeverlies in uitvoering.",
+    reportIntro: "Op basis van uw cijfers zien we waar in uw bouwbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
+    upsellDetail: "Wilt u exact weten waar uw bouwprojecten rendement verliezen? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenstructuur en uitvoering."
+  },
+  transport: {
+    aiContext: "U analyseert een transportbedrijf. Focus op ritrendement, brandstofkosten, bezettingsgraad, personeelskosten, onderhoud, stilstand, route-efficiëntie, voertuigkosten, planning en kosten per rit of voertuig.",
+    actionFocus: "Leg nadruk op verlieslatende ritten, inefficiënte inzet, brandstofdruk, onderhoudskosten, stilstand en onderbenutting van capaciteit.",
+    reportIntro: "Op basis van uw cijfers zien we waar in uw transportbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
+    upsellDetail: "Wilt u exact weten waar uw transportbedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties voor ritten, kosten en bezettingsgraad."
+  },
+  ecommerce: {
+    aiContext: "U analyseert een e-commerce bedrijf. Focus op brutomarge per product(groep), retourpercentages, kortingsdruk, advertentiekosten (ROAS), conversie, verzendkosten, fulfilmentkosten en winst per verkoopkanaal.",
+    actionFocus: "Leg nadruk op verlieslatende producten, te hoge retourpercentages, inefficiënte advertentie-uitgaven, lage ROAS, margedruk door kortingen en te hoge fulfilment- of verzendkosten.",
+    reportIntro: "Op basis van uw cijfers zien we waar in uw webshop marge verloren gaat en waar direct verbetering mogelijk is.",
+    upsellDetail: "Wilt u exact weten waar uw webshop winst laat liggen? Ontvang een volledige doorlichting met concrete verbeteracties per productgroep, kanaal en kostenpost.",
+    promptExtra: "Benoem specifiek: marge per productgroep, advertentierendement (ROAS), retourpercentages, verzend- en fulfilmentkosten, kortingsdruk en winst per kanaal."
+  },
+  algemeen: {
+    aiContext: "U analyseert een mkb-bedrijf. Focus op brutomarge, kostenstructuur, cashflow, winstgevendheid en directe verbeterkansen.",
+    actionFocus: "Leg nadruk op margeverbetering, kostenbeheersing, cashflow en concrete acties met directe impact.",
+    reportIntro: "Op basis van uw cijfers zien we waar marge verloren gaat en waar direct verbetering mogelijk is.",
+    upsellDetail: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties."
+  }
+};
+
+const SectorCopy = {
+  map(raw){
+    const key = String(raw || '').toLowerCase().trim();
+    return SECTOR_MAP[key] || 'algemeen';
+  },
+  get(raw){
+    return SECTOR_CONTENT[this.map(raw)] || SECTOR_CONTENT.algemeen;
+  },
+  getAnalysis(raw){
+    return SECTOR_ANALYSIS_CONTENT[this.map(raw)] || SECTOR_ANALYSIS_CONTENT.algemeen;
+  },
+  apply(raw){
+    const content = this.get(raw);
+    setTxt('sector-hero', content.hero);
+    setTxt('sector-sub', content.sub);
+    setTxt('sector-trust-title', content.trustTitle);
+    setTxt('sector-trust-1', content.trustBullets?.[0] || '');
+    setTxt('sector-trust-2', content.trustBullets?.[1] || '');
+    setTxt('sector-trust-3', content.trustBullets?.[2] || '');
+    const bullets = $('sector-bullets');
+    if (bullets) bullets.innerHTML = (content.bullets || []).map(t => `<li>${UI.esc(t)}</li>`).join('');
+    return content;
+  },
+  applyModal(raw){
+    const content = this.get(raw);
+    setTxt('conv-modal-tekst', content.upsell);
+    setTxt('conv-modal-bullet-1', content.bullets?.[0] || '');
+    setTxt('conv-modal-bullet-2', content.bullets?.[1] || '');
+    setTxt('conv-modal-bullet-3', content.bullets?.[2] || '');
+    setTxt('conv-modal-impact', content.impact);
+    return content;
+  }
 };
 
 // ─── SECTORNORMEN (bron: CBS MKB StatLine 2023, Techniek Nederland, ING/Rabobank sectorrapportages) ───
@@ -1447,25 +1498,37 @@ const Analyse={
     if(!uploads.length){UI.warn('Geen uploads gevonden');return;}
     status.textContent='Analyse bezig...';output.style.display='none';acties.style.display='none';
     if(knop){knop.disabled=true;knop.textContent='Bezig...';}
-    const prompt=`Je bent financieel analist voor MKB. Voer de MKB Stresstest Methode™ uit.
+    const bundle = {
+      ui: SectorCopy.get(sector),
+      analysis: SectorCopy.getAnalysis(sector)
+    };
+    const prompt=`Je bent een scherpe financieel adviseur voor MKB-bedrijven.
+
+${bundle.analysis.aiContext}
 
 KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
 
 ${Sectornormen.tekst(sector)}
 
-BEREKEN en presenteer EXACT in dit formaat:
-Totaal netto-omzet: € XX.XXX
-Brutomarge %: XX,X%
-Nettoresultaat %: XX,X%
-Personeelskosten %: XX,X%
-Debiteurendagen = XX dagen
-Solvabiliteit %: XX,X%
-Current ratio: X,X
+Schrijf in helder Nederlands.
+Schrijf concreet, zakelijk en direct.
+Gebruik branchetaal die past bij deze sector.
+Vermijd vage formuleringen zoals "mogelijk", "zou kunnen", "interessant", "overweeg".
 
-Presenteer daarna als tabel: Indicator | Werkelijk | Sectornorm | Beoordeling
-Benoem de 3 grootste afwijkingen met financieel effect in €.
-Totaal verbeterpotentieel: € XX.XXX
-Score: ___/100
+Analyseer de aangeleverde cijfers en geef output in deze structuur:
+
+1. Kort oordeel in 3-4 zinnen
+2. 3 tot 5 belangrijkste observaties
+3. 3 concrete acties met directe financiële impact
+4. Een korte slotconclusie met de grootste winstkans
+
+Verwerk waar relevant deze invalshoeken:
+- ${bundle.analysis.actionFocus}
+- Benoem geld, marge, rendement en cash
+- Maak het praktisch en direct toepasbaar
+${bundle.analysis.promptExtra ? '- ' + bundle.analysis.promptExtra : ''}
+
+Gebruik sectorspecifieke voorbeelden waar passend.
 
 JAARCIJFERS:
 ${uploads[0].pdfTekst||''}`;
@@ -2570,7 +2633,7 @@ const Monitoring = {
   if(monVw) monVw.addEventListener('change',()=>setTxt('mon-vw-naam',monVw.files?.[0]?'✔ '+monVw.files[0].name:''));
   const jaarSel=$('f-jaar');if(jaarSel){const nu=new Date().getFullYear();jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join('');}
   Config.herstelUI();
-try{const fs=$('f-sector'); if(fs){ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
+  try{const fs=$('f-sector'); if(fs){ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
   // Deduplicatie wordt server-side afgehandeld via UNIQUE constraint
   // Testklant wordt aangemaakt via SQL setup
   const lc=$('login-code');if(lc)lc.addEventListener('keydown',e=>{if(e.key==='Enter')Auth.login();});
