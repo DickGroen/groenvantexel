@@ -270,6 +270,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         </div>
       </div>
       <div class="form-row cols2">
+        <div class="form-group"><label class="form-label">Type scan <span class="req">*</span></label><select id="f-scan-type" class="form-select"><option value="winst">Winstscan</option><option value="belasting">Belasting optimalisatie scan</option></select></div>
         <div class="form-group"><label class="form-label">Boekjaar <span class="req">*</span></label><select id="f-jaar" class="form-select"></select></div>
         <div class="form-group"><label class="form-label">E-mailadres</label><input id="f-email" type="email" class="form-input" autocomplete="off"></div>
       </div>
@@ -1327,7 +1328,8 @@ const Formulier={
       const klArr=await Store.getKlanten();const klantType=sessie?.klanttype||sessie?.klantType||klArr.find(k=>k.naam===bedrijf)?.klanttype||klArr.find(k=>k.naam===bedrijf)?.klantType||'lead';
       const periode=klantType+'-'+jaar;const datum=UI.datumNL();
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
-      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')});}catch(e){console.warn('EmailJS:',e.message||e);}
+      const scanType = currentScanType();
+      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}\nType scan: ${scanType}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
     }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Start gratis winstscan →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
   },
@@ -1478,6 +1480,33 @@ const SECTOR_CONTENT = {
   }
 };
 
+
+const TAX_SCAN_CONTENT = {
+  installatie: { hero:"Zie binnen 2 minuten waar uw installatiebedrijf onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten, investeringen en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw installatiebedrijf", upsell:"Wilt u exact weten waar uw installatiebedrijf belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Installatiebedrijven betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom installatiebedrijven dit gebruiken", trustBullets:["Inzicht in aftrekposten en investeringsruimte","Scherper zicht op fiscale structuur en belastingdruk","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] },
+  bouw: { hero:"Zie binnen 2 minuten waar uw bouwbedrijf onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten, investeringen en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw bouwbedrijf", upsell:"Wilt u exact weten waar uw bouwbedrijf belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Bouwbedrijven betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom bouwbedrijven dit gebruiken", trustBullets:["Inzicht in fiscale kansen rond projecten en investeringen","Scherper zicht op belastingdruk en structuur","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] },
+  transport: { hero:"Zie binnen 2 minuten waar uw transportbedrijf onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten, investeringen en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw transportbedrijf", upsell:"Wilt u exact weten waar uw transportbedrijf belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Transportbedrijven betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom transportbedrijven dit gebruiken", trustBullets:["Inzicht in fiscale kansen rond materieel en investeringen","Scherper zicht op belastingdruk en structuur","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] },
+  ecommerce: { hero:"Zie binnen 2 minuten waar uw webshop onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten, investeringen en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw webshop", upsell:"Wilt u exact weten waar uw webshop belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Webshops betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom webshops dit gebruiken", trustBullets:["Inzicht in fiscale kansen rond voorraad, kosten en investeringen","Scherper zicht op belastingdruk en structuur","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] },
+  algemeen: { hero:"Zie binnen 2 minuten waar uw bedrijf onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw bedrijf", upsell:"Wilt u exact weten waar uw bedrijf belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Ondernemers betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom ondernemers dit gebruiken", trustBullets:["Inzicht in aftrekposten, structuur en belastingdruk","Concrete fiscale optimalisaties met directe impact","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] }
+};
+
+const TAX_ANALYSIS_CONTENT = {
+  installatie: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"installatiebedrijf", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." },
+  bouw: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"bouwbedrijf", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." },
+  transport: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"transportbedrijf", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." },
+  ecommerce: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"webshop", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." },
+  algemeen: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"bedrijf", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." }
+};
+
+function currentScanType(){ return document.getElementById('f-scan-type')?.value || 'winst'; }
+function getScanUiContent(sector, scanType){
+  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : String(sector||'algemeen').toLowerCase();
+  return scanType === 'belasting' ? (TAX_SCAN_CONTENT[mapped] || TAX_SCAN_CONTENT.algemeen) : (SECTOR_CONTENT[mapped] || SECTOR_CONTENT.algemeen);
+}
+function getScanAnalysisContent(sector, scanType){
+  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : String(sector||'algemeen').toLowerCase();
+  return scanType === 'belasting' ? (TAX_ANALYSIS_CONTENT[mapped] || TAX_ANALYSIS_CONTENT.algemeen) : (SECTOR_ANALYSIS_CONTENT[mapped] || SECTOR_ANALYSIS_CONTENT.algemeen);
+}
+
 const SECTOR_MAP = {
   'installatietechniek':'installatie',
   'installatie':'installatie',
@@ -1566,7 +1595,7 @@ const SectorCopy = {
     return SECTOR_ANALYSIS_CONTENT[this.map(raw)] || SECTOR_ANALYSIS_CONTENT.algemeen;
   },
   apply(raw){
-    const content = this.get(raw);
+    const content = getScanUiContent(raw, currentScanType());
     setTxt('sector-hero', content.hero);
     setTxt('sector-sub', content.sub);
     setTxt('sector-trust-title', content.trustTitle);
@@ -1584,7 +1613,7 @@ const SectorCopy = {
     return content;
   },
   applyModal(raw){
-    const content = this.get(raw);
+    const content = getScanUiContent(raw, currentScanType());
     setTxt('conv-modal-tekst', content.upsell);
     setTxt('conv-modal-bullet-1', content.bullets?.[0] || '');
     setTxt('conv-modal-bullet-2', content.bullets?.[1] || '');
@@ -1629,19 +1658,46 @@ const Sectornormen = {
 
 
 function generateSectorAnalyse(sector, data = {}) {
-  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map)
-    ? SectorCopy.map(sector)
-    : String(sector || 'algemeen').toLowerCase();
-  const s = mapped || 'algemeen';
-  const content = SECTOR_ANALYSIS_CONTENT[s] || SECTOR_ANALYSIS_CONTENT.algemeen;
-  const bedrijfsLabel = content.bedrijfLabel || (s === 'ecommerce' ? 'webshop' : (s === 'algemeen' ? 'bedrijf' : s + 'bedrijf'));
-
+  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : String(sector || 'algemeen').toLowerCase();
+  const scanType = currentScanType();
+  const content = getScanAnalysisContent(sector, scanType);
+  const bedrijfsLabel = content.bedrijfLabel || 'bedrijf';
   const omzet = data.omzet ? `Uw omzet komt uit op ${data.omzet}.` : '';
   const brutomarge = data.brutomarge ? `Uw brutomarge ligt op ${data.brutomarge}.` : '';
   const nettoresultaat = data.nettoresultaat ? `Uw nettoresultaat komt uit op ${data.nettoresultaat}.` : '';
   const personeelskosten = data.personeelskosten ? `Uw personeelskosten liggen op ${data.personeelskosten} van de omzet.` : '';
   const debiteurendagen = data.debiteurdagen ? `Uw debiteurendagen komen uit op ${data.debiteurdagen}.` : '';
   const solvabiliteit = data.solvabiliteit ? `Uw solvabiliteit ligt op ${data.solvabiliteit}.` : '';
+
+  if (scanType === 'belasting') {
+    return `
+In uw ${bedrijfsLabel} zien we een aantal duidelijke signalen dat er fiscaal voordeel blijft liggen.
+
+${omzet} ${brutomarge} ${nettoresultaat} ${solvabiliteit}`.trim() + `
+
+BELANGRIJKSTE INZICHTEN:
+• Niet alle ${content.focus[0]} worden optimaal benut
+• Uw ${content.focus[2]} is waarschijnlijk niet fiscaal efficiënt ingericht
+• Er wordt onvoldoende gestuurd op ${content.focus[3]}
+• Beschikbare ${content.focus[1]} lijken niet volledig benut
+
+WAAR LEKT GELD:
+Hier betaalt u structureel meer belasting dan nodig doordat ${content.focus[0]} en ${content.focus[1]} niet volledig worden benut.
+Dit drukt uw netto resultaat en beperkt de ruimte om winst vast te houden.
+Hier blijft geld liggen in ${content.focus[2]} en ${content.focus[3]}.
+
+IMPACT:
+Op basis van vergelijkbare bedrijven gaat dit vaak om ${content.impact} per jaar.
+
+VERBETERKANSEN:
+• Breng ${content.focus[0]} volledig in kaart en benut deze actief
+• Onderzoek waar ${content.focus[1]} direct toepasbaar zijn
+• Optimaliseer uw ${content.focus[2]} om fiscale druk te verlagen
+• Stuur actiever op ${content.focus[3]} en timing van kosten en investeringen
+
+Dit zijn signalen op hoofdlijnen. In een volledige analyse laten we exact zien waar u kunt optimaliseren en wat dit concreet oplevert.
+`.trim();
+  }
 
   return `
 In uw ${bedrijfsLabel} zien we een aantal duidelijke signalen dat er winst blijft liggen.
@@ -1690,27 +1746,19 @@ function extractAnalyseData(rawText = '') {
 }
 
 function renderAnalyse(sector) {
-  const sourceText =
-    (document.getElementById('ai-tekst')?.textContent || '') ||
-    (document.getElementById('eenpager-content')?.textContent || '') ||
-    (document.getElementById('klant-eenpager-inhoud')?.textContent || '');
+  const sourceText = (document.getElementById('ai-tekst')?.textContent || '') || (document.getElementById('eenpager-content')?.textContent || '') || (document.getElementById('klant-eenpager-inhoud')?.textContent || '');
   const analyseData = extractAnalyseData(sourceText);
   const analyse = generateSectorAnalyse(sector, analyseData);
+  const rapport = document.getElementById('rapport-analyse');
+  if (rapport) rapport.textContent = analyse;
 
-  const targets = [
-    document.getElementById('rapport-analyse')
-  ].filter(Boolean);
-
-  targets.forEach(el => {
-    el.textContent = analyse;
-  });
-
-  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : 'algemeen';
-  const cfg = SECTOR_ANALYSIS_CONTENT[mapped] || SECTOR_ANALYSIS_CONTENT.algemeen;
+  const cfg = getScanAnalysisContent(sector, currentScanType());
   const cta = document.getElementById('rapport-soft-cta');
   const ctaText = document.getElementById('rapport-soft-cta-text');
+  const ctaBtn = document.getElementById('rapport-soft-cta-btn');
   if (cta) cta.style.display = 'block';
   if (ctaText) ctaText.textContent = cfg.softCta || '';
+  if (ctaBtn) ctaBtn.textContent = currentScanType() === 'belasting' ? 'Start fiscale begeleiding →' : 'Start begeleiding →';
 }
 
 const Analyse={
