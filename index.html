@@ -99,7 +99,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 </style>
 
 <script>
-console.log("🚀 Groen van Texel v2.3 geladen");
+console.log("🚀 Groen van Texel v2.4 geladen");
 window.onerror = function (msg, src, line, col, err) {
   console.error("💥 JS ERROR:", msg, "at", line, col, err || "");
 };
@@ -1327,22 +1327,9 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
     if(!el){UI.warn('Geen Basisscan gevonden');return;}
     const klant=sessie?.naam||'basisscan';
     const win=window.open('','_blank');
-    win.document.write('<html><head><title>Basisscan '+UI.esc(klant)+'</title><style>body{font-family:Arial,sans-serif;margin:0;}@media print{@page{margin:15mm;}}</style>
-<script>
-console.log("🚀 Groen van Texel v2.3 geladen");
-window.onerror = function (msg, src, line, col, err) {
-  console.error("💥 JS ERROR:", msg, "at", line, col, err || "");
-};
-</script>
-
-</head><body>');
+    win.document.write('<html><head><title>Basisscan '+UI.esc(klant)+'</title><style>body{font-family:Arial,sans-serif;margin:0;}@media print{@page{margin:15mm;}}</style></head><body>');
     win.document.write(el.outerHTML);
-    win.document.write('
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.8);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">
-v2.3 live
-</div>
-
-</body></html>');
+    win.document.write('</body></html>');
     win.document.close();win.focus();
     setTimeout(()=>{win.print();},600);
   },
@@ -2726,7 +2713,7 @@ const Monitoring = {
 </script>
 
 <div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.8);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">
-v2.3 live
+v2.4 live
 </div>
 
 </body>
