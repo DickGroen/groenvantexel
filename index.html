@@ -218,7 +218,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
       <div id="bs-prev-inhoud"></div>
     </div>
-    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div></div>
+    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div></div>
     <div id="klant-basisscan" style="display:none;">
       <div id="klant-basisscan-inhoud"></div>
       <div style="text-align:center;margin-top:20px;padding-bottom:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
@@ -1197,6 +1197,7 @@ const KlantApp={
     setTxt('form-intro',intro[kt]||'');setTxt('form-wat',wat[kt]||'');
     SectorCopy.apply(sessie.sector||$('f-sector')?.value||'algemeen');
     SectorCopy.applyModal(sessie.sector||$('f-sector')?.value||'algemeen');
+    renderAnalyse(sessie.sector||$('f-sector')?.value||'algemeen');
     // Bepaal startscherm: rapport als beschikbaar, anders aanleveren
     try{
       const _upl=await Store.getUploads();
@@ -1497,35 +1498,49 @@ const SECTOR_MAP = {
 
 const SECTOR_ANALYSIS_CONTENT = {
   installatie: {
-    aiContext: "U analyseert een installatiebedrijf. Focus op brutomarge, projectrendement, nacalculatie, materiaalverbruik, monteursuren, werkvoorbereiding, servicecontracten, meerwerk, facturatietempo en geld dat vastzit in lopende projecten.",
-    actionFocus: "Leg nadruk op projectmarge, inefficiënte uren, materiaalverbruik, planning, meerwerk, service-omzet en cash die vastzit in lopende projecten.",
-    reportIntro: "Op basis van uw cijfers zien we waar in uw installatiebedrijf marge verloren gaat en waar direct verbetering mogelijk is.",
-    upsellDetail: "Wilt u exact weten waar uw installatiebedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenpost en werkproces."
+    focus: [
+      "projectmarge",
+      "nacalculatie",
+      "inefficiënte uren",
+      "materiaalverlies"
+    ],
+    impact: "€20.000 – €80.000"
   },
   bouw: {
-    aiContext: "U analyseert een bouwbedrijf. Focus op projectrendement, faalkosten, meer- en minderwerk, personeelsinzet, onderaanneming, materiaalverbruik, planning, kostprijsbeheersing, termijnfacturatie en kostenoverschrijding.",
-    actionFocus: "Leg nadruk op faalkosten, projectoverschrijdingen, inefficiënte planning, kostprijsbeheersing, termijnfacturatie en margeverlies in uitvoering.",
-    reportIntro: "Op basis van uw cijfers zien we waar in uw bouwbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
-    upsellDetail: "Wilt u exact weten waar uw bouwprojecten rendement verliezen? Ontvang een volledige doorlichting met concrete verbeteracties per project, kostenstructuur en uitvoering."
+    focus: [
+      "faalkosten",
+      "projectoverschrijdingen",
+      "planning",
+      "marge per project"
+    ],
+    impact: "€30.000 – €100.000"
   },
   transport: {
-    aiContext: "U analyseert een transportbedrijf. Focus op ritrendement, brandstofkosten, bezettingsgraad, personeelskosten, onderhoud, stilstand, route-efficiëntie, voertuigkosten, planning en kosten per rit of voertuig.",
-    actionFocus: "Leg nadruk op verlieslatende ritten, inefficiënte inzet, brandstofdruk, onderhoudskosten, stilstand en onderbenutting van capaciteit.",
-    reportIntro: "Op basis van uw cijfers zien we waar in uw transportbedrijf rendement verloren gaat en waar direct verbetering mogelijk is.",
-    upsellDetail: "Wilt u exact weten waar uw transportbedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties voor ritten, kosten en bezettingsgraad."
+    focus: [
+      "rendement per rit",
+      "brandstofkosten",
+      "bezettingsgraad",
+      "wagenpark inefficiëntie"
+    ],
+    impact: "€25.000 – €90.000"
   },
   ecommerce: {
-    aiContext: "U analyseert een e-commerce bedrijf. Focus op brutomarge per product(groep), retourpercentages, kortingsdruk, advertentiekosten (ROAS), conversie, verzendkosten, fulfilmentkosten en winst per verkoopkanaal.",
-    actionFocus: "Leg nadruk op verlieslatende producten, te hoge retourpercentages, inefficiënte advertentie-uitgaven, lage ROAS, margedruk door kortingen en te hoge fulfilment- of verzendkosten.",
-    reportIntro: "Op basis van uw cijfers zien we waar in uw webshop marge verloren gaat en waar direct verbetering mogelijk is.",
-    upsellDetail: "Wilt u exact weten waar uw webshop winst laat liggen? Ontvang een volledige doorlichting met concrete verbeteracties per productgroep, kanaal en kostenpost.",
-    promptExtra: "Benoem specifiek: marge per productgroep, advertentierendement (ROAS), retourpercentages, verzend- en fulfilmentkosten, kortingsdruk en winst per kanaal."
+    focus: [
+      "marge per productgroep",
+      "retouren",
+      "ROAS (advertenties)",
+      "fulfilmentkosten"
+    ],
+    impact: "€20.000 – €100.000"
   },
   algemeen: {
-    aiContext: "U analyseert een mkb-bedrijf. Focus op brutomarge, kostenstructuur, cashflow, winstgevendheid en directe verbeterkansen.",
-    actionFocus: "Leg nadruk op margeverbetering, kostenbeheersing, cashflow en concrete acties met directe impact.",
-    reportIntro: "Op basis van uw cijfers zien we waar marge verloren gaat en waar direct verbetering mogelijk is.",
-    upsellDetail: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties."
+    focus: [
+      "marge",
+      "kostenstructuur",
+      "rendement",
+      "inefficiëntie"
+    ],
+    impact: "€10.000 – €50.000"
   }
 };
 
@@ -1602,6 +1617,55 @@ const Sectornormen = {
   }
 };
 
+
+function generateSectorAnalyse(sector, data = {}) {
+  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map)
+    ? SectorCopy.map(sector)
+    : String(sector || 'algemeen').toLowerCase();
+  const s = mapped || 'algemeen';
+  const content = SECTOR_ANALYSIS_CONTENT[s] || SECTOR_ANALYSIS_CONTENT.algemeen;
+  const bedrijfsLabel = s === 'ecommerce' ? 'webshop' : (s === 'algemeen' ? 'bedrijf' : s + 'bedrijf');
+
+  return `
+In uw ${bedrijfsLabel} zien we een aantal duidelijke signalen dat er winst blijft liggen.
+
+BELANGRIJKSTE INZICHTEN:
+• ${content.focus[0]} staat onder druk, wat direct impact heeft op uw winstgevendheid  
+• ${content.focus[1]} zorgt voor structureel verlies van rendement  
+• ${content.focus[2]} leidt tot inefficiënt gebruik van middelen  
+• ${content.focus[3]} beperkt uw schaalbaarheid en winstgroei  
+
+WAAR LEKT DE WINST:
+Hier verliest u structureel marge doordat ${content.focus[0]} en ${content.focus[1]} niet optimaal worden aangestuurd.  
+Dit drukt uw rendement en zorgt ervoor dat winst niet wordt gerealiseerd.  
+Hier blijft geld liggen in ${content.focus[2]} en ${content.focus[3]}.  
+
+IMPACT:
+Op basis van vergelijkbare bedrijven gaat dit vaak om ${content.impact} per jaar.
+
+VERBETERKANSEN:
+• Breng ${content.focus[0]} structureel in kaart en stuur actief bij  
+• Optimaliseer ${content.focus[1]} om directe winstverbetering te realiseren  
+• Verlaag verliezen in ${content.focus[2]} door gerichte analyse  
+• Stuur op ${content.focus[3]} om rendement structureel te verhogen  
+
+Dit zijn signalen op hoofdlijnen. In een volledige analyse laten we exact zien waar u moet bijsturen en wat dit concreet oplevert.
+`.trim();
+}
+
+function renderAnalyse(sector) {
+  const analyse = generateSectorAnalyse(sector);
+  const targets = [
+    document.getElementById('rapport-analyse'),
+    document.getElementById('ai-tekst')
+  ].filter(Boolean);
+
+  targets.forEach(el => {
+    el.textContent = analyse;
+    if (el.id === 'ai-tekst') el.style.display = '';
+  });
+}
+
 const Analyse={
   async start(){
     if(!_adminKlant||!_adminPeriode){UI.warn('Selecteer klant en periode');return;}
@@ -1617,33 +1681,29 @@ const Analyse={
       ui: SectorCopy.get(sector),
       analysis: SectorCopy.getAnalysis(sector)
     };
-    const prompt=`Je bent een scherpe financieel adviseur voor MKB-bedrijven.
+    const vooranalyse = generateSectorAnalyse(sector);
+    const prompt=`Je bent een senior financieel analist + sector specialist + conversion copywriter.
 
-${bundle.analysis.aiContext}
+Je schrijft GEEN generieke analyse, maar een sectorspecifieke winstscan die voelt als maatwerk.
 
-KLANT: ${_adminKlant} | SECTOR: ${sector} | PERIODE: ${_adminPeriode}
+SECTOR:
+${sector}
 
-${Sectornormen.tekst(sector)}
+Voorbeeld van gewenste richting en toon:
+${vooranalyse}
 
-Schrijf in helder Nederlands.
-Schrijf concreet, zakelijk en direct.
-Gebruik branchetaal die past bij deze sector.
-Vermijd vage formuleringen zoals "mogelijk", "zou kunnen", "interessant", "overweeg".
+Gebruik de geüploade cijfers als basis, maar behoud deze structuur:
+1. Opening
+2. Belangrijkste inzichten
+3. Waar lekt de winst
+4. Impact
+5. Verbeterkansen
+6. Afsluiter
 
-Analyseer de aangeleverde cijfers en geef output in deze structuur:
-
-1. Kort oordeel in 3-4 zinnen
-2. 3 tot 5 belangrijkste observaties
-3. 3 concrete acties met directe financiële impact
-4. Een korte slotconclusie met de grootste winstkans
-
-Verwerk waar relevant deze invalshoeken:
-- ${bundle.analysis.actionFocus}
-- Benoem geld, marge, rendement en cash
-- Maak het praktisch en direct toepasbaar
-${bundle.analysis.promptExtra ? '- ' + bundle.analysis.promptExtra : ''}
-
-Gebruik sectorspecifieke voorbeelden waar passend.
+Schrijf zakelijk maar begrijpelijk.
+Geen vage taal.
+Geen algemene adviezen.
+Geef alleen de analyse.
 
 JAARCIJFERS:
 ${uploads[0].pdfTekst||''}`;
@@ -1654,6 +1714,7 @@ ${uploads[0].pdfTekst||''}`;
       const tekst=data.content?.find(b=>b.type==='text')?.text||'Geen resultaat';
       await Store.setAnalyse(_adminKlant+'-'+_adminPeriode,tekst);
       output.textContent=tekst;output.style.display='';acties.style.display='flex';status.textContent='Analyse gereed';
+      const rapport = document.getElementById('rapport-analyse'); if(rapport) rapport.textContent = tekst;
       if(knop){knop.disabled=false;knop.textContent='🚀 Analyseer gegevens';}
       const kl2=await Store.getKlanten();const klant=kl2.find(k=>k.naam===_adminKlant);
       const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display=klant?.klantType==='doorlichting'?'':'none';
@@ -1663,6 +1724,12 @@ ${uploads[0].pdfTekst||''}`;
       if(knop){knop.disabled=false;knop.textContent='🚀 Analyseer gegevens';}
       const bestaand=await Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
       if(bestaand){output.textContent=bestaand;output.style.display='';acties.style.display='flex';}
+      else {
+        const fallback = generateSectorAnalyse(sector);
+        output.textContent = fallback;
+        output.style.display='';
+        acties.style.display='flex';
+      }
     }
   },
 };
@@ -2748,7 +2815,7 @@ const Monitoring = {
   if(monVw) monVw.addEventListener('change',()=>setTxt('mon-vw-naam',monVw.files?.[0]?'✔ '+monVw.files[0].name:''));
   const jaarSel=$('f-jaar');if(jaarSel){const nu=new Date().getFullYear();jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join('');}
   Config.herstelUI();
-  try{const fs=$('f-sector'); if(fs){ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
+  try{const fs=$('f-sector'); if(fs){ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); renderAnalyse(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
   // Deduplicatie wordt server-side afgehandeld via UNIQUE constraint
   // Testklant wordt aangemaakt via SQL setup
   const lc=$('login-code');if(lc)lc.addEventListener('keydown',e=>{if(e.key==='Enter')Auth.login();});
