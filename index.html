@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Groen van Texel v3.0 — Financieel Platform</title>
+<title>Groen van Texel v3.1 — Financieel Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -182,7 +182,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <div id="r-header"></div>
     <div id="ai-box" style="display:none;" class="ai-box">
       <h3>🤖 AI-analyse — MKB Stresstest Methode™</h3>
-      <p>Analyseer de geüploade jaarcijfers en genereer rapporten</p>
+      <p>Analyseer de geüploade jaarcijfers en genereer rapporten. Extra modules zoals Basisscan, Cashflow, Debiteuren, Offerte &amp; Marge en fiscale scans zijn nu zichtbaar in het platform.</p>
       <div class="ai-row">
         <select id="ai-sector" class="ai-select"><option value="">— Sector —</option><option>Installatietechniek</option><option>Bouw &amp; Aannemerij</option><option>Groothandel</option><option>Detailhandel</option><option>Zakelijke dienstverlening</option><option>Horeca</option><option>Transport &amp; Logistiek</option><option>Zorg</option><option>ICT</option><option>E-commerce / Webshop</option><option>Overig</option></select>
         <button id="btn-analyseer" class="btn btn-primary" onclick="Analyse.start()">🚀 Analyseer gegevens</button>
@@ -399,7 +399,7 @@ Maar zonder verdieping mist u:
 
 <script>
 'use strict';
-console.log("🚀 Groen van Texel v3.0 geladen");
+console.log("🚀 Groen van Texel v3.1 geladen");
 window.onerror = function (msg, src, line, col, err) { console.error("💥 JS ERROR:", msg, "at", line, col, err || ""); };
 const $=id=>document.getElementById(id)||null;
 const setTxt=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??'');};
@@ -676,7 +676,7 @@ const Auth={
 const Nav={
   bouw(){
     const nav=$('topnav');if(!nav||!sessie)return;
-    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
+    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">✨ Diensten</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
     else{
       const kt=sessie?.klanttype||sessie?.klantType||'lead';
       const monBtn=kt==='monitoring'?`<button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button>`:'';
@@ -1179,9 +1179,7 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
     const win=window.open('','_blank');
     win.document.write('<html><head><title>Basisscan '+UI.esc(klant)+'</title><style>body{font-family:Arial,sans-serif;margin:0;}@media print{@page{margin:15mm;}}</style></head><body>');
     win.document.write(el.outerHTML);
-    win.document.write('
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.0 live</div>
-</body></html>');
+    win.document.write('</body></html>');
     win.document.close();win.focus();
     setTimeout(()=>{win.print();},600);
   },
@@ -2547,6 +2545,25 @@ const Diensten = {
 
     let html='';
 
+    html+=`<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:18px 20px;margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1F4E79;margin-bottom:8px;">Nu zichtbaar in het platform</div>
+      <div style="font-size:18px;font-weight:800;color:#1A1A1A;margin-bottom:8px;">Beschikbare modules en scans</div>
+      <div style="font-size:13px;color:#475569;line-height:1.8;margin-bottom:12px;">
+        Naast de Winstscan zijn in dit platform ook aanvullende modules beschikbaar, waaronder de Belasting optimalisatie scan, Financiële Basisscan, Cashflow Stresstest, Debiteuren Stresstest, Offerte &amp; Marge Stresstest, Personeelskosten Stresstest, Subsidie Scan en Fiscale Optimalisatie Scan.
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <span style="background:#E8F5E9;color:#1E8449;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Winstscan</span>
+        <span style="background:#D6E4F0;color:#1F4E79;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Belasting scan</span>
+        <span style="background:#EDE9FE;color:#5B21B6;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Basisscan</span>
+        <span style="background:#D6E4F0;color:#1F4E79;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Cashflow</span>
+        <span style="background:#FDECEA;color:#C0392B;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Debiteuren</span>
+        <span style="background:#FDEBD0;color:#E67E22;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Offerte &amp; Marge</span>
+        <span style="background:#EDE9FE;color:#5B21B6;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Personeel</span>
+        <span style="background:#D5F5E3;color:#27AE60;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Subsidie</span>
+        <span style="background:#D6E4F0;color:#1F4E79;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;">Fiscaal</span>
+      </div>
+    </div>`;
+
     // Persoonlijk advies op basis van sector
     if(advies&&isKlant){
       html+=`<div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:12px;padding:20px 24px;margin-bottom:24px;">
@@ -2956,6 +2973,6 @@ const Monitoring = {
 })();
 </script>
 
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.0 live</div>
+<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1 live</div>
 </body>
 </html>
