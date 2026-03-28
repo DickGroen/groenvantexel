@@ -660,8 +660,6 @@ const Auth={
     }
   },
 };
-let sessie=null;
-
     API.call({actie:'checkLogin', code}).then(res=>{
       if(res.type==='admin'){
         Auth._open({type:'admin'}, res.token);
