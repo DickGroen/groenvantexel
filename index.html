@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Groen van Texel v3.5 — Financieel Platform</title>
+<title>Groen van Texel v3.5.1 — Financieel Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -399,7 +399,7 @@ Maar zonder verdieping mist u:
 
 <script>
 'use strict';
-console.log("🚀 Groen van Texel v3.5 geladen");
+console.log("🚀 Groen van Texel v3.5.1 geladen");
 window.onerror = function (msg, src, line, col, err) { console.error("💥 JS ERROR:", msg, "at", line, col, err || ""); };
 const $=id=>document.getElementById(id)||null;
 const setTxt=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??'');};
@@ -1179,9 +1179,7 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
     const win=window.open('','_blank');
     win.document.write('<html><head><title>Basisscan '+UI.esc(klant)+'</title><style>body{font-family:Arial,sans-serif;margin:0;}@media print{@page{margin:15mm;}}</style></head><body>');
     win.document.write(el.outerHTML);
-    win.document.write('
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.5 live</div>
-</body></html>');
+    win.document.write('</body></html>');
     win.document.close();win.focus();
     setTimeout(()=>{win.print();},600);
   },
@@ -3002,6 +3000,6 @@ const Monitoring = {
 })();
 </script>
 
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.5 live</div>
+<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.5.1 live</div>
 </body>
 </html>
