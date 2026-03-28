@@ -1,390 +1,100 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZZP Winstscan - Ontdek waar jij als ZZP'er geld laat liggen</title>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <style>
-    :root{
-      --bg:#f5f7fb;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e2e8f0;
-      --brand:#0f766e;
-      --brand2:#14b8a6;
-      --dark:#0b1f33;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Arial,sans-serif;
-      color:var(--text);
-      background:linear-gradient(180deg,#eff6ff 0%, var(--bg) 38%);
-    }
-    .wrap{
-      max-width:980px;
-      margin:0 auto;
-      padding:32px 20px 80px;
-    }
-    .hero{
-      background:linear-gradient(135deg,var(--brand),var(--brand2));
-      color:#fff;
-      border-radius:24px;
-      padding:34px 30px;
-      box-shadow:0 18px 50px rgba(15,118,110,.18);
-      margin-bottom:24px;
-    }
-    .hero h1{
-      margin:0 0 12px;
-      font-size:40px;
-      line-height:1.05;
-      letter-spacing:-.03em;
-    }
-    .hero p{
-      margin:0;
-      max-width:760px;
-      font-size:18px;
-      line-height:1.6;
-      color:rgba(255,255,255,.92);
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:24px;
-      align-items:start;
-    }
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:24px;
-      box-shadow:0 10px 28px rgba(15,23,42,.06);
-    }
-    .card h2{
-      margin:0 0 10px;
-      font-size:24px;
-      letter-spacing:-.02em;
-    }
-    .sub{
-      margin:0 0 18px;
-      color:var(--muted);
-      line-height:1.7;
-      font-size:14px;
-    }
-    label{
-      display:block;
-      margin-bottom:8px;
-      font-size:12px;
-      font-weight:700;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.08em;
-    }
-    textarea, input{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
-      font:inherit;
-      background:#fff;
-      color:var(--text);
-      outline:none;
-    }
-    textarea:focus, input:focus{
-      border-color:#7dd3fc;
-      box-shadow:0 0 0 4px rgba(125,211,252,.18);
-    }
-    textarea{
-      min-height:250px;
-      resize:vertical;
-      line-height:1.55;
-    }
-    input{margin-bottom:16px}
-    .btn{
-      width:100%;
-      border:none;
-      border-radius:14px;
-      padding:16px 18px;
-      font:inherit;
-      font-weight:700;
-      cursor:pointer;
-      color:#fff;
-      background:linear-gradient(135deg,var(--brand),var(--brand2));
-      box-shadow:0 12px 24px rgba(20,184,166,.18);
-    }
-    .btn:disabled{
-      opacity:.7;
-      cursor:not-allowed;
-      box-shadow:none;
-    }
-    .micro{
-      margin-top:10px;
-      font-size:13px;
-      opacity:.75;
-    }
-    .result h3{
-      margin:0 0 10px;
-      font-size:24px;
-    }
-    .kpis{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px;
-      margin:18px 0;
-    }
-    .kpi{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:15px;
-      background:#fff;
-    }
-    .kpi .k{
-      font-size:11px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      font-weight:700;
-      margin-bottom:6px;
-    }
-    .kpi .v{
-      font-size:28px;
-      font-weight:800;
-      letter-spacing:-.04em;
-    }
-    .hidden{display:none}
-    .result-box{
-      line-height:1.75;
-      font-size:15px;
-    }
-    .result-box ul{
-      margin:8px 0 16px 18px;
-      padding:0;
-    }
-    .result-box li{
-      margin:6px 0;
-    }
-    .upsell{
-      margin-top:24px;
-      padding:22px;
-      background:var(--dark);
-      color:#fff;
-      border-radius:18px;
-    }
-    .upsell h4{
-      margin:0 0 10px;
-      font-size:22px;
-    }
-    .upsell p{
-      margin:0 0 10px;
-      color:#dbeafe;
-      line-height:1.7;
-    }
-    .upsell ul{
-      margin:10px 0 16px 18px;
-      color:#e5eefb;
-      line-height:1.8;
-    }
-    .upsell .btn{
-      background:#fff;
-      color:var(--dark);
-      box-shadow:none;
-    }
-    .pill{
-      display:inline-block;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#ecfeff;
-      color:#155e75;
-      font-size:12px;
-      font-weight:700;
-      margin:0 8px 8px 0;
-    }
-    .version{
-      position:fixed;
-      left:12px;
-      bottom:12px;
-      background:rgba(255,255,255,.95);
-      border:1px solid var(--line);
-      border-radius:8px;
-      padding:5px 8px;
-      color:#64748b;
-      font-size:11px;
-    }
-    @media (max-width: 860px){
-      .grid{grid-template-columns:1fr}
-      .hero h1{font-size:32px}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZZP Winstscan - Meer winst zonder harder werken</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+<style>
+body{font-family:Arial;margin:0;background:#f4f7fb;color:#0f172a}
+.wrap{max-width:900px;margin:auto;padding:30px}
+.hero{background:#0f766e;color:#fff;padding:30px;border-radius:20px;margin-bottom:20px}
+.hero h1{margin:0 0 10px;font-size:34px}
+.hero p{margin:0;font-size:18px;opacity:.9}
+.card{background:#fff;padding:20px;border-radius:16px;margin-bottom:20px;border:1px solid #e2e8f0}
+.btn{background:#0f766e;color:#fff;border:none;padding:15px;width:100%;border-radius:10px;font-weight:bold;cursor:pointer}
+.kpi{font-size:26px;font-weight:bold}
+.upsell{background:#0b1f33;color:#fff;padding:20px;border-radius:14px;margin-top:20px}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="hero">
-      <h1>Ontdek waar jij als ZZP'er geld laat liggen</h1>
-      <p>Upload je cijfers en zie binnen 2 minuten waar je winst verliest.</p>
-    </div>
+<div class="wrap">
 
-    <div class="grid">
-      <div class="card">
-        <h2>Start jouw gratis ZZP winstscan</h2>
-        <p class="sub">Plak hieronder je omzet en kosten. Je krijgt direct een eerste analyse van je winstlekken, een maandelijkse impactschatting en concreet advies waar je kunt bijsturen.</p>
+<div class="hero">
+<h1>Je verdient genoeg. Maar waar blijft je winst?</h1>
+<p>Deze scan laat binnen 2 minuten zien waar jij als ZZP’er geld laat liggen.</p>
+</div>
 
-        <label for="income">Omzet per maand</label>
-        <input id="income" type="text" placeholder="Bijv. 5000">
+<div class="card">
+<h3>Vul je cijfers in</h3>
 
-        <label for="transactions">Jouw cijfers</label>
-        <textarea id="transactions" placeholder="Bijv:
-Omzet 5000
-Kosten 3200
-Marketing 400
-Software 150
-Abonnementen 80
-Auto 300"></textarea>
+<input id="omzet" placeholder="Omzet per maand (bijv 5000)" style="width:100%;padding:12px;margin-bottom:10px;">
+<input id="kosten" placeholder="Totale kosten (bijv 3200)" style="width:100%;padding:12px;margin-bottom:10px;">
 
-        <button id="submitBtn" class="btn" onclick="handleSubmit()">Start gratis ZZP winstscan →</button>
+<button class="btn" onclick="runScan()">Start gratis winstscan →</button>
 
-        <p class="micro">✔ Gratis • geen verplichtingen • binnen 2 minuten inzicht</p>
+<p style="font-size:13px;opacity:.7;margin-top:10px;">
+✔ Gratis • geen verplichtingen • direct inzicht
+</p>
+</div>
 
-        <div style="margin-top:18px;">
-          <span class="pill">ZZP gericht</span>
-          <span class="pill">Direct inzicht</span>
-          <span class="pill">Meer winst overhouden</span>
-        </div>
-      </div>
+<div class="card" id="result" style="display:none;">
+<div class="kpi" id="impact"></div>
 
-      <div class="card result">
-        <h2>Jouw uitkomst</h2>
-        <p class="sub">Na je scan zie je hier je winstpotentieel, je grootste geldlekken en de logische volgende stap.</p>
+<div id="tekst"></div>
 
-        <div id="emptyState">
-          <div class="kpis">
-            <div class="kpi"><div class="k">Omzet</div><div class="v">—</div></div>
-            <div class="kpi"><div class="k">Kosten</div><div class="v">—</div></div>
-            <div class="kpi"><div class="k">Winst</div><div class="v">—</div></div>
-            <div class="kpi"><div class="k">Gemist p/m</div><div class="v">—</div></div>
-          </div>
-        </div>
+<div class="upsell">
+<h3>Dit is precies waar de meeste ZZP’ers blijven hangen</h3>
+<p>Ze zien dit één keer, maar doen er niks mee. Daardoor blijft dit geld elke maand liggen.</p>
 
-        <div id="resultArea" class="hidden">
-          <div class="kpis">
-            <div class="kpi"><div class="k">Omzet</div><div id="kpiOmzet" class="v">€0</div></div>
-            <div class="kpi"><div class="k">Kosten</div><div id="kpiKosten" class="v">€0</div></div>
-            <div class="kpi"><div class="k">Winst</div><div id="kpiWinst" class="v">€0</div></div>
-            <div class="kpi"><div class="k">Gemist p/m</div><div id="kpiImpact" class="v">€0</div></div>
-          </div>
-          <div id="resultaat" class="result-box"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+<ul>
+<li>Je mist structureel winst</li>
+<li>Je stuurt niet op cijfers</li>
+<li>Je blijft onder je potentieel verdienen</li>
+</ul>
 
-  <div class="version">ZZP winstscan v1 live</div>
+<h4>👉 Ik los dit met je op</h4>
 
-  <script>
-    function parseMoney(value) {
-      var match = String(value || "")
-        .replace(/€/g, "")
-        .replace(/eur/ig, "")
-        .replace(/\./g, "")
-        .replace(",", ".")
-        .match(/-?\d+(\.\d+)?/);
-      return match ? parseFloat(match[0]) : 0;
-    }
+<p>
+Ik help ZZP’ers maandelijks hun cijfers te optimaliseren zodat ze meer winst overhouden zonder harder te werken.
+</p>
 
-    function formatEuro(value) {
-      return "€" + Math.round(value).toLocaleString("nl-NL");
-    }
+<button class="btn" onclick="contact()">Plan intake</button>
+</div>
+</div>
 
-    function extractNumberFromLine(lines, key) {
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].toLowerCase();
-        if (line.indexOf(key) !== -1) {
-          return parseMoney(lines[i]);
-        }
-      }
-      return 0;
-    }
+</div>
 
-    function contact() {
-      alert("Laat je email achter of stuur mij een bericht voor een intake.");
-    }
+<script>
+function contact(){
+ alert("Stuur mij een bericht voor een intake.");
+}
 
-    function handleSubmit() {
-      var btn = document.getElementById("submitBtn");
-      if (btn.disabled) return;
+function runScan(){
+ var omzet = parseFloat(document.getElementById("omzet").value) || 0;
+ var kosten = parseFloat(document.getElementById("kosten").value) || 0;
 
-      btn.disabled = true;
-      btn.textContent = "Bezig met analyseren...";
+ if(!omzet){
+   alert("Vul je omzet in");
+   return;
+ }
 
-      try {
-        var income = parseMoney(document.getElementById("income").value);
-        var raw = document.getElementById("transactions").value.trim();
+ var winst = omzet - kosten;
+ var impact = Math.round(kosten * 0.1);
 
-        if (!raw) {
-          throw new Error("Vul eerst je cijfers in.");
-        }
+ document.getElementById("result").style.display="block";
 
-        var lines = raw.split(/\n+/).map(function(x){ return x.trim(); }).filter(Boolean);
+ document.getElementById("impact").innerHTML =
+ "👉 Je laat waarschijnlijk €" + impact + " per maand liggen";
 
-        var omzet = extractNumberFromLine(lines, "omzet") || income;
-        var kosten = extractNumberFromLine(lines, "kosten");
-        var marketing = extractNumberFromLine(lines, "marketing");
-        var software = extractNumberFromLine(lines, "software");
-        var abonnementen = extractNumberFromLine(lines, "abonnement");
-        var auto = extractNumberFromLine(lines, "auto");
+ document.getElementById("tekst").innerHTML =
+ "<p>Je omzet is €"+omzet+" en je kosten zijn €"+kosten+".</p>" +
+ "<p>Je huidige winst is €"+winst+", maar op basis van je cijfers laat je geld liggen.</p>" +
+ "<p><strong>Als je dit optimaliseert, kun je direct meer overhouden zonder meer te werken.</strong></p>";
+}
+</script>
 
-        if (!omzet) {
-          throw new Error("Vul minimaal je omzet in.");
-        }
-
-        if (!kosten) {
-          kosten = marketing + software + abonnementen + auto;
-        }
-
-        var winst = omzet - kosten;
-        var impact = Math.max(75, Math.round(kosten * 0.08));
-
-        document.getElementById("kpiOmzet").textContent = formatEuro(omzet);
-        document.getElementById("kpiKosten").textContent = formatEuro(kosten);
-        document.getElementById("kpiWinst").textContent = formatEuro(winst);
-        document.getElementById("kpiImpact").textContent = formatEuro(impact);
-
-        var resultaat =
-          "<h3>Jouw ZZP winstscan</h3>" +
-          "<p>Op basis van jouw cijfers zien we het volgende:</p>" +
-          "<ul>" +
-          "<li>Je hebt een duidelijke omzetbasis, maar je kostenstructuur is niet optimaal</li>" +
-          "<li>Er zitten verborgen kosten die je winst drukken</li>" +
-          "<li>Je laat waarschijnlijk " + formatEuro(impact) + " per maand liggen</li>" +
-          "</ul>" +
-          "<h4>Concreet advies:</h4>" +
-          "<ul>" +
-          "<li>Verlaag je onnodige vaste kosten</li>" +
-          "<li>Herzie je prijs of aanbod</li>" +
-          "<li>Focus op winst per uur, niet alleen omzet</li>" +
-          "</ul>" +
-          "<div class=\"upsell\">" +
-          "<h4>Wil je dat ik dit maandelijks voor je optimaliseer?</h4>" +
-          "<p>Ik help ZZP'ers om structureel meer winst over te houden uit hun cijfers.</p>" +
-          "<ul>" +
-          "<li>Maandelijkse analyse van je cijfers</li>" +
-          "<li>Persoonlijk winstadvies</li>" +
-          "<li>Concrete acties die direct geld opleveren</li>" +
-          "</ul>" +
-          "<button class=\"btn\" onclick=\"contact()\">Plan korte intake</button>" +
-          "</div>";
-
-        document.getElementById("resultaat").innerHTML = resultaat;
-        document.getElementById("emptyState").classList.add("hidden");
-        document.getElementById("resultArea").classList.remove("hidden");
-      } catch (e) {
-        alert(e.message || "Er ging iets mis.");
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Start gratis ZZP winstscan →";
-      }
-    }
-  </script>
 </body>
 </html>
