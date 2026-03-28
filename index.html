@@ -568,24 +568,99 @@ const Store = {
   getCfg(k,d=''){try{return localStorage.getItem('cfg-'+k)||d;}catch{return d;}},
   setCfg(k,v){try{localStorage.setItem('cfg-'+k,v);}catch{}},
 };
-
-const Config={
-  service(){return Store.getCfg('service','service_oqgsajg');},
-  template(){return Store.getCfg('template','template_q3aea4c');},
-  pubkey(){return Store.getCfg('pubkey','ubJuLGAX11M-mSoIZ');},
-  opslaan(){['service','template','pubkey'].forEach(k=>{const el=$('cfg-'+k);if(el&&el.value.trim())Store.setCfg(k,el.value.trim());});try{emailjs.init(Config.pubkey());}catch{}UI.toast('Instellingen opgeslagen');},
-  herstelUI(){['service','template','pubkey'].forEach(k=>{const v=Store.getCfg(k);if(v)setVal('cfg-'+k,v);});},
-  async opruimenUploads(){const alle=await Store.getUploads();const map=new Map();[...alle].sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0)).forEach(u=>{const k=u.bedrijf+'|'+u.periode;if(!map.has(k))map.set(k,u);});const n=alle.length-map.size;if(n===0){UI.toast('Geen duplicaten gevonden');return;}UI.toast(n+' duplicaten gevonden — worden server-side bijgehouden');},
-};
-
-const Email={async stuur(p){if(typeof emailjs==='undefined')throw new Error('EmailJS niet geladen');await emailjs.send(Config.service(),Config.template(),p);}};
-
 let sessie=null;
 const Auth={
   login(){
     const code=($('login-code')?.value||'').trim();
     hide('login-error');
     if(!code)return;
+
+    API.call({actie:'checkLogin', code}).then(res=>{
+      if(res.type==='admin'){
+        Auth._open({type:'admin'}, res.token);
+        Nav.bouw();
+        Nav.ga('dashboard');
+        return;
+      }
+      if(res.type==='klant'&&res.klant){
+        Auth._open({type:'klant',...res.klant, code: res.klant.code || code}, res.token);
+        Nav.bouw();
+        KlantApp.init();
+        return;
+      }
+      show('login-error');
+    }).catch(()=>{
+      show('login-error');
+    });
+  },
+
+  uitloggen(){
+    sessie=null;
+    sessionStorage.removeItem('gvt_jwt');
+    sessionStorage.removeItem('gvt_sessie');
+    sessionStorage.removeItem('gvt-user');
+    window.location.href=window.location.pathname;
+  },
+
+  _open(s,token){
+    sessie=s;
+    hide('login-overlay');
+    try{
+      if(token) sessionStorage.setItem('gvt_jwt',token);
+      sessionStorage.setItem('gvt_sessie',JSON.stringify(s));
+    }catch{}
+  },
+
+  _forceerLogout(msg){
+    sessie=null;
+    sessionStorage.removeItem('gvt_jwt');
+    sessionStorage.removeItem('gvt_sessie');
+    sessionStorage.removeItem('gvt-user');
+    const overlay=$('login-overlay');
+    if(overlay) overlay.style.display='flex';
+    const err=$('login-error');
+    if(err){
+      err.textContent = msg || 'Uw sessie is verlopen. Log opnieuw in.';
+      err.style.display='block';
+    }
+  },
+
+  async herstelSessie(){
+    const jwt=sessionStorage.getItem('gvt_jwt');
+    if(!jwt){
+      sessionStorage.removeItem('gvt_sessie');
+      sessionStorage.removeItem('gvt-user');
+      return;
+    }
+    try{
+      const res=await API.call({actie:'validateToken'});
+      if(!res.valid){
+        Auth._forceerLogout();
+        return;
+      }
+
+      let stored = null;
+      try { stored = JSON.parse(sessionStorage.getItem('gvt_sessie') || 'null'); } catch {}
+
+      if(res.type==='admin'){
+        sessie={type:'admin'};
+      } else {
+        sessie={type:'klant', ...(stored||{}), naam: res.naam || stored?.naam || ''};
+      }
+
+      hide('login-overlay');
+      Nav.bouw();
+      if(sessie.type==='admin'){
+        Nav.ga('dashboard');
+      } else {
+        KlantApp.init();
+      }
+    }catch(e){
+      Auth._forceerLogout();
+    }
+  },
+};
+let sessie=null;
 
     API.call({actie:'checkLogin', code}).then(res=>{
       if(res.type==='admin'){
