@@ -1166,33 +1166,26 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
     if(btn) btn.addEventListener('click',()=>Klanten._upgradeNaarMonitoring(_adminKlant||''));
   },
 
-  async reset(){
-    if(!_adminKlant||!_adminPeriode)return;
-    if(!confirm('Basisscan verwijderen voor '+_adminKlant+'?'))return;
-    await Store.delBasisscan(_adminKlant+'-'+_adminPeriode);hide('bs-prev-box');UI.toast('Basisscan verwijderd');
-  },
+async reset(){
+  if(!_adminKlant||!_adminPeriode)return;
+  if(!confirm('Basisscan verwijderen voor '+_adminKlant+'?'))return;
+  await Store.delBasisscan(_adminKlant+'-'+_adminPeriode);
+  hide('bs-prev-box');
+  UI.toast('Basisscan verwijderd');
+},
 
-  downloadPDF(){
-    const el=document.getElementById('basisscan-content');
-    if(!el){UI.warn('Geen Basisscan gevonden');return;}
-    const klant=sessie?.naam||'basisscan';
-    const win=window.open('','_blank');
-    win.document.write('<html><head><title>Basisscan '+UI.esc(klant)+'</title><style>body{font-family:Arial,sans-serif;margin:0;}@media print{@page{margin:15mm;}}</style></head><body>');
-    win.document.write(el.outerHTML);
-    downloadPDF(){
+downloadPDF(){
   const el=document.getElementById('basisscan-content');
   if(!el){UI.warn('Geen Basisscan gevonden');return;}
   const klant=sessie?.naam||'basisscan';
   const win=window.open('','_blank');
   win.document.write('<html><head><title>Basisscan '+UI.esc(klant)+'</title><style>body{font-family:Arial,sans-serif;margin:0;}@media print{@page{margin:15mm;}}</style></head><body>');
   win.document.write(el.outerHTML);
-  win.document.write('<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1.1 live</div></body></html>');
-  win.document.close();win.focus();
-  setTimeout(()=>{win.print();},600);
-},
-    win.document.close();win.focus();
+  win.document.write('</body></html>');
+  win.document.close();
+  win.focus();
     setTimeout(()=>{win.print();},600);
-  },
+},
 };
 
 const KlantApp={
