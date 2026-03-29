@@ -2616,7 +2616,19 @@ const StressTest = {
       + '<div style="background:#fff;border:1px solid #e2e8e4;border-top:none;padding:16px 24px;">'
       + '<div style="font-size:10px;font-weight:700;color:'+cfg.kleur+';text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Verbeterpunten</div>'
       + verbeterHtml
-      + (totaal ? '<div style="background:'+cfg.kleurBg+';border:1.5px solid '+cfg.kleur+';border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:11px;font-weight:700;color:'+cfg.kleur+';text-transform:uppercase;letter-spacing:1px;">Totaal verbeterbaar</div><div style="font-size:18px;font-weight:700;color:'+cfg.kleur+';">'+UI.esc(totaal)+'</div></div>' : '')
+      + (totaal ? (function(){
+    const raw = String(totaal).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
+    const jaar = parseFloat(raw);
+    const maand = !isNaN(jaar) ? Math.round(jaar/12) : null;
+
+    return '<div style="background:'+cfg.kleurBg+';border:1.5px solid '+cfg.kleur+';border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;">'
+      + '<div style="font-size:11px;font-weight:700;color:'+cfg.kleur+';text-transform:uppercase;letter-spacing:1px;">Totaal verbeterbaar</div>'
+      + '<div style="text-align:right;">'
+      +   '<div style="font-size:18px;font-weight:700;color:'+cfg.kleur+';">'+UI.esc(totaal)+'</div>'
+      +   (maand ? '<div style="font-size:12px;color:#B91C1C;margin-top:4px;font-weight:700;">≈ € '+maand.toLocaleString('nl-NL')+' p/m</div>' : '')
+      + '</div>'
+      + '</div>';
+  })() : '')
       + '</div>'
 
       // Conclusie
