@@ -3203,5 +3203,40 @@ document.addEventListener('DOMContentLoaded', function(){
 
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  // Zoek totaal impact blok
+  const impactBlok = document.querySelector('#klant-eenpager, #prev-inhoud');
+
+  if(!impactBlok) return;
+
+  // Zoek alle bedragen zoals € 2500
+  const bedragen = impactBlok.querySelectorAll('*');
+
+  bedragen.forEach(el => {
+    if(!el.textContent) return;
+
+    const match = el.textContent.match(/€\s?([\d\.\,]+)/);
+
+    if(match){
+      const jaar = parseFloat(match[1].replace(/\./g,'').replace(',','.'));
+
+      if(jaar > 1000 && jaar < 1000000){
+        const maand = Math.round(jaar / 12);
+
+        // Voeg alleen toe als nog niet gedaan
+        if(!el.textContent.includes('per maand')){
+          el.innerHTML = el.textContent + 
+            `<div style="font-size:12px;color:#B91C1C;margin-top:4px;font-weight:600;">
+              ≈ € ${maand.toLocaleString('nl-NL')} per maand die nu weglekt
+            </div>`;
+        }
+      }
+    }
+  });
+
+});
+</script>  
 </body>
 </html>
