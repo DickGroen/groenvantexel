@@ -1123,7 +1123,7 @@ const heroTitel=heeftPotentieel
   : `${UI.esc(bedrijf)}, financiële basis op orde — met ruimte voor optimalisatie`;
 
 const heroSub=heeftPotentieel
-  ? `Op basis van uw cijfers — zonder extra omzet · ≈ ${maandStr}`
+  ? 'Op basis van uw cijfers — zonder extra omzet · ≈ € '+Math.round(totaal/12).toLocaleString('nl-NL')+' p/m'
   : 'Uw cijfers ogen gezond, maar laten nog ruimte voor marge-, cashflow- en bufferverbetering';
     const heroSub=heeftPotentieel
       ? 'Op basis van uw cijfers — zonder extra omzet'
