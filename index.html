@@ -2897,5 +2897,58 @@ const Monitoring = {
 </script>
 
 <div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1.1 live</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var titel = document.querySelector('#rapport-soft-cta div:nth-child(2)');
+  if (titel) {
+    titel.textContent = 'U ziet waar u geld verliest — maar zonder sturing blijft dat zo';
+  }
+
+  var tekst = document.getElementById('rapport-soft-cta-text');
+  if (tekst) {
+    tekst.textContent = 'Zonder maandelijkse sturing blijft winst weglekken zonder dat u het direct ziet. Met begeleiding sturen we actief op marge, kosten en cash, zodat u eerder ingrijpt en meer resultaat overhoudt.';
+  }
+
+  var knop = document.getElementById('rapport-soft-cta-btn');
+  if (knop) {
+    knop.textContent = 'Plan mijn begeleiding →';
+  }
+
+  var modalTitel = document.getElementById('conv-modal-titel');
+  if (modalTitel) {
+    modalTitel.textContent = 'U laat aantoonbaar rendement liggen — haal het terug';
+  }
+
+  var modalTekst = document.getElementById('conv-modal-tekst');
+  if (modalTekst) {
+    modalTekst.innerHTML = 'U ziet nu al waar winst en liquiditeit onder druk staan.<br><br>Maar zonder verdieping mist u:';
+  }
+
+  var b1 = document.getElementById('conv-modal-bullet-1');
+  if (b1) {
+    b1.textContent = '• waar marge structureel weglekt';
+  }
+
+  var b2 = document.getElementById('conv-modal-bullet-2');
+  if (b2) {
+    b2.textContent = '• welke stuurinformatie nu ontbreekt';
+  }
+
+  var b3 = document.getElementById('conv-modal-bullet-3');
+  if (b3) {
+    b3.textContent = '• welke verbeteracties direct rendement opleveren';
+  }
+
+  var cta = document.getElementById('conv-modal-cta');
+  if (cta) {
+    cta.textContent = 'Ontvang mijn Basisscan — €397';
+  }
+
+  var impact = document.getElementById('conv-modal-impact');
+  if (impact) {
+    impact.textContent = 'eenmalig • geen abonnement • concreet en direct toepasbaar';
+  }
+});
+</script>
 </body>
 </html>
