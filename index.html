@@ -807,21 +807,6 @@ let _adminKlant=null,_adminPeriode=null;
     return d;
   }
 };
-const Fin={
-  parseData(tekst){
-    const d={
-      brutomarge:null,
-      ebitda:null,
-      personeelskosten:null,
-      debiteurendagen:null,
-      solvabiliteit:null,
-      currentratio:null,
-      omzet:null,
-      debiteuren:null,
-      balanstotaal:null
-    };
-    if(!tekst) return d;
-
     const pct = s => {
       const m = String(s).match(/(-?[\d]+[,.]?[\d]*)\s*%/);
       return m ? parseFloat(m[1].replace(',','.')) : null;
