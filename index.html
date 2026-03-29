@@ -1113,12 +1113,18 @@ const Rapport={
     const fmt=(v,e='%')=>(v!==null&&v!==undefined)?v+e:'—';
     const fmtEur=v=>v!=null?'€ '+Math.round(v).toLocaleString('nl-NL'):'€ —';
     const omzetStr=d.omzet?'€ '+Math.round(d.omzet).toLocaleString('nl-NL'):'—';
-    const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
-    const heeftPotentieel=totaal>0&&bev.length>0;
-    const totaalStr=heeftPotentieel?fmtEur(totaal):'—';
-    const heroTitel=heeftPotentieel
-      ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen`
-      : `${UI.esc(bedrijf)}, financiële basis op orde — met ruimte voor optimalisatie`;
+   const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
+const heeftPotentieel=totaal>0&&bev.length>0;
+const totaalStr=heeftPotentieel?fmtEur(totaal):'—';
+const maandStr=heeftPotentieel ? '€ '+Math.round(totaal/12).toLocaleString('nl-NL')+' p/m' : '—';
+
+const heroTitel=heeftPotentieel
+  ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen`
+  : `${UI.esc(bedrijf)}, financiële basis op orde — met ruimte voor optimalisatie`;
+
+const heroSub=heeftPotentieel
+  ? `Op basis van uw cijfers — zonder extra omzet · ≈ ${maandStr}`
+  : 'Uw cijfers ogen gezond, maar laten nog ruimte voor marge-, cashflow- en bufferverbetering';
     const heroSub=heeftPotentieel
       ? 'Op basis van uw cijfers — zonder extra omzet'
       : 'Uw cijfers ogen gezond, maar laten nog ruimte voor marge-, cashflow- en bufferverbetering';
