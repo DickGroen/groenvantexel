@@ -450,8 +450,10 @@ const API = {
     const d = await r.json();
     if (d.token && d.token !== jwt) sessionStorage.setItem('gvt_jwt', d.token);
     if (d.error) throw new Error(d.error.message);
-    return d;
+   return d;
   },
+};
+
 // ─── STORE (Supabase via API) ─────────────────────────────────────────────────
 const Store = {
   // Cache voor snelheid
