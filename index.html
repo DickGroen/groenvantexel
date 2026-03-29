@@ -1116,7 +1116,6 @@ const Rapport={
    const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
 const heeftPotentieel=totaal>0&&bev.length>0;
 const totaalStr=heeftPotentieel?fmtEur(totaal):'—';
-const maandStr=heeftPotentieel ? '€ '+Math.round(totaal/12).toLocaleString('nl-NL')+' p/m' : '—';
 
 const heroTitel=heeftPotentieel
   ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen`
