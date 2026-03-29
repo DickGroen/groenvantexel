@@ -996,7 +996,6 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
 
     try{
       const data = await API.call({actie:'analyse', prompt, max_tokens:2000});
-      const data=await resp.json();if(data.error)throw new Error(data.error.message);
       const tekst=data.content?.find(b=>b.type==='text')?.text||'';
       if(!tekst)throw new Error('Geen resultaat ontvangen');
       const html=Basisscan._bouw(tekst,_adminKlant,_adminPeriode,sector);
