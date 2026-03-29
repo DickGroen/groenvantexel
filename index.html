@@ -880,8 +880,97 @@ const Fin={
     }
 
     return d;
+  },
+
+  signaal(naam,waarde,sector){
+    const sn=Sectornormen.get(sector||'Overig');
+    const n={
+      brutomarge:{min:sn.brutomarge[0],max:sn.brutomarge[1],inv:false},
+      ebitda:{min:sn.netto[0],max:sn.netto[1],inv:false},
+      personeelskosten:{min:sn.personeel[0],max:sn.personeel[1],inv:true},
+      debiteurendagen:{min:sn.debiteur[0],max:sn.debiteur[1],inv:true},
+      solvabiliteit:{min:sn.solv[0],max:sn.solv[1],inv:false},
+      currentratio:{min:sn.current[0],max:sn.current[1],inv:false}
+    };
+    const r=n[naam];
+    if(!r||waarde===null||waarde===undefined)return{s:'—',k:'#9CA3AF'};
+    const ok=waarde>=r.min&&waarde<=r.max;
+    const ver=r.inv?waarde>r.max*1.2:waarde<r.min*0.8;
+    return ok?{s:'✅',k:'#16A34A'}:ver?{s:'🔴',k:'#DC2626'}:{s:'⚠',k:'#D97706'};
+  },
+
+  bevindingen(d,sector){
+    const sn=Sectornormen.get(sector||'Overig');
+    const punten=[];
+    const omzet=Number(d.omzet||0);
+    const balans=Number(d.balanstotaal||0);
+    const mid=(a,b)=>(a+b)/2;
+    const push=(t,tx,bedrag,k='#E67E22')=>punten.push({t,tx,bedrag:bedrag&&bedrag>0?Math.round(bedrag):null,k});
+
+    if(d.brutomarge!=null&&omzet>0){
+      const target=sn.brutomarge[1];
+      const diff=target-d.brutomarge;
+      if(diff>0.4){
+        push(
+          'Brutomarge onder optimaal niveau',
+          `Uw brutomarge ligt binnen de sectornorm, maar nog onder het best haalbare niveau voor ${sector}. Met scherpere prijsstelling, inkoop en nacalculatie is extra rendement haalbaar.`,
+          diff/100*omzet,
+          '#1E8449'
+        );
+      }
+    }
+
+    if(d.debiteurendagen!=null&&omzet>0){
+      const target=Math.max(sn.debiteur[0],40);
+      const diff=d.debiteurendagen-target;
+      if(diff>3){
+        push(
+          'Geld vast in werkkapitaal',
+          'Uw debiteurentermijn is niet direct problematisch, maar kan strakker. Een kortere betaaltermijn verlaagt de druk op uw liquiditeit en maakt cash sneller beschikbaar.',
+          diff/365*omzet,
+          '#1F4E79'
+        );
+      }
+    }
+
+    if(d.solvabiliteit!=null&&balans>0){
+      const target=Math.max(30, mid(sn.solv[0],sn.solv[1]));
+      const diff=target-d.solvabiliteit;
+      if(diff>0.4){
+        push(
+          'Buffer kan sterker',
+          'Uw solvabiliteit is acceptabel, maar nog niet op het niveau dat maximale rust en financieringsruimte geeft. Een sterkere buffer vergroot uw slagkracht bij groei of tegenvallers.',
+          diff/100*balans,
+          '#C0392B'
+        );
+      }
+    }
+
+    if(d.ebitda!=null&&omzet>0){
+      const target=sn.netto[1];
+      const diff=target-d.ebitda;
+      if(diff>0.4){
+        push(
+          'Nettoresultaat niet maximaal benut',
+          'Uw nettoresultaat ligt binnen de bandbreedte, maar nog niet aan de bovenkant van wat in de sector haalbaar is. Hier zit ruimte voor winstoptimalisatie.',
+          diff/100*omzet,
+          '#E67E22'
+        );
+      }
+    }
+
+    if(!punten.length){
+      push(
+        'Financiële basis op orde — met ruimte voor optimalisatie',
+        'Uw cijfers laten geen acute knelpunten zien. De Basisscan kan wel helpen om verborgen ruimte in marge, cashflow en werkkapitaal concreet te maken.',
+        Math.max(2500, omzet*0.01)||2500,
+        '#1F4E79'
+      );
+    }
+
+    return punten.sort((a,b)=>(b.bedrag||0)-(a.bedrag||0)).slice(0,3);
   }
-};  
+};
 
   let _adminKlant=null,_adminPeriode=null;
 const Rapport={
