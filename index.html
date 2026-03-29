@@ -807,7 +807,8 @@ let _adminKlant=null,_adminPeriode=null;
     return d;
   }
 };
-    const pct = s => {
+   
+  const pct = s => {
       const m = String(s).match(/(-?[\d]+[,.]?[\d]*)\s*%/);
       return m ? parseFloat(m[1].replace(',','.')) : null;
     };
@@ -871,13 +872,14 @@ let _adminKlant=null,_adminPeriode=null;
       }
     }
 
-    if(d.debiteurendagen===null && d.debiteuren && d.omzet){
+       if(d.debiteurendagen===null && d.debiteuren && d.omzet){
       d.debiteurendagen = Math.round(d.debiteuren/d.omzet*365);
     }
 
     return d;
   }
-};  
+};
+
 const Rapport={
   adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.ga('rapport');},
   async laadVoorAdmin(){Rapport._reset();show('admin-selectie');await Rapport._vulKlantDropdown();if(_adminKlant)await Rapport.onKlantSelect();},
