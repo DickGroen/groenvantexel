@@ -752,7 +752,7 @@ const Klanten={
   async verwijder(code){if(!confirm('Klant verwijderen?'))return;try{await Store.delKlant(code);Klanten.laadTabel();UI.toast('Klant verwijderd');}catch(e){UI.error('Fout: '+e.message);}},
   async _upgradeNaarMonitoring(naam){if(!naam)return;const kl=await Store.getKlanten();const k=kl.find(x=>x.naam===naam);if(!k){UI.warn('Klant niet gevonden');return;}if(k.klantType==='monitoring'){UI.toast('Klant heeft al monitoring');return;}if(!confirm('Klant '+naam+' upgraden naar Monitoring?'))return;await Store.updateKlantType(k.code,'monitoring');UI.toast(''+naam+' is nu Monitoring klant');},
 };
-
+let _adminKlant=null,_adminPeriode=null;
 const Rapport={
   adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.ga('rapport');},
   async laadVoorAdmin(){Rapport._reset();show('admin-selectie');await Rapport._vulKlantDropdown();if(_adminKlant)await Rapport.onKlantSelect();},
