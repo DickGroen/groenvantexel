@@ -2950,5 +2950,38 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  const isKlantView = document.getElementById('klant-basisscan');
+
+  // Alleen uitvoeren als we in klantomgeving zitten
+  if(isKlantView){
+
+    const bs = document.getElementById('klant-basisscan');
+    if(bs){
+      bs.style.display = 'none';
+    }
+
+    // Optioneel: knop toevoegen om hem te tonen
+    const container = document.getElementById('klant-eenpager-inhoud');
+
+    if(container){
+      const btn = document.createElement('button');
+      btn.textContent = 'Bekijk volledige analyse';
+      btn.style = 'margin-top:20px;padding:12px 20px;border:none;border-radius:8px;background:#1F4E79;color:#fff;font-weight:700;cursor:pointer;';
+
+      btn.onclick = function(){
+        bs.style.display = 'block';
+        btn.style.display = 'none';
+      };
+
+      container.appendChild(btn);
+    }
+
+  }
+
+});
+</script>
 </body>
 </html>
