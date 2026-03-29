@@ -2516,30 +2516,25 @@ const StressTest = {
     // Parse verbeterpunten
     let verbeterHtml = '';
     let totaal = '';
-    verbeter.split('\n').filter(l => l.trim()).forEach(l => {
-      if (l.toLowerCase().includes('totaal')) {
-        totaal = l.split(':')[1]?.trim() || '';
-      } else if (l.match(/verbeterpunt \d/i)) {
-        const parts = l.replace(/verbeterpunt \d+:/i, '').split('|').map(s => s.trim());
-        const naam2 = parts[0] || '';
-        const bedrag = parts[1] || '';
-        const actie = parts[2] || '';
-        verbeterHtml += '<div style="border-left:4px solid '+cfg.kleur+';background:#fdf8f3;padding:12px 14px;margin-bottom:8px;border-radius:0 6px 6px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">'
-          + '<div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">'+UI.esc(naam2)+'</div>'
-          + '<div style="font-size:12px;color:#555;">'+UI.esc(actie)+'</div></div>'
-        + (bedrag ? (function(){
-    const raw = String(bedrag).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
-    const jaar = parseFloat(raw);
-    const maand = !isNaN(jaar) ? Math.round(jaar/12) : null;
+verbeterHtml += '<div style="border-left:4px solid '+cfg.kleur+';background:#fdf8f3;padding:12px 14px;margin-bottom:8px;border-radius:0 6px 6px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">'
+  + '<div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">'+UI.esc(naam2)+'</div>'
+  + '<div style="font-size:12px;color:#555;">'+UI.esc(actie)+'</div></div>'
+  + (bedrag ? (function(){
+      var raw = String(bedrag).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
+      var jaar = parseFloat(raw);
+      var maand = !isNaN(jaar) ? Math.round(jaar/12) : null;
 
-    return '<div style="font-weight:700;color:'+cfg.kleur+';font-size:14px;white-space:nowrap;text-align:right;">'
-      + UI.esc(bedrag)
-      + (maand ? '<div style="font-size:11px;color:#B91C1C;margin-top:4px;font-weight:700;white-space:normal;">≈ € '+maand.toLocaleString('nl-NL')+' p/m</div>' : '')
-      + '</div>';
-  })() : '')+UI.esc(bedrag)+'</div>' : '')
-          + '</div>';
+      var html = '<div style="font-weight:700;color:'+cfg.kleur+';font-size:14px;white-space:nowrap;text-align:right;">'
+        + UI.esc(bedrag);
+
+      if(maand){
+        html += '<div style="font-size:11px;color:#B91C1C;margin-top:4px;font-weight:700;white-space:normal;">≈ € '+maand.toLocaleString('nl-NL')+' p/m</div>';
       }
-    });
+
+      html += '</div>';
+      return html;
+    })() : '')
+  + '</div>';
 
     // Extra sectie (scenarios / risicoklassen / aanbevelingen)
     const extraSectie = type === 'cashflow' ? 'SCENARIOS'
