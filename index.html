@@ -752,227 +752,7 @@ const Klanten={
   async verwijder(code){if(!confirm('Klant verwijderen?'))return;try{await Store.delKlant(code);Klanten.laadTabel();UI.toast('Klant verwijderd');}catch(e){UI.error('Fout: '+e.message);}},
   async _upgradeNaarMonitoring(naam){if(!naam)return;const kl=await Store.getKlanten();const k=kl.find(x=>x.naam===naam);if(!k){UI.warn('Klant niet gevonden');return;}if(k.klantType==='monitoring'){UI.toast('Klant heeft al monitoring');return;}if(!confirm('Klant '+naam+' upgraden naar Monitoring?'))return;await Store.updateKlantType(k.code,'monitoring');UI.toast(''+naam+' is nu Monitoring klant');},
 };
-const Fin={
-  parseData(tekst){
-    const d={brutomarge:null,ebitda:null,personeelskosten:null,debiteurendagen:null,solvabiliteit:null,currentratio:null,omzet:null,debiteuren:null,balanstotaal:null};
-    if(!tekst)return d;
-
-    const pct=s=>{
-      const m=s.match(/([\d]+[,.]?[\d]*)\s*%/);
-      return m?parseFloat(m[1].replace(',','.')):null;
-    };
-
-    const nlNums=s=>
-      [...s.matchAll(/([\d]{1,3}(?:\.[\d]{3})+|[\d]{5,})/g)]
-        .map(m=>parseFloat(m[1].replace(/\./g,'')))
-        .filter(v=>v>0);
-
-    for(const regel of tekst.split('\n')){
-      const r=regel.toLowerCase().trim();
-
-      if(d.brutomarge===null&&r.startsWith('brutomarge')){
-        const v=pct(regel);
-        if(v!==null&&v>0&&v<100)d.brutomarge=v;
-      }
-
-      if(d.ebitda===null&&(r.startsWith('nettoresultaat')||r.startsWith('ebitda'))){
-        const v=pct(regel);
-        if(v!==null&&v>-50&&v<50)d.ebitda=v;
-      }
-
-      if(d.personeelskosten===null&&r.startsWith('personeelskost')&&regel.includes('%')){
-        const v=pct(regel);
-        if(v!==null&&v>0&&v<100)d.personeelskosten=v;
-      }
-
-      if(d.debiteurendagen===null&&r.includes('debiteurendag')){
-        const mEq=regel.match(/=\s*([\d]+)\s*dag/i);
-        if(mEq){
-          const v=parseFloat(mEq[1]);
-          if(v>=1&&v<=365)d.debiteurendagen=v;
-        }else{
-          const m=regel.match(/([\d]+)\s*dag/i);
-          if(m){
-            const v=parseFloat(m[1]);
-            if(v>=1&&v<=365)d.debiteurendagen=v;
-          }
-        }
-      }
-
-      if(d.solvabiliteit===null&&r.startsWith('solvabiliteit')){
-        const v=pct(regel);
-        if(v!==null&&v>0&&v<100)d.solvabiliteit=v;
-      }
-
-      if(d.currentratio===null&&r.includes('current ratio')){
-        const m=regel.match(/[\d]+[,.][\d]+/);
-        if(m){
-          const v=parseFloat(m[0].replace(',','.'));
-          if(v>0&&v<20)d.currentratio=v;
-        }
-      }
-
-      if(d.omzet===null&&r.includes('totaal netto-omzet')){
-        const nums=nlNums(regel).filter(v=>v>10000);
-        if(nums.length)d.omzet=Math.max(...nums);
-      }
-
-      if(d.balanstotaal===null&&(r.includes('totaal activa')||r.includes('totaal passiva'))){
-        const nums=nlNums(regel).filter(v=>v>10000);
-        if(nums.length)d.balanstotaal=Math.max(...nums);
-      }
-
-      if(d.debiteuren===null&&r.match(/^debiteuren\s+[\d]/)){
-        const nums=nlNums(regel);
-        if(nums.length)d.debiteuren=nums[0];
-      }
-    }
-
-    if(d.debiteurendagen===null){
-      const m=tekst.match(/[\d.,]+\s*\/\s*[\d.,]+\s*[x×]\s*365\s*=\s*([\d]+)/i);
-      if(m){
-        const v=parseFloat(m[1]);
-        if(v>=1&&v<=365)d.debiteurendagen=v;
-      }
-    }
-
-    if(d.debiteurendagen===null&&d.debiteuren&&d.omzet&&d.omzet>0){
-      const c=Math.round(d.debiteuren/d.omzet*365);
-      if(c>=1&&c<=365)d.debiteurendagen=c;
-    }
-
-    if(d.omzet===null){
-      const m=tekst.match(/totaal netto-omzet\s+([\d.]+)/i);
-      if(m)d.omzet=parseFloat(m[1].replace(/\./g,''));
-    }
-
-    if(d.balanstotaal===null){
-      const m=tekst.match(/totaal\s+(?:activa|passiva)\s+([\d.]+)/i);
-      if(m)d.balanstotaal=parseFloat(m[1].replace(/\./g,''));
-    }
-
-    if(d.debiteuren===null){
-      const m=tekst.match(/[Dd]ebiteuren\s+([\d.]+)/);
-      if(m)d.debiteuren=parseFloat(m[1].replace(/\./g,''));
-    }
-
-    if(d.personeelskosten===null&&d.omzet){
-      const m=tekst.match(/[Pp]ersoneelskosten\s+([\d.]+)/);
-      if(m){
-        const pk=parseFloat(m[1].replace(/\./g,''));
-        d.personeelskosten=Math.round(pk/d.omzet*1000)/10;
-      }
-    }
-
-    if(d.brutomarge===null){
-      const m=tekst.match(/[Bb]rutomarge\s*%?\s*:?\s*([\d,]+)%/);
-      if(m)d.brutomarge=parseFloat(m[1].replace(',','.'));
-    }
-
-    if(d.ebitda===null){
-      const m=tekst.match(/[Nn]ettoresultaat\s*%?\s*:?\s*([\d,]+)%/);
-      if(m)d.ebitda=parseFloat(m[1].replace(',','.'));
-    }
-
-    if(d.solvabiliteit===null){
-      const m=tekst.match(/[Ss]olvabiliteit\s*%?\s*:?\s*([\d,]+)%/);
-      if(m)d.solvabiliteit=parseFloat(m[1].replace(',','.'));
-    }
-
-    return d;
-  },
-
-  signaal(naam,waarde,sector){
-    const sn=Sectornormen.get(sector||'Overig');
-    const n={
-      brutomarge:{min:sn.brutomarge[0],max:sn.brutomarge[1],inv:false},
-      ebitda:{min:sn.netto[0],max:sn.netto[1],inv:false},
-      personeelskosten:{min:sn.personeel[0],max:sn.personeel[1],inv:true},
-      debiteurendagen:{min:sn.debiteur[0],max:sn.debiteur[1],inv:true},
-      solvabiliteit:{min:sn.solv[0],max:sn.solv[1],inv:false},
-      currentratio:{min:sn.current[0],max:sn.current[1],inv:false}
-    };
-    const r=n[naam];
-    if(!r||waarde===null||waarde===undefined)return{s:'—',k:'#9CA3AF'};
-    const ok=waarde>=r.min&&waarde<=r.max;
-    const ver=r.inv?waarde>r.max*1.2:waarde<r.min*0.8;
-    return ok?{s:'✅',k:'#16A34A'}:ver?{s:'🔴',k:'#DC2626'}:{s:'⚠',k:'#D97706'};
-  },
-
-  bevindingen(d,sector){
-    const sn=Sectornormen.get(sector||'Overig');
-    const punten=[];
-    const omzet=Number(d.omzet||0);
-    const balans=Number(d.balanstotaal||0);
-    const mid=(a,b)=>(a+b)/2;
-    const push=(t,tx,bedrag,k='#E67E22')=>punten.push({t,tx,bedrag:bedrag&&bedrag>0?Math.round(bedrag):null,k});
-
-    if(d.brutomarge!=null&&omzet>0){
-      const target=sn.brutomarge[1];
-      const diff=target-d.brutomarge;
-      if(diff>0.4){
-        push(
-          'Brutomarge onder optimaal niveau',
-          `Uw brutomarge ligt binnen de sectornorm, maar nog onder het best haalbare niveau voor ${sector}. Met scherpere prijsstelling, inkoop en nacalculatie is extra rendement haalbaar.`,
-          diff/100*omzet,
-          '#1E8449'
-        );
-      }
-    }
-
-    if(d.debiteurendagen!=null&&omzet>0){
-      const target=Math.max(sn.debiteur[0],40);
-      const diff=d.debiteurendagen-target;
-      if(diff>3){
-        push(
-          'Geld vast in werkkapitaal',
-          'Uw debiteurentermijn is niet direct problematisch, maar kan strakker. Een kortere betaaltermijn verlaagt de druk op uw liquiditeit en maakt cash sneller beschikbaar.',
-          diff/365*omzet,
-          '#1F4E79'
-        );
-      }
-    }
-
-    if(d.solvabiliteit!=null&&balans>0){
-      const target=Math.max(30, mid(sn.solv[0],sn.solv[1]));
-      const diff=target-d.solvabiliteit;
-      if(diff>0.4){
-        push(
-          'Buffer kan sterker',
-          'Uw solvabiliteit is acceptabel, maar nog niet op het niveau dat maximale rust en financieringsruimte geeft. Een sterkere buffer vergroot uw slagkracht bij groei of tegenvallers.',
-          diff/100*balans,
-          '#C0392B'
-        );
-      }
-    }
-
-    if(d.ebitda!=null&&omzet>0){
-      const target=sn.netto[1];
-      const diff=target-d.ebitda;
-      if(diff>0.4){
-        push(
-          'Nettoresultaat niet maximaal benut',
-          'Uw nettoresultaat ligt binnen de bandbreedte, maar nog niet aan de bovenkant van wat in de sector haalbaar is. Hier zit ruimte voor winstoptimalisatie.',
-          diff/100*omzet,
-          '#E67E22'
-        );
-      }
-    }
-
-    if(!punten.length){
-      push(
-        'Financiële basis op orde — met ruimte voor optimalisatie',
-        'Uw cijfers laten geen acute knelpunten zien. De Basisscan kan wel helpen om verborgen ruimte in marge, cashflow en werkkapitaal concreet te maken.',
-        Math.max(2500, omzet*0.01)||2500,
-        '#1F4E79'
-      );
-    }
-
-    return punten.sort((a,b)=>(b.bedrag||0)-(a.bedrag||0)).slice(0,3);
-  }
-};
-
-  let _adminKlant=null,_adminPeriode=null;
+let _adminKlant=null,_adminPeriode=null;
 const Rapport={
   adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.ga('rapport');},
   async laadVoorAdmin(){Rapport._reset();show('admin-selectie');await Rapport._vulKlantDropdown();if(_adminKlant)await Rapport.onKlantSelect();},
@@ -1113,30 +893,66 @@ const Rapport={
     const fmt=(v,e='%')=>(v!==null&&v!==undefined)?v+e:'—';
     const fmtEur=v=>v!=null?'€ '+Math.round(v).toLocaleString('nl-NL'):'€ —';
     const omzetStr=d.omzet?'€ '+Math.round(d.omzet).toLocaleString('nl-NL'):'—';
-   const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
-const heeftPotentieel=totaal>0&&bev.length>0;
-const totaalStr=heeftPotentieel?fmtEur(totaal):'—';
-
-const heroTitel=heeftPotentieel
-  ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen`
-  : `${UI.esc(bedrijf)}, financiële basis op orde — met ruimte voor optimalisatie`;
-
-   const heroSub=heeftPotentieel
-  ? 'Op basis van uw cijfers — zonder extra omzet · ≈ € '+Math.round(totaal/12).toLocaleString('nl-NL')+' p/m'
-  : 'Uw cijfers ogen gezond, maar laten nog ruimte voor marge-, cashflow- en bufferverbetering';
+    const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
+    const heeftPotentieel=totaal>0&&bev.length>0;
+    const totaalStr=heeftPotentieel?fmtEur(totaal):'—';
+    const heroTitel=heeftPotentieel
+      ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen`
+      : `${UI.esc(bedrijf)}, financiële basis op orde — met ruimte voor optimalisatie`;
+    const heroSub=heeftPotentieel
+      ? 'Op basis van uw cijfers — zonder extra omzet'
+      : 'Uw cijfers ogen gezond, maar laten nog ruimte voor marge-, cashflow- en bufferverbetering';
     const rij=(lbl,veld,eenh,norm,alt)=>`<tr${alt?' style="background:#f9fbfa;"':''}><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${lbl}</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig(veld,d[veld]).k};border-bottom:1px solid #eef1ee;">${fmt(d[veld],eenh)}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">${norm}</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${sig(veld,d[veld]).s}</td></tr>`;
     const bevHtml=bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div><div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div></div>${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}</div>`).join('');
     const impactBox=heeftPotentieel
       ? `<div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div><div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div></div><div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div></div>`
       : `<div style="background:#F4F8FB;border:1.5px solid #9dc3e6;border-radius:6px;padding:12px 16px;margin-top:10px;"><div style="font-size:10px;font-weight:700;color:#1F4E79;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Optimalisatiepotentieel</div><div style="font-size:12px;color:#35516b;line-height:1.7;">Op basis van de huidige cijfers zien we geen acute knelpunten, maar wel ruimte om marge, cashflow en buffer verder te verbeteren. De Basisscan werkt dit concreet uit.</div></div>`;
-    const ctaTitel=heeftPotentieel
-      ? 'U laat nu geld liggen — dat hoeft niet.'
-      : 'Uw cijfers zijn goed — maar nog niet optimaal benut.';
-    const ctaText=heeftPotentieel
-      ? `Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. De Financiële Basisscan (€397 excl. BTW) laat u exact zien waar dit geld weglekt en geeft u een concreet actieplan om het terug te halen.`
-      : 'De Financiële Basisscan laat exact zien waar nog ruimte zit in marge, cashflow en werkkapitaal — en welke acties direct resultaat geven.';
-    const ctaBtn=heeftPotentieel ? '✓ Ja, ik wil de Basisscan — €397' : 'Ontdek uw verborgen verbeterpotentieel →';
-    return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}-${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr></table></div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar zit ruimte voor verbetering?</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;"><div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">${ctaTitel}</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">${ctaText}</p><p style="font-size:12px;color:#2E75B6;margin:0 0 14px;">✓ Alle ratio's volledig onderbouwd &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Binnen 5 werkdagen</p><div style="text-align:center;"><button onclick="Conversie.openBasisscanModal()" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">${ctaBtn}</button></div></div></div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;"><strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
+    const sectorCTA={
+      'Installatietechniek':{
+        titel_p:'Uw projecten draaien — maar levert elke opdracht wat hij moet opleveren?',
+        tekst_p:`Installatietechnici lopen gemiddeld 8-12% marge mis door te lage uurtarieven en slechte nacalculatie. De Basisscan toont exact welke projecten geld kosten in plaats van opleveren — en hoe u <strong>${totaalStr}</strong> terughaalt.`,
+        titel_n:'Uw basis is solide — maar uw uurtarief en marges kunnen beter.',
+        tekst_n:'De meeste installatiebedrijven laten 8-15% marge liggen op projecten. De Basisscan laat zien waar uw tarieven en nacalculatie beter kunnen.',
+        btn_p:'✓ Ik wil weten wat mijn projecten écht opleveren — €397',
+        btn_n:'Optimaliseer uw projectmarges →',
+      },
+      'Bouw & Aannemerij':{
+        titel_p:'Drukke orderportefeuille — maar het geld blijft achter.',
+        tekst_p:`Aannemers lopen vast op late betalers en te krappe marges. De Basisscan laat zien hoe u <strong>${totaalStr}</strong> terughaalt via betere offertes en debiteurbeheer.`,
+        titel_n:'Uw omzet groeit — maar groeit uw marge mee?',
+        tekst_n:'De Basisscan brengt in kaart of uw groei winstgevend is en waar u margeverlies kunt voorkomen.',
+        btn_p:'✓ Pak mijn marge terug — Basisscan €397',
+        btn_n:'Controleer uw winstgevendheid →',
+      },
+      'Transport & Logistiek':{
+        titel_p:'Hoge kosten, smalle marges — en toch geld laten liggen.',
+        tekst_p:`Transportbedrijven hebben weinig speelruimte. Elke procent telt. De Basisscan toont waar <strong>${totaalStr}</strong> weglekt — en hoe u dat stopt.`,
+        titel_n:'Uw operatie draait — maar er is ruimte voor meer rendement.',
+        tekst_n:'De Basisscan analyseert waar uw transportmarges verbeterd kunnen worden zonder extra volume.',
+        btn_p:'✓ Stop het lek — Basisscan €397',
+        btn_n:'Ontdek uw rendementspotentieel →',
+      },
+      'Groothandel':{
+        titel_p:'Veel omzet — maar marge staat onder druk.',
+        tekst_p:`Groothandels verliezen marge op inkoopprijzen, voorraad en betalingstermijnen. De Basisscan laat zien hoe u <strong>${totaalStr}</strong> terugwint.`,
+        titel_n:'Uw handelsmarges kunnen scherper.',
+        tekst_n:'De Basisscan geeft inzicht in inkoop, voorraadbeheer en werkkapitaal — en waar winst te halen valt.',
+        btn_p:'✓ Verbeter mijn handelsmarge — €397',
+        btn_n:'Scherp uw marges aan →',
+      },
+    };
+    const sc=sectorCTA[sector]||{
+      titel_p:'U laat nu geld liggen — dat hoeft niet.',
+      tekst_p:`Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. De Financiële Basisscan (€397 excl. BTW) laat u exact zien waar dit geld weglekt en geeft u een concreet actieplan.`,
+      titel_n:'Uw cijfers zijn goed — maar nog niet optimaal benut.',
+      tekst_n:'De Financiële Basisscan laat exact zien waar nog ruimte zit in marge, cashflow en werkkapitaal.',
+      btn_p:'✓ Ja, ik wil de Basisscan — €397',
+      btn_n:'Ontdek uw verborgen verbeterpotentieel →',
+    };
+    const ctaTitel=heeftPotentieel ? sc.titel_p : sc.titel_n;
+    const ctaText=heeftPotentieel ? sc.tekst_p : sc.tekst_n;
+    const ctaBtn=heeftPotentieel ? sc.btn_p : sc.btn_n;
+    return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',d.ebitda).k};">${fmt(d.ebitda)}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}-${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',d.ebitda).s}</td></tr></table></div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Waar zit ruimte voor verbetering?</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;"><div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">${ctaTitel}</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">${ctaText}</p><p style="font-size:12px;color:#2E75B6;margin:0 0 14px;">✓ Alle ratio's volledig onderbouwd &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Concreet actieplan &nbsp;·&nbsp; ✓ Binnen 5 werkdagen</p><p style="font-size:11px;color:#888;margin:0 0 14px;">Geen resultaat? Dan betaalt u niets.</p><div style="text-align:center;"><button onclick="Conversie.openBasisscanModal()" style="background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;">${ctaBtn}</button></div></div></div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;"><strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
   },
 };
 
@@ -1847,6 +1663,134 @@ const SectorCopy = {
   }
 };
 
+
+// ─── FIN: Financiële berekeningen & impact per KPI ───────────────────────────
+const Fin = {
+  parseData(tekst) {
+    const get = (patterns) => {
+      for (const p of patterns) {
+        const m = tekst.match(p);
+        if (m) return parseFloat(m[1].replace(',', '.'));
+      }
+      return null;
+    };
+    return {
+      omzet:        get([/omzet[^0-9€]*[€]?\s*([\d.,]+)/i, /revenue[^0-9]*[€]?\s*([\d.,]+)/i]),
+      brutomarge:   get([/brutomarge[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i, /bruto\s*marge[^0-9]*(\d{1,3}[,.]?\d*)/i]),
+      ebitda:       get([/ebitda[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i, /nettoresultaat[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i]),
+      solvabiliteit:get([/solvabiliteit[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i]),
+      debiteurendagen:get([/debiteur(?:en)?dagen[^0-9]*(\d{1,3})/i, /dso[^0-9]*(\d{1,3})/i]),
+      kas:          get([/kas(?:positie)?[^0-9€]*[€]?\s*([\d.,]+)/i]),
+      crediteurdagen:get([/crediteur(?:en)?dagen[^0-9]*(\d{1,3})/i]),
+      personeel:    get([/personeelskosten[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i]),
+    };
+  },
+
+  signaal(kpi, waarde, sector) {
+    if (waarde === null || waarde === undefined) return { s: '—', k: '#888' };
+    const sn = Sectornormen.get(sector);
+    const ranges = {
+      brutomarge:    sn?.brutomarge,
+      ebitda:        sn?.netto,
+      solvabiliteit: sn?.solv,
+      debiteurendagen: sn?.debiteur,
+      personeel:     sn?.personeel,
+    };
+    const r = ranges[kpi];
+    if (!r) return { s: '—', k: '#888' };
+    const [min, max] = r;
+    // Debiteurendagen: lager is beter
+    const inverteer = kpi === 'debiteurendagen' || kpi === 'crediteurdagen';
+    const goed = inverteer ? waarde <= max : waarde >= min && waarde <= max;
+    const slecht = inverteer ? waarde > max * 1.3 : waarde < min * 0.7 || waarde > max * 1.4;
+    if (goed) return { s: '✅', k: '#1E8449' };
+    if (slecht) return { s: '🔴', k: '#C0392B' };
+    return { s: '⚠', k: '#E67E22' };
+  },
+
+  bevindingen(d, sector) {
+    const sn = Sectornormen.get(sector);
+    const omzet = d.omzet || 0;
+    const bev = [];
+
+    // Sector-specifieke impactteksten
+    const sectorTekst = {
+      'Installatietechniek': {
+        brutomarge: 'Projectmarges onder norm — nacalculatie en tariefstelling verbeteren.',
+        debiteur:   'Te late betalingen binden werkkapitaal — debiteurbeheer aanscherpen.',
+        ebitda:     'Nettoresultaat onder norm — personeelskosten en overhead doorlichten.',
+        solvabiliteit: 'Buffer te laag voor seizoensschommelingen in projectfinanciering.',
+      },
+      'Bouw & Aannemerij': {
+        brutomarge: 'Bouwmarges te krap — faalkosten en offertes kritisch doorlichten.',
+        debiteur:   'Bouwopdrachtgevers betalen laat — factuurbeleid aanpassen.',
+        ebitda:     'Rendement onder norm — overhead en projectefficiëntie verbeteren.',
+        solvabiliteit: 'Eigen vermogen te laag voor grote projectgaranties.',
+      },
+      'Horeca': {
+        brutomarge: 'Inkoopkosten te hoog — leveranciers heronderhandelen en verspilling aanpakken.',
+        debiteur:   'Openstaande posten voor horeca ongewoon hoog — direct actie vereist.',
+        ebitda:     'Rendement te laag — personeelsplanning en bezettingsgraad optimaliseren.',
+        solvabiliteit: 'Liquiditeitsbuffer onvoldoende voor seizoensdips.',
+      },
+      'Transport & Logistiek': {
+        brutomarge: 'Transportmarges onder druk — brandstofkosten en ritplanning verbeteren.',
+        debiteur:   'Vorderingen lopen te lang — strikte betalingsvoorwaarden invoeren.',
+        ebitda:     'Nettoresultaat te laag — voertuigkosten en bezetting doorlichten.',
+        solvabiliteit: 'Eigen vermogen onvoldoende voor materieelvervanging.',
+      },
+      'Groothandel': {
+        brutomarge: 'Handelsmarge te laag — inkoopprijzen en prijsstelling herzien.',
+        debiteur:   'Vorderingen te hoog — kredietlimieten klanten aanscherpen.',
+        ebitda:     'Rendement onder norm — voorraadkosten en logistiek optimaliseren.',
+        solvabiliteit: 'Buffer te laag voor voorraadfinanciering.',
+      },
+    };
+    const st = sectorTekst[sector] || {
+      brutomarge: 'Brutomarge onder sectornorm — margeoptimalisatie mogelijk.',
+      debiteur:   'Debiteurenbeheer kan beter — werkkapitaal vrijmaken.',
+      ebitda:     'Nettoresultaat onder norm — kosten kritisch doorlichten.',
+      solvabiliteit: 'Solvabiliteit onder norm — buffer versterken.',
+    };
+
+    // Impact berekeningen per KPI
+    if (d.brutomarge !== null && sn?.brutomarge) {
+      const norm = sn.brutomarge[0];
+      if (d.brutomarge < norm && omzet > 0) {
+        const gap = (norm - d.brutomarge) / 100;
+        const impact = Math.round(omzet * gap * 0.3); // 30% realiseerbaar
+        bev.push({ t: 'Brutomarge optimalisatie', tx: st.brutomarge, k: '#E67E22', bedrag: impact > 0 ? impact : null });
+      }
+    }
+
+    if (d.debiteurendagen !== null && sn?.debiteur) {
+      const norm = sn.debiteur[1];
+      if (d.debiteurendagen > norm && omzet > 0) {
+        const extraDagen = d.debiteurendagen - norm;
+        const impact = Math.round((omzet / 365) * extraDagen * 0.5);
+        bev.push({ t: 'Debiteurenbeheer', tx: st.debiteur, k: '#C0392B', bedrag: impact > 0 ? impact : null });
+      }
+    }
+
+    if (d.ebitda !== null && sn?.netto) {
+      const norm = sn.netto[0];
+      if (d.ebitda < norm && omzet > 0) {
+        const gap = (norm - d.ebitda) / 100;
+        const impact = Math.round(omzet * gap * 0.4);
+        bev.push({ t: 'Kostenoptimalisatie', tx: st.ebitda, k: '#E67E22', bedrag: impact > 0 ? impact : null });
+      }
+    }
+
+    if (d.solvabiliteit !== null && sn?.solv) {
+      if (d.solvabiliteit < sn.solv[0]) {
+        bev.push({ t: 'Vermogenspositie', tx: st.solvabiliteit, k: '#C0392B', bedrag: null });
+      }
+    }
+
+    return bev;
+  },
+};
+
 // ─── SECTORNORMEN (bron: CBS MKB StatLine 2023, Techniek Nederland, ING/Rabobank sectorrapportages) ───
 const Sectornormen = {
   data: {
@@ -2518,25 +2462,21 @@ const StressTest = {
     // Parse verbeterpunten
     let verbeterHtml = '';
     let totaal = '';
-verbeterHtml += '<div style="border-left:4px solid '+cfg.kleur+';background:#fdf8f3;padding:12px 14px;margin-bottom:8px;border-radius:0 6px 6px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">'
-  + '<div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">'+UI.esc(naam2)+'</div>'
-  + '<div style="font-size:12px;color:#555;">'+UI.esc(actie)+'</div></div>'
-  + (bedrag ? (function(){
-      var raw = String(bedrag).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
-      var jaar = parseFloat(raw);
-      var maand = !isNaN(jaar) ? Math.round(jaar/12) : null;
-
-      var html = '<div style="font-weight:700;color:'+cfg.kleur+';font-size:14px;white-space:nowrap;text-align:right;">'
-        + UI.esc(bedrag);
-
-      if(maand){
-        html += '<div style="font-size:11px;color:#B91C1C;margin-top:4px;font-weight:700;white-space:normal;">≈ € '+maand.toLocaleString('nl-NL')+' p/m</div>';
+    verbeter.split('\n').filter(l => l.trim()).forEach(l => {
+      if (l.toLowerCase().includes('totaal')) {
+        totaal = l.split(':')[1]?.trim() || '';
+      } else if (l.match(/verbeterpunt \d/i)) {
+        const parts = l.replace(/verbeterpunt \d+:/i, '').split('|').map(s => s.trim());
+        const naam2 = parts[0] || '';
+        const bedrag = parts[1] || '';
+        const actie = parts[2] || '';
+        verbeterHtml += '<div style="border-left:4px solid '+cfg.kleur+';background:#fdf8f3;padding:12px 14px;margin-bottom:8px;border-radius:0 6px 6px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">'
+          + '<div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">'+UI.esc(naam2)+'</div>'
+          + '<div style="font-size:12px;color:#555;">'+UI.esc(actie)+'</div></div>'
+          + (bedrag ? '<div style="font-weight:700;color:'+cfg.kleur+';font-size:14px;white-space:nowrap;">'+UI.esc(bedrag)+'</div>' : '')
+          + '</div>';
       }
-
-      html += '</div>';
-      return html;
-    })() : '')
-  + '</div>';
+    });
 
     // Extra sectie (scenarios / risicoklassen / aanbevelingen)
     const extraSectie = type === 'cashflow' ? 'SCENARIOS'
@@ -2613,19 +2553,7 @@ verbeterHtml += '<div style="border-left:4px solid '+cfg.kleur+';background:#fdf
       + '<div style="background:#fff;border:1px solid #e2e8e4;border-top:none;padding:16px 24px;">'
       + '<div style="font-size:10px;font-weight:700;color:'+cfg.kleur+';text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Verbeterpunten</div>'
       + verbeterHtml
-      + (totaal ? (function(){
-    const raw = String(totaal).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
-    const jaar = parseFloat(raw);
-    const maand = !isNaN(jaar) ? Math.round(jaar/12) : null;
-
-    return '<div style="background:'+cfg.kleurBg+';border:1.5px solid '+cfg.kleur+';border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;">'
-      + '<div style="font-size:11px;font-weight:700;color:'+cfg.kleur+';text-transform:uppercase;letter-spacing:1px;">Totaal verbeterbaar</div>'
-      + '<div style="text-align:right;">'
-      +   '<div style="font-size:18px;font-weight:700;color:'+cfg.kleur+';">'+UI.esc(totaal)+'</div>'
-      +   (maand ? '<div style="font-size:12px;color:#B91C1C;margin-top:4px;font-weight:700;">≈ € '+maand.toLocaleString('nl-NL')+' p/m</div>' : '')
-      + '</div>'
-      + '</div>';
-  })() : '')
+      + (totaal ? '<div style="background:'+cfg.kleurBg+';border:1.5px solid '+cfg.kleur+';border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:11px;font-weight:700;color:'+cfg.kleur+';text-transform:uppercase;letter-spacing:1px;">Totaal verbeterbaar</div><div style="font-size:18px;font-weight:700;color:'+cfg.kleur+';">'+UI.esc(totaal)+'</div></div>' : '')
       + '</div>'
 
       // Conclusie
@@ -3135,126 +3063,5 @@ const Monitoring = {
 </script>
 
 <div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1.1 live</div>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  var titel = document.querySelector('#rapport-soft-cta div:nth-child(2)');
-  if (titel) {
-    titel.textContent = 'U ziet waar u geld verliest — maar zonder sturing blijft dat zo';
-  }
-
-  var tekst = document.getElementById('rapport-soft-cta-text');
-  if (tekst) {
-    tekst.textContent = 'Zonder maandelijkse sturing blijft winst weglekken zonder dat u het direct ziet. Met begeleiding sturen we actief op marge, kosten en cash, zodat u eerder ingrijpt en meer resultaat overhoudt.';
-  }
-
-  var knop = document.getElementById('rapport-soft-cta-btn');
-  if (knop) {
-    knop.textContent = 'Plan mijn begeleiding →';
-  }
-
-  var modalTitel = document.getElementById('conv-modal-titel');
-  if (modalTitel) {
-    modalTitel.textContent = 'U laat aantoonbaar rendement liggen — haal het terug';
-  }
-
-  var modalTekst = document.getElementById('conv-modal-tekst');
-  if (modalTekst) {
-    modalTekst.innerHTML = 'U ziet nu al waar winst en liquiditeit onder druk staan.<br><br>Maar zonder verdieping mist u:';
-  }
-
-  var b1 = document.getElementById('conv-modal-bullet-1');
-  if (b1) {
-    b1.textContent = '• waar marge structureel weglekt';
-  }
-
-  var b2 = document.getElementById('conv-modal-bullet-2');
-  if (b2) {
-    b2.textContent = '• welke stuurinformatie nu ontbreekt';
-  }
-
-  var b3 = document.getElementById('conv-modal-bullet-3');
-  if (b3) {
-    b3.textContent = '• welke verbeteracties direct rendement opleveren';
-  }
-
-  var cta = document.getElementById('conv-modal-cta');
-  if (cta) {
-    cta.textContent = 'Ontvang mijn Basisscan — €397';
-  }
-
-  var impact = document.getElementById('conv-modal-impact');
-  if (impact) {
-    impact.textContent = 'eenmalig • geen abonnement • concreet en direct toepasbaar';
-  }
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-
-  const isKlantView = document.getElementById('klant-basisscan');
-
-  // Alleen uitvoeren als we in klantomgeving zitten
-  if(isKlantView){
-
-    const bs = document.getElementById('klant-basisscan');
-    if(bs){
-      bs.style.display = 'none';
-    }
-
-    // Optioneel: knop toevoegen om hem te tonen
-    const container = document.getElementById('klant-eenpager-inhoud');
-
-    if(container){
-      const btn = document.createElement('button');
-      btn.textContent = 'Bekijk volledige analyse';
-      btn.style = 'margin-top:20px;padding:12px 20px;border:none;border-radius:8px;background:#1F4E79;color:#fff;font-weight:700;cursor:pointer;';
-
-      btn.onclick = function(){
-        bs.style.display = 'block';
-        btn.style.display = 'none';
-      };
-
-      container.appendChild(btn);
-    }
-
-  }
-
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-
-  // Zoek totaal impact blok
-  const impactBlok = document.querySelector('#klant-eenpager, #prev-inhoud');
-
-  if(!impactBlok) return;
-
-  // Zoek alle bedragen zoals € 2500
-  const bedragen = impactBlok.querySelectorAll('*');
-
-  bedragen.forEach(el => {
-    if(!el.textContent) return;
-
-    const match = el.textContent.match(/€\s?([\d\.\,]+)/);
-
-    if(match){
-      const jaar = parseFloat(match[1].replace(/\./g,'').replace(',','.'));
-
-      if(jaar > 1000 && jaar < 1000000){
-        const maand = Math.round(jaar / 12);
-
-        // Voeg alleen toe als nog niet gedaan
-        if(!el.textContent.includes('per maand')){
-          el.innerHTML = el.textContent + 
-            `<div style="font-size:12px;color:#B91C1C;margin-top:4px;font-weight:600;">
-              ≈ € ${maand.toLocaleString('nl-NL')} per maand die nu weglekt
-            </div>`;
-        }
-      }
-    }
-  });
-
-});
-</script>  
 </body>
 </html>
