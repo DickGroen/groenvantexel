@@ -1844,6 +1844,22 @@ const Fin = {
       }
     }
 
+    // Ook bij gezonde cijfers: toon optimalisatiepotentieel op basis van omzet
+    if (bev.length === 0 && omzet > 0) {
+      const sectorOptimalisatie = {
+        'Installatietechniek': { pct: 0.04, tekst: 'Uw cijfers zijn gezond — maar zelfs bij goede marges laat elk installatiebedrijf 3-5% liggen op nacalculatie, uurtarieven en werkkapitaal. De Basisscan maakt dit concreet.' },
+        'Bouw & Aannemerij':   { pct: 0.04, tekst: 'Gezonde basis — maar bouwbedrijven met goede cijfers laten toch 3-5% marge liggen op offertes, faalkosten en debiteurenbeheer.' },
+        'Horeca':              { pct: 0.05, tekst: 'Uw zaak draait goed — maar horecabedrijven missen gemiddeld 4-6% op inkoop, bezetting en personeelsplanning.' },
+        'Transport & Logistiek': { pct: 0.04, tekst: 'Goede operatie — maar transportbedrijven laten structureel 3-5% liggen op ritplanning, brandstof en vorderingenbeheer.' },
+        'Groothandel':         { pct: 0.035, tekst: 'Sterke handelspositie — maar groothandels missen gemiddeld 3-4% op inkoopvolume, voorraadbeheer en betalingstermijnen.' },
+        'E-commerce / Webshop':{ pct: 0.06, tekst: 'Groeiende webshop — maar e-commerce bedrijven verliezen 5-8% op retouren, advertentierendement en margeoptimalisatie.' },
+        'Zakelijke dienstverlening': { pct: 0.05, tekst: 'Solide dienstverlening — maar adviseurs en bureaus laten 4-6% liggen op tariefstelling, projectselectie en overhead.' },
+      };
+      const opt = sectorOptimalisatie[sector] || { pct: 0.04, tekst: 'Uw financiële basis is solide — maar de Basisscan toont waar nog 3-5% verbeterpotentieel zit in marge, werkkapitaal en kostenstructuur.' };
+      const impact = Math.round(omzet * opt.pct);
+      bev.push({ t: 'Optimalisatiepotentieel', tx: opt.tekst, k: '#1F4E79', bedrag: impact });
+    }
+
     return bev;
   },
 };
