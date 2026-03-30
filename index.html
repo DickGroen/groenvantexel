@@ -1004,81 +1004,81 @@ const Rapport={
     // Maandbedrag altijd exact totaal/12 — zodat hero-titel en hero-sub consistent zijn
     const maandBedrag = heeftPotentieel ? fmtEur(Math.round(totaal/12)) : '—';
     const heroTitel=heeftPotentieel
-      ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen`
-      : `${UI.esc(bedrijf)}, financiële basis op orde — met ruimte voor optimalisatie`;
+      ? `${UI.esc(bedrijf)} laat jaarlijks ${totaalStr} aan winst liggen — zonder het te zien`
+      : `${UI.esc(bedrijf)}, uw basis staat — maar er liggen nog concrete kansen op meer rendement`;
     const heroSub=heeftPotentieel
-      ? `Op basis van uw cijfers — dat is ${maandBedrag} per maand`
-      : 'Uw cijfers ogen gezond, maar laten nog ruimte voor marge-, cashflow- en bufferverbetering';
+      ? `Dit loopt elke maand door — ${maandBedrag} aan onbenut rendement`
+      : 'Uw cijfers staan er goed voor — de Basisscan laat zien waar nog rendement te halen valt';
     const rij=(lbl,veld,eenh,norm,alt)=>`<tr${alt?' style="background:#f9fbfa;"':''}><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${lbl}</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig(veld,d[veld]).k};border-bottom:1px solid #eef1ee;">${fmt(d[veld],eenh)}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">${norm}</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${sig(veld,d[veld]).s}</td></tr>`;
     const bevHtml=bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div><div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div></div>${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}</div>`).join('');
     const impactBox=heeftPotentieel
-      ? `<div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Totaal verbeterpotentieel</div><div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div></div><div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div></div><div style="border-top:1px solid #c3e6cb;padding-top:6px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:11px;color:#555;">Per maand</div><div style="font-size:15px;font-weight:700;color:#1E8449;">≈ ${maandBedrag}</div></div></div>`
-      : `<div style="background:#F4F8FB;border:1.5px solid #9dc3e6;border-radius:6px;padding:12px 16px;margin-top:10px;"><div style="font-size:10px;font-weight:700;color:#1F4E79;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Optimalisatiepotentieel</div><div style="font-size:12px;color:#35516b;line-height:1.7;">Op basis van de huidige cijfers zien we geen acute knelpunten, maar wel ruimte om marge, cashflow en buffer verder te verbeteren. De Basisscan werkt dit concreet uit.</div></div>`;
+      ? `<div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Dit bedrag ligt nu onbenut</div><div style="font-size:11px;color:#555;">MKB Stresstest Methode™ — ${jaar}</div></div><div style="font-size:20px;font-weight:700;color:#1E8449;">${totaalStr}</div></div><div style="border-top:1px solid #c3e6cb;padding-top:6px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:11px;color:#555;">Elke maand dat dit doorgaat</div><div style="font-size:15px;font-weight:700;color:#1E8449;">≈ ${maandBedrag}</div></div></div>`
+      : `<div style="background:#F4F8FB;border:1.5px solid #9dc3e6;border-radius:6px;padding:12px 16px;margin-top:10px;"><div style="font-size:10px;font-weight:700;color:#1F4E79;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Optimalisatiepotentieel aanwezig</div><div style="font-size:12px;color:#35516b;line-height:1.7;">Uw kerncijfers ogen gezond — maar zelfs bij een gezonde basis liggen er verbeteringen in marge, werkkapitaal en kosten. De Basisscan rekent dit concreet voor u uit.</div></div>`;
     const sectorCTA={
       'Installatietechniek':{
-        titel_p:'Uw projecten draaien — maar levert elke opdracht wat hij moet opleveren?',
+        titel_p:`U laat ${totaalStr} per jaar liggen op projecten — terwijl u even hard werkt`,
         tekst_p:`Installatietechnici lopen gemiddeld 8-12% marge mis door te lage uurtarieven en slechte nacalculatie. De Basisscan toont exact welke projecten geld kosten in plaats van opleveren — en hoe u <strong>${totaalStr}</strong> terughaalt.`,
         titel_n:'Uw basis is solide — maar uw uurtarief en marges kunnen beter.',
         tekst_n:'De meeste installatiebedrijven laten 8-15% marge liggen op projecten. De Basisscan laat zien waar uw tarieven en nacalculatie beter kunnen.',
-        btn_p:'✓ Ik wil weten wat mijn projecten écht opleveren — €397',
+        btn_p:`✓ Laat zien waar ik ${totaalStr} terug kan pakken → €397`,
         btn_n:'Optimaliseer uw projectmarges →',
       },
       'Bouw & Aannemerij':{
-        titel_p:'Drukke orderportefeuille — maar het geld blijft achter.',
+        titel_p:`${totaalStr} per jaar verdwijnt via marge en debiteurenproblemen — dat is direct terug te halen`,
         tekst_p:`Aannemers lopen vast op late betalers en te krappe marges. De Basisscan laat zien hoe u <strong>${totaalStr}</strong> terughaalt via betere offertes en debiteurbeheer.`,
         titel_n:'Uw omzet groeit — maar groeit uw marge mee?',
         tekst_n:'De Basisscan brengt in kaart of uw groei winstgevend is en waar u margeverlies kunt voorkomen.',
-        btn_p:'✓ Pak mijn marge terug — Basisscan €397',
+        btn_p:`✓ Laat zien waar ik ${totaalStr} terug kan pakken → €397`,
         btn_n:'Controleer uw winstgevendheid →',
       },
       'Transport & Logistiek':{
-        titel_p:'Hoge kosten, smalle marges — en toch geld laten liggen.',
+        titel_p:`${totaalStr} per jaar lekt weg via kosten en marges die u zelf niet ziet`,
         tekst_p:`Transportbedrijven hebben weinig speelruimte. Elke procent telt. De Basisscan toont waar <strong>${totaalStr}</strong> weglekt — en hoe u dat stopt.`,
         titel_n:'Uw operatie draait — maar er is ruimte voor meer rendement.',
         tekst_n:'De Basisscan analyseert waar uw transportmarges verbeterd kunnen worden zonder extra volume.',
-        btn_p:'✓ Stop het lek — Basisscan €397',
+        btn_p:`✓ Laat zien waar ik ${totaalStr} terug kan pakken → €397`,
         btn_n:'Ontdek uw rendementspotentieel →',
       },
       'Groothandel':{
-        titel_p:'Veel omzet — maar marge staat onder druk.',
+        titel_p:`${totaalStr} per jaar verdwijnt via inkoop en betalingstermijnen — dit is terug te verdienen`,
         tekst_p:`Groothandels verliezen marge op inkoopprijzen, voorraad en betalingstermijnen. De Basisscan laat zien hoe u <strong>${totaalStr}</strong> terugwint.`,
         titel_n:'Uw handelsmarges kunnen scherper.',
         tekst_n:'De Basisscan geeft inzicht in inkoop, voorraadbeheer en werkkapitaal — en waar winst te halen valt.',
-        btn_p:'✓ Verbeter mijn handelsmarge — €397',
+        btn_p:`✓ Laat zien waar ik ${totaalStr} terug kan pakken → €397`,
         btn_n:'Scherp uw marges aan →',
       },
       'E-commerce / Webshop':{
-        titel_p:'Uw webshop draait — maar retouren en advertentiekosten vreten uw marge op.',
+        titel_p:`${totaalStr} per jaar verdwijnt via retouren en advertentiekosten die u niet actief bewaakt`,
         tekst_p:`Webshops verliezen gemiddeld 10-20% marge op retouren, te hoge advertentiekosten en slechte productmix. De Basisscan laat zien hoe u <strong>${totaalStr}</strong> terughaalt.`,
         titel_n:'Uw webshop groeit — maar is die groei ook winstgevend?',
         tekst_n:'De Basisscan brengt in kaart waar advertentiebudget, retouren en marge beter kunnen — zodat elke euro omzet meer oplevert.',
-        btn_p:'✓ Stop het margeverlies in mijn webshop — €397',
+        btn_p:`✓ Laat zien waar ik ${totaalStr} terug kan pakken → €397`,
         btn_n:'Maak mijn webshopgroei winstgevend →',
       },
       'Horeca':{
-        titel_p:'Drukke zaak — maar de marge blijft achter.',
+        titel_p:`${totaalStr} per jaar gaat verloren in inkoop, bezetting en personeelskosten`,
         tekst_p:`Horeca verliest marge op inkoop, bezetting en personeelsplanning. De Basisscan laat zien hoe u <strong>${totaalStr}</strong> terugwint zonder extra gasten.`,
         titel_n:'Uw zaak draait — maar er is ruimte voor meer rendement.',
         tekst_n:'De Basisscan analyseert inkoopkosten, bezettingsgraad en personeelsplanning — en toont waar winst te halen valt.',
-        btn_p:'✓ Verbeter mijn horecamarge — €397',
+        btn_p:`✓ Laat zien waar ik ${totaalStr} terug kan pakken → €397`,
         btn_n:'Ontdek mijn rendementspotentieel →',
       },
       'Zakelijke dienstverlening':{
-        titel_p:'Uw uren zijn gevuld — maar uw uurtarief werkt niet voor u.',
+        titel_p:`${totaalStr} per jaar ligt er onbenut — uw tarieven en projectselectie kosten u geld`,
         tekst_p:`Dienstverleners laten marge liggen op te lage tarieven, slechte projectselectie en hoge overheadkosten. De Basisscan laat zien hoe u <strong>${totaalStr}</strong> terughaalt.`,
         titel_n:'Uw praktijk loopt — maar uw tarief en marge kunnen beter.',
         tekst_n:'De Basisscan brengt in kaart waar uw tarieven, projectmix en overheadkosten beter kunnen.',
-        btn_p:'✓ Verbeter mijn uurtarief en marge — €397',
+        btn_p:`✓ Laat zien waar ik ${totaalStr} terug kan pakken → €397`,
         btn_n:'Optimaliseer mijn dienstverleningsrendement →',
       },
     };
     const sc=sectorCTA[sector]||{
-      titel_p:'U laat nu geld liggen — dat hoeft niet.',
+      titel_p:`U laat ${totaalStr} per jaar liggen — dit is direct terug te verdienen`,
       tekst_p:`Uit deze analyse blijkt een verbeterpotentieel van <strong>${totaalStr}</strong>. De Financiële Basisscan (€397 excl. BTW) laat u exact zien waar dit geld weglekt en geeft u een concreet actieplan.`,
-      titel_n:'Uw cijfers zijn goed — maar nog niet optimaal benut.',
+      titel_n:'Uw cijfers staan er goed voor — maar er liggen concrete kansen op meer rendement',
       tekst_n:'De Financiële Basisscan laat exact zien waar nog ruimte zit in marge, cashflow en werkkapitaal.',
-      btn_p:'✓ Ja, ik wil de Basisscan — €397',
-      btn_n:'Ontdek uw verborgen verbeterpotentieel →',
+      btn_p:`✓ Laat zien waar ik ${totaalStr} terug kan pakken → €397`,
+      btn_n:'✓ Laat zien waar ik meer rendement kan halen → €397',
     };
     const ctaTitel=heeftPotentieel ? sc.titel_p : sc.titel_n;
     const ctaText=heeftPotentieel ? sc.tekst_p : sc.tekst_n;
@@ -1087,18 +1087,18 @@ const Rapport={
 
       <!-- HEADER -->
       <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);padding:26px 28px;">
-        <div style="color:#9dc3e6;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px;">Groen van Texel — Financiële Doorlichting</div>
+        <div style="color:#9dc3e6;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px;">Groen van Texel — Winstoptimalisatie & Begeleiding</div>
         <div style="color:#fff;font-size:24px;font-weight:800;line-height:1.2;margin-bottom:8px;">${heroTitel}</div>
         <div style="background:rgba(255,255,255,.12);border-radius:6px;padding:8px 12px;display:inline-block;margin-bottom:10px;">
           <span style="color:#FFD700;font-size:15px;font-weight:800;">${maandBedrag}</span>
-          <span style="color:rgba(255,255,255,.8);font-size:12px;"> per maand aan onbenut rendement</span>
+          <span style="color:rgba(255,255,255,.8);font-size:12px;"> per maand dat nu blijft liggen</span>
         </div>
         <div style="color:#9dc3e6;font-size:11px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar} &nbsp;•&nbsp; ${datum}</div>
       </div>
 
       <!-- KERNCIJFERS -->
       <div style="padding:20px 24px 0;">
-        <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1.2px;padding-bottom:6px;border-bottom:2px solid #D5F5E3;margin-bottom:14px;">1 &nbsp; Uw cijfers versus de sectornorm</div>
+        <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1.2px;padding-bottom:6px;border-bottom:2px solid #D5F5E3;margin-bottom:14px;">1 &nbsp; Wat uw cijfers zeggen versus de sectornorm</div>
         <table style="width:100%;border-collapse:collapse;font-size:13px;">
           <tr style="background:#1F4E79;">
             <td style="padding:9px 10px;color:#fff;font-weight:700;">Cijfer</td>
@@ -1126,7 +1126,7 @@ const Rapport={
 
       <!-- VERBETERPUNTEN -->
       <div style="padding:16px 24px 0;">
-        <div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1.2px;padding-bottom:6px;border-bottom:2px solid #fadbd8;margin-bottom:14px;">2 &nbsp; Hier lekt het rendement</div>
+        <div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1.2px;padding-bottom:6px;border-bottom:2px solid #fadbd8;margin-bottom:14px;">2 &nbsp; Hier lekt de winst — dit kost u geld</div>
         ${bevHtml}
         ${impactBox}
       </div>
@@ -1137,13 +1137,13 @@ const Rapport={
           <div style="font-weight:800;color:#1F4E79;font-size:15px;margin-bottom:8px;line-height:1.3;">${ctaTitel}</div>
           <p style="font-size:13px;color:#1F4E79;line-height:1.75;margin:0 0 10px;">${ctaText}</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-            <span style="background:#E8F5E9;color:#1E8449;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">✓ Alle ratio's onderbouwd</span>
-            <span style="background:#E8F5E9;color:#1E8449;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">✓ Sectorvergelijking</span>
-            <span style="background:#E8F5E9;color:#1E8449;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">✓ Concreet actieplan</span>
-            <span style="background:#E8F5E9;color:#1E8449;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">✓ Binnen 5 werkdagen</span>
+            <span style="background:#E8F5E9;color:#1E8449;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">✓ Elke bevinding onderbouwd</span>
+            <span style="background:#E8F5E9;color:#1E8449;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">✓ Vergeleken met uw sector</span>
+            <span style="background:#E8F5E9;color:#1E8449;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">✓ Concrete acties binnen 30 dagen</span>
+            <span style="background:#E8F5E9;color:#1E8449;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">✓ Rapport binnen 5 werkdagen</span>
           </div>
           <button onclick="Conversie.openBasisscanModal()" style="background:linear-gradient(135deg,#1E8449,#27AE60);color:#fff;border:none;border-radius:8px;padding:14px 20px;font-size:15px;font-weight:800;cursor:pointer;width:100%;letter-spacing:.3px;">${ctaBtn}</button>
-          <div style="text-align:center;margin-top:8px;font-size:11px;color:#888;">Geen resultaat? Dan betaalt u niets.</div>
+          <div style="text-align:center;margin-top:8px;font-size:11px;color:#888;">Geen bruikbaar resultaat? Dan betaalt u niets — dat is onze garantie.</div>
         </div>
       </div>
 
@@ -1342,7 +1342,7 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
         <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Managementsamenvatting</div>
         <div style="font-size:13px;color:#333;line-height:1.8;">${UI.esc(p.samenvatting)}</div>
         <div style="margin-top:14px;background:#E8F5E9;border-radius:6px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;">Totaal verbeterpotentieel</div>
+          <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;">Dit bedrag ligt nu onbenut</div>
           <div style="font-size:18px;font-weight:700;color:#1E8449;">${totaalStr}</div>
         </div>
       </div>
