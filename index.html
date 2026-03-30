@@ -421,6 +421,54 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         </div>
       </div>
 
+      <div id="tools-prijsberekening" class="card" style="margin-top:0;">
+        <div class="card-title">Prijsberekening Tool</div>
+        <div class="form-row cols2">
+          <div class="form-group">
+            <label class="form-label">Kostprijs (€) <span class="req">*</span></label>
+            <input id="pb-kostprijs" class="form-input" type="number" min="0" placeholder="bijv. 2500">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gewenste marge (%) <span class="req">*</span></label>
+            <input id="pb-marge" class="form-input" type="number" min="0" max="99" placeholder="bijv. 25">
+          </div>
+        </div>
+        <div class="form-row" style="max-width:300px;">
+          <div class="form-group">
+            <label class="form-label">Extra opslag / risico (%) optioneel</label>
+            <input id="pb-opslag" class="form-input" type="number" min="0" placeholder="bijv. 5">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="PrijsCalc.bereken()" style="margin-bottom:16px;">Bereken verkoopprijs</button>
+        <div id="pb-resultaat" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div style="background:var(--blue-pale);border-radius:10px;padding:14px 18px;">
+              <div style="font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Kostprijs</div>
+              <div id="pb-toon-kostprijs" style="font-size:22px;font-weight:800;color:var(--blue);">—</div>
+            </div>
+            <div style="background:var(--green-pale);border-radius:10px;padding:14px 18px;">
+              <div style="font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Verkoopprijs excl. BTW</div>
+              <div id="pb-verkoopprijs" style="font-size:22px;font-weight:800;color:var(--green);">—</div>
+            </div>
+            <div style="background:#f5f5f5;border-radius:10px;padding:14px 18px;">
+              <div style="font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Winst</div>
+              <div id="pb-winst" style="font-size:22px;font-weight:800;color:var(--dark);">—</div>
+            </div>
+            <div style="background:#f5f5f5;border-radius:10px;padding:14px 18px;">
+              <div style="font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Winstmarge</div>
+              <div id="pb-marge-uitkomst" style="font-size:22px;font-weight:800;color:var(--dark);">—</div>
+            </div>
+          </div>
+          <div id="pb-waarschuwing" style="border-radius:8px;padding:13px 16px;margin-bottom:16px;font-size:13px;font-weight:600;line-height:1.6;"></div>
+          <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:10px;padding:18px 20px;text-align:center;">
+            <div style="color:#fff;font-size:14px;font-weight:700;margin-bottom:6px;">Een goede prijs op papier is niet genoeg</div>
+            <div style="color:#9dc3e6;font-size:12px;margin-bottom:14px;">In de praktijk verdwijnen winsten vaak alsnog door extra kosten, inefficiëntie of te lage marges per opdracht. Bekijk waar u écht geld laat liggen.</div>
+            <button onclick="PrijsCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:13px 24px;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar mijn winst verdwijnt →</button>
+            <div style="color:rgba(255,255,255,.6);font-size:11px;">Gratis scan • direct inzicht in winstlekken</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -3600,6 +3648,46 @@ const OfferteGen = {
   },
 };
 
+
+// ─── PRIJS CALCULATOR ────────────────────────────────────────────────────────
+const PrijsCalc = {
+  bereken() {
+    const kostprijs    = parseFloat(document.getElementById('pb-kostprijs')?.value) || 0;
+    const margeGewenst = parseFloat(document.getElementById('pb-marge')?.value)     || 0;
+    const opslag       = parseFloat(document.getElementById('pb-opslag')?.value)    || 0;
+    if (!kostprijs || margeGewenst <= 0 || margeGewenst >= 100) {
+      document.getElementById('pb-resultaat').style.display = 'none'; return;
+    }
+    const fmt = v => '€ ' + Math.round(v).toLocaleString('nl-NL');
+    let verkoopprijs = kostprijs / (1 - margeGewenst / 100);
+    if (opslag > 0) verkoopprijs = verkoopprijs * (1 + opslag / 100);
+    const winst = verkoopprijs - kostprijs;
+    const margeWerkelijk = (winst / verkoopprijs) * 100;
+    document.getElementById('pb-toon-kostprijs').textContent  = fmt(kostprijs);
+    document.getElementById('pb-verkoopprijs').textContent    = fmt(verkoopprijs);
+    document.getElementById('pb-winst').textContent           = fmt(winst);
+    document.getElementById('pb-marge-uitkomst').textContent  = margeWerkelijk.toFixed(1) + '%';
+    const margeEl = document.getElementById('pb-marge-uitkomst');
+    margeEl.style.color = margeWerkelijk < 15 ? 'var(--red)' : margeWerkelijk < 25 ? 'var(--orange)' : 'var(--green)';
+    const w = document.getElementById('pb-waarschuwing');
+    if (margeWerkelijk < 15) {
+      w.textContent = '⚠ Deze marge is laag — kleine tegenvallers kunnen uw winst volledig opeten.';
+      w.style.background = 'var(--red-pale)'; w.style.color = 'var(--red)';
+    } else if (margeWerkelijk <= 25) {
+      w.textContent = '◑ Werkbare marge, maar vaak is extra ruimte verstandig.';
+      w.style.background = 'var(--orange-pale)'; w.style.color = 'var(--orange)';
+    } else {
+      w.textContent = '✓ Gezonde marge — controleer wel of dit in de praktijk ook gehaald wordt.';
+      w.style.background = 'var(--green-pale)'; w.style.color = 'var(--green)';
+    }
+    document.getElementById('pb-resultaat').style.display = 'block';
+  },
+  naarScan() {
+    if (sessie?.type === 'klant') { Nav.ga('aanleveren'); }
+    else if (sessie?.type === 'admin') { Nav.ga('dashboard'); }
+    else { const o=document.getElementById('login-overlay'); if(o) o.style.display='flex'; }
+  },
+};
 
 const MargeCalc = {
   bereken() {
