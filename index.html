@@ -493,6 +493,21 @@ const Store = {
     this._uploads = null;
   },
 
+  // ── Helpers: filter eenmalig i.p.v. overal herhalen ──────────────────────
+  async getUploadsByBedrijf(bedrijf) {
+    const all = await this.getUploads();
+    return all.filter(u => u.bedrijf === bedrijf);
+  },
+  async getUploadBySleutel(bedrijf, periode) {
+    const all = await this.getUploads();
+    return all.find(u => u.bedrijf === bedrijf && u.periode === periode) || null;
+  },
+  async getUploadsByBedrijfSorted(bedrijf) {
+    const all = await this.getUploads();
+    return all.filter(u => u.bedrijf === bedrijf)
+              .sort((a, b) => new Date(b.datum||0) - new Date(a.datum||0));
+  },
+
   async getAnalyse(sleutel) {
     const d = await API.call({actie:'getAnalyse', sleutel});
     return d.tekst || '';
@@ -796,9 +811,8 @@ const Rapport={
     _adminKlant=$('r-klant')?.value||null;_adminPeriode=null;
     const pSel=$('r-periode');if(pSel)pSel.innerHTML='<option value="">— Periode —</option>';
     Rapport._reset(false);if(!_adminKlant)return;
-    const alle=await Store.getUploads();
     const map=new Map();
-    alle.filter(u=>u.bedrijf===_adminKlant).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0)).forEach(u=>{if(!map.has(u.periode))map.set(u.periode,u);});
+    (await Store.getUploadsByBedrijfSorted(_adminKlant)).forEach(u=>{if(!map.has(u.periode))map.set(u.periode,u);});
     const periodes=[...map.keys()].sort((a,b)=>b.localeCompare(a));
     if(pSel)pSel.innerHTML='<option value="">— Periode —</option>'+periodes.map(p=>`<option value="${UI.esc(p)}">${UI.esc(p)}</option>`).join('');
     if(periodes.length===0){show('r-leeg');setTxt('r-leeg-tekst','Nog geen bestanden ontvangen van deze klant.');}
@@ -808,8 +822,8 @@ const Rapport={
   async _teken(){
     const kl=await Store.getKlanten();
     const klant=kl.find(k=>k.naam===_adminKlant);
-    const alleUpl=await Store.getUploads();
-    const uploads=alleUpl.filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
+    const _uplSleutel=await Store.getUploadBySleutel(_adminKlant,_adminPeriode);
+    const uploads=_uplSleutel?[_uplSleutel]:[];
     const datum=uploads[0]?.datum||'—';
     const badge=UI.typeBadge(klant?.klantType||'lead').replace(/class="badge[^"]*"/,'style="background:rgba(255,255,255,.15);color:#fff;"');
     setHTML('r-header',`<div class="rh" style="margin-bottom:20px;"><h2>${UI.esc(_adminKlant)}</h2><p style="color:rgba(255,255,255,.7);font-size:13px;margin-top:3px;">${badge}</p><div class="rh-meta"><div class="rh-item"><div class="lbl">Periode</div><div class="val">${UI.esc(_adminPeriode)}</div></div><div class="rh-item"><div class="lbl">Sector</div><div class="val">${UI.esc(klant?.sector||'—')}</div></div><div class="rh-item"><div class="lbl">Bestanden</div><div class="val">${uploads.length} ontvangen</div></div>${uploads.length?`<div class="rh-item"><div class="lbl">Ontvangen</div><div class="val">${UI.esc(datum)}</div></div>`:''}</div></div>`);
@@ -865,8 +879,7 @@ const Rapport={
   async laadVoorKlant(){
     if(!sessie||sessie.type!=='klant'||!sessie.naam)return;
     Rapport._reset();hide('admin-selectie');hide('ai-box');hide('prev-box');hide('bs-prev-box');const _oldUp=document.getElementById('mon-upsell-klant');if(_oldUp)_oldUp.remove();
-    const alleUpl=await Store.getUploads();
-    const uploads=alleUpl.filter(u=>u.bedrijf===sessie.naam).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
+    const uploads=await Store.getUploadsByBedrijfSorted(sessie.naam);
     if(!uploads.length){show('r-leeg');setTxt('r-leeg-tekst','Uw rapport is nog niet beschikbaar. U ontvangt bericht zodra het klaarstaat.');return;}
     // Klanttype bepalen (Supabase geeft 'klanttype', sessie kan beide hebben)
     const _kt=sessie.klanttype||sessie.klantType||'lead';
@@ -896,8 +909,8 @@ const Rapport={
   },
   async genereer1Pager(){
     if(!_adminKlant||!_adminPeriode){UI.warn('Geen klant/periode geselecteerd');return;}
-    const alleUpl=await Store.getUploads();
-    const uploads=alleUpl.filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
+    const _uplG=await Store.getUploadBySleutel(_adminKlant,_adminPeriode);
+    const uploads=_uplG?[_uplG]:[];
     if(!uploads.length){UI.warn('Geen uploads gevonden');return;}
     const kl=await Store.getKlanten();
     const klantObj=kl.find(k=>k.naam===_adminKlant);
@@ -1096,8 +1109,8 @@ const Basisscan={
     if(!_adminKlant||!_adminPeriode){UI.warn('Geen klant/periode geselecteerd');return;}
     const kl3=await Store.getKlanten();const klantObj=kl3.find(k=>k.naam===_adminKlant);
     if(klantObj?.klantType!=='doorlichting'){UI.warn('Basisscan is alleen voor Doorlichting-klanten');return;}
-    const alleUpl=await Store.getUploads();
-    const uploads=alleUpl.filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
+    const _uplB=await Store.getUploadBySleutel(_adminKlant,_adminPeriode);
+    const uploads=_uplB?[_uplB]:[];
     if(!uploads.length){UI.warn('Geen uploads gevonden');return;}
     const analyse=await Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
     if(!analyse){UI.warn('Draai eerst de AI-analyse');return;}
@@ -1384,8 +1397,7 @@ const KlantApp={
     }catch{}
     Nav.ga('aanleveren');
     // Hergebruik gecachte uploads — geen tweede API call nodig
-    const alleUpl=Store._fresh('uploads')?Store._uploads:await Store.getUploads();
-    const uploads=(Array.isArray(alleUpl)?alleUpl:[]).filter(u=>u.bedrijf===sessie.naam).sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0));
+    const uploads=await Store.getUploadsByBedrijfSorted(sessie.naam);
     if(uploads.length){
       Formulier._ontvangenStaat(uploads[0].datum||'');
       const sl=sessie.naam+'-'+uploads[0].periode;
@@ -2116,8 +2128,8 @@ const Analyse={
     const sector=$('ai-sector')?.value||'Algemeen MKB';
     const status=$('ai-status'),output=$('ai-tekst'),acties=$('ai-acties'),knop=$('btn-analyseer');
     if(!status||!output||!acties){UI.error('Interne fout');return;}
-    const alleUpl=await Store.getUploads();
-    const uploads=alleUpl.filter(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
+    const _uplA=await Store.getUploadBySleutel(_adminKlant,_adminPeriode);
+    const uploads=_uplA?[_uplA]:[];
     if(!uploads.length){UI.warn('Geen uploads gevonden');return;}
     status.textContent='Analyse bezig...';output.style.display='none';acties.style.display='none';
     if(knop){knop.disabled=true;knop.textContent='Bezig...';}
@@ -2387,8 +2399,8 @@ const StressTest = {
     if (!cfg) return;
     StressTest._actief = type;
 
-    const uploads = await Store.getUploads();
-    const klantUploads = uploads.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
+    const _stUpl=await Store.getUploadBySleutel(_adminKlant,_adminPeriode);
+    const klantUploads=_stUpl?[_stUpl]:[];
     if (!klantUploads.length) { UI.warn('Geen uploads gevonden'); return; }
 
     const klanten = await Store.getKlanten();
@@ -2510,8 +2522,8 @@ const StressTest = {
     if (!cfg || !_adminKlant || !_adminPeriode) return;
     StressTest._actief = type;
 
-    const uploads = await Store.getUploads();
-    const klantUploads = uploads.filter(u => u.bedrijf === _adminKlant && u.periode === _adminPeriode);
+    const _stUpl=await Store.getUploadBySleutel(_adminKlant,_adminPeriode);
+    const klantUploads=_stUpl?[_stUpl]:[];
     if (!klantUploads.length) { UI.warn('Geen uploads gevonden'); return; }
 
     const klanten = await Store.getKlanten();
@@ -2565,9 +2577,9 @@ const StressTest = {
     if (!box) return;
     const types = ['cashflow', 'debiteuren', 'offerte'];
     let html = '';
+    const _stKlUpl = await Store.getUploadsByBedrijfSorted(naam);
     for (const type of types) {
-      const uploads = await Store.getUploads();
-      const up = uploads.filter(u => u.bedrijf === naam).sort((a,b) => new Date(b.datum||0) - new Date(a.datum||0));
+      const up = _stKlUpl;
       if (!up.length) continue;
       const sl = naam + '-' + up[0].periode + '-' + type;
       const st = stresstesten[sl];
