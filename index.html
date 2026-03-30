@@ -896,7 +896,10 @@ const Rapport={
     const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
     const heeftPotentieel=totaal>0&&bev.length>0;
     const totaalStr=heeftPotentieel?fmtEur(totaal):'—';
-    const maandBedrag=heeftPotentieel?fmtEur(Math.round(totaal/12)):'—';
+    const maandBedragBerekend = heeftPotentieel ? Math.round(totaal/12) : null;
+    const maandBedragAI = d.maandimpact ? Math.round(d.maandimpact) : null;
+    const maandBedragVal = maandBedragAI || maandBedragBerekend;
+    const maandBedrag = maandBedragVal ? fmtEur(maandBedragVal) : '—';
     const heroTitel=heeftPotentieel
       ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen`
       : `${UI.esc(bedrijf)}, financiële basis op orde — met ruimte voor optimalisatie`;
@@ -1692,22 +1695,51 @@ const SectorCopy = {
 // ─── FIN: Financiële berekeningen & impact per KPI ───────────────────────────
 const Fin = {
   parseData(tekst) {
-    const get = (patterns) => {
+    // Parse getal uit tekst - verwijdert punten als duizendscheiding
+    const getNum = (patterns) => {
       for (const p of patterns) {
         const m = tekst.match(p);
-        if (m) return parseFloat(m[1].replace(',', '.'));
+        if (m) {
+          const raw = m[1].replace(/\./g, '').replace(',', '.');
+          const v = parseFloat(raw);
+          return isNaN(v) ? null : v;
+        }
       }
       return null;
     };
     return {
-      omzet:        get([/omzet[^0-9€]*[€]?\s*([\d.,]+)/i, /revenue[^0-9]*[€]?\s*([\d.,]+)/i]),
-      brutomarge:   get([/brutomarge[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i, /bruto\s*marge[^0-9]*(\d{1,3}[,.]?\d*)/i]),
-      ebitda:       get([/ebitda[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i, /nettoresultaat[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i]),
-      solvabiliteit:get([/solvabiliteit[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i]),
-      debiteurendagen:get([/debiteur(?:en)?dagen[^0-9]*(\d{1,3})/i, /dso[^0-9]*(\d{1,3})/i]),
-      kas:          get([/kas(?:positie)?[^0-9€]*[€]?\s*([\d.,]+)/i]),
-      crediteurdagen:get([/crediteur(?:en)?dagen[^0-9]*(\d{1,3})/i]),
-      personeel:    get([/personeelskosten[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i]),
+      // Omzet: match "Omzet: € 1.234.567" of "omzet van € 850.000" etc.
+      omzet: getNum([
+        /^omzet:\s*[€]?\s*([\d.,]+)/im,
+        /omzet[^\n]*[€]\s*([\d.,]+)/i,
+        /omzet[^0-9€]*[€]?\s*([\d.,]+)/i,
+        /revenue[^0-9]*[€]?\s*([\d.,]+)/i,
+        /netto-omzet[^0-9€]*[€]?\s*([\d.,]+)/i,
+      ]),
+      brutomarge: getNum([
+        /^brutomarge\s*%?:\s*([\d.,]+)\s*%/im,
+        /brutomarge[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i,
+        /bruto\s*marge[^0-9]*(\d{1,3}[,.]?\d*)/i,
+      ]),
+      ebitda: getNum([
+        /^nettoresultaat\s*%?:\s*([\d.,]+)\s*%/im,
+        /nettoresultaat[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i,
+        /^ebitda\s*%?:\s*([\d.,]+)\s*%/im,
+        /ebitda[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i,
+      ]),
+      solvabiliteit: getNum([
+        /^solvabiliteit\s*%?:\s*([\d.,]+)\s*%/im,
+        /solvabiliteit[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i,
+      ]),
+      debiteurendagen: getNum([
+        /^debiteurendagen:\s*(\d{1,3})/im,
+        /debiteur(?:en)?dagen[^0-9]*(\d{1,3})/i,
+        /dso[^0-9]*(\d{1,3})/i,
+      ]),
+      kas:          getNum([/kas(?:positie)?[^0-9€]*[€]?\s*([\d.,]+)/i]),
+      crediteurdagen: getNum([/^crediteurendagen:\s*(\d{1,3})/im, /crediteur(?:en)?dagen[^0-9]*(\d{1,3})/i]),
+      personeel:    getNum([/^personeelskosten\s*%?:\s*([\d.,]+)\s*%/im, /personeelskosten[^0-9]*(\d{1,3}[,.]?\d*)\s*%/i]),
+      maandimpact:  getNum([/verbeterpotentieel per maand[^0-9€]*[€]?\s*([\d.,]+)/i, /maandimpact[^0-9€]*[€]?\s*([\d.,]+)/i]),
     };
   },
 
@@ -2000,13 +2032,16 @@ SAMENVATTING
 [Korte opening in 3-5 zinnen]
 
 KERNCIJFERS
-Omzet: € ...
+Omzet: € [VERPLICHT - vul altijd in, ook als schatting]
 Brutomarge %: ...%
 Nettoresultaat %: ...%
 Personeelskosten %: ...%
 Debiteurendagen: ... dagen
 Solvabiliteit %: ...%
 Current ratio: ...
+
+MAANDIMPACT
+Verbeterpotentieel per maand: € [totaal verbeterpotentieel gedeeld door 12]
 
 BELANGRIJKSTE INZICHTEN
 - ...
@@ -2035,6 +2070,8 @@ Dit zijn signalen op hoofdlijnen. De grootste winst zit meestal niet in één gr
 REGELS:
 - Gebruik exact de labels onder KERNCIJFERS zoals hierboven.
 - Zet elk kerncijfer op een nieuwe regel.
+- OMZET IS VERPLICHT — als geen exact bedrag bekend is, geef dan een schatting op basis van andere cijfers en vermeld "(schatting)".
+- Noem altijd het maandbedrag onder MAANDIMPACT.
 - Gebruik percentages met % teken.
 - Gebruik debiteurendagen als: "XX dagen".
 - Gebruik eurobedragen als: "€ 123456".
