@@ -417,6 +417,64 @@ const UI={
   sluitModal(){const m=$('conv-modal');if(m){m.style.display='none';}},
 };
 
+
+// ─── CONVERSIE COPY (per klanttype + sector) ─────────────────────────────────
+const ConversieCopy = {
+  lead: {
+    begeleidingTitel: 'Zonder maandelijkse sturing blijven dezelfde winstlekken terugkomen',
+    begeleidingText: 'Een eenmalig rapport geeft inzicht. Begeleiding zorgt dat u ook echt bijstuurt op de cijfers die uw winst bepalen.',
+    begeleidingBtn: 'Ja, ik wil maandelijks grip op mijn cijfers →',
+  },
+  doorlichting: {
+    begeleidingTitel: 'Haal meer uit uw cijfers met maandelijkse begeleiding',
+    begeleidingText: 'Niet pas achteraf zien wat fout ging, maar elke maand sturen op marge, kosten en cashflow. Zo houdt u meer winst over en voorkomt u verrassingen.',
+    begeleidingBtn: 'Start mijn maandelijkse begeleiding →',
+  },
+  monitoring: {
+    begeleidingTitel: 'Uw begeleiding draait — nu draait het om consequent bijsturen',
+    begeleidingText: 'Blijf maandelijks kijken waar marge weglekt, kosten oplopen of cashflow afzwakt. Juist die discipline maakt het verschil.',
+    begeleidingBtn: 'Door met maandelijkse sturing →',
+  },
+};
+
+function getSectorHaakje(sector='') {
+  const s = String(sector||'').toLowerCase();
+  if (s.includes('bouw')||s.includes('aannemer'))   return 'met extra focus op offerte, kostprijs en faalkosten';
+  if (s.includes('horeca'))                          return 'met extra focus op marge, personeelskosten en inkoop';
+  if (s.includes('groothandel'))                     return 'met extra focus op inkoop, brutomarge en voorraad';
+  if (s.includes('detail')||s.includes('e-commerce')||s.includes('webshop')) return 'met extra focus op brutomarge, retouren en advertentiekosten';
+  if (s.includes('transport')||s.includes('logistiek')) return 'met extra focus op planning, brandstof en rendement per opdracht';
+  if (s.includes('ict')||s.includes('zakelijke'))    return 'met extra focus op uren, bezetting en marge per klant';
+  return 'met focus op de cijfers die uw winst het sterkst beïnvloeden';
+}
+
+function vulConversieCopyVoorKlant(klanttype='lead', sector='') {
+  const copy = ConversieCopy[klanttype] || ConversieCopy.lead;
+  const haakje = getSectorHaakje(sector);
+
+  // Groene begeleiding-CTA
+  const titel = $('rapport-soft-cta-title');
+  const tekst = $('rapport-soft-cta-text');
+  const btn   = $('rapport-soft-cta-btn');
+  const sub   = $('rapport-soft-cta-sub');
+  if (titel) titel.textContent = copy.begeleidingTitel;
+  if (tekst) tekst.textContent = copy.begeleidingText + ' ' + haakje + '.';
+  if (btn)   btn.textContent   = copy.begeleidingBtn;
+  if (sub)   sub.textContent   = 'Maandelijks opzegbaar • geen lange verplichtingen';
+
+  // Modal (alleen voor leads)
+  if (klanttype === 'lead') {
+    const modalTitel = $('conv-modal-titel');
+    const modalTekst = $('conv-modal-tekst');
+    const modalCta   = $('conv-modal-cta');
+    if (modalTitel) modalTitel.textContent = 'U ziet nu waar winst weglekt — laat exact berekenen wat u kunt terugpakken';
+    if (modalTekst) modalTekst.innerHTML =
+      'U weet nu dat er geld blijft liggen. De volgende stap is om exact te laten uitwerken waar het lekt, wat het u kost en welke acties het snelst resultaat geven ' +
+      haakje + '.<br><br>De Basisscan laat concreet zien:';
+    if (modalCta) modalCta.textContent = 'Ja, laat mijn winstlekken exact uitwerken → €397';
+  }
+}
+
 // ─── API ──────────────────────────────────────────────────────────────────────
 const API = {
   async call(body) {
@@ -892,6 +950,7 @@ const Rapport={
           if(pdfLink){pdfLink.href=allBs[sl].pdf_url;pdfLink.style.display='inline-flex';}
         }
         show('klant-basisscan');
+        vulConversieCopyVoorKlant(_kt, sessie.sector||'');
         // Toon monitoring upsell als klant nog geen monitoring heeft
         const _kt2=sessie.klanttype||sessie.klantType||'lead';
         if(_kt2!=='monitoring') Conversie.toonMonitoringUpsell();
@@ -900,7 +959,7 @@ const Rapport={
     }
     for(const u of uploads){
       const sl=sessie.naam+'-'+u.periode;
-      if(allPagers[sl]?.gepubliceerd&&allPagers[sl].html){setHTML('klant-eenpager-inhoud',allPagers[sl].html);show('klant-eenpager');await StressTest.laadVoorKlant(sessie.naam);return;}
+      if(allPagers[sl]?.gepubliceerd&&allPagers[sl].html){setHTML('klant-eenpager-inhoud',allPagers[sl].html);show('klant-eenpager');vulConversieCopyVoorKlant(_kt, sessie.sector||'');await StressTest.laadVoorKlant(sessie.naam);return;}
     }
     show('r-leeg');setTxt('r-leeg-tekst','Uw rapport is nog niet beschikbaar. U ontvangt bericht zodra het klaarstaat.');
   },
