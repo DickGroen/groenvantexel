@@ -1280,7 +1280,7 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
   },
 
   _parseer(tekst){
-    const sectie=naam=>{const re=new RegExp('=='+naam+'==([\\s\\S]*?)(?===|$)','i');return(tekst.match(re)||[])[1]?.trim()||'';};
+    const sectie=naam=>{const re=new RegExp('=='+naam+'==([\\s\\S]*?)(?====|$)','i');return(tekst.match(re)||[])[1]?.trim()||'';};
     const bev=n=>{
       const blok=sectie('BEVINDING_'+n);if(!blok)return null;
       const r=lbl=>(blok.match(new RegExp(lbl+':\\s*(.+)','i'))||[])[1]?.trim()||'';
@@ -3135,9 +3135,20 @@ const Monitoring = {
   },
 
   async herlaad(periode) {
-    const overzichten=await Store.getMaandoverzichten(this._klant);
+    // this._klant kan null zijn bij inline onclick — haal uit dropdown
+    const klant = this._klant || $('mon-klant')?.value || null;
+    if(!klant){ UI.warn('Selecteer eerst een klant'); return; }
+    const overzichten=await Store.getMaandoverzichten(klant);
     const o=overzichten.find(x=>x.periode===periode);
-    if(o?.html){ setHTML('mon-prev-inhoud',o.html); show('mon-prev-box'); setTxt('btn-mon-pub',o.gepubliceerd?'✅ Gepubliceerd':'✅ Publiceer naar klant'); }
+    if(o?.html){
+      this._klant = klant;
+      setHTML('mon-prev-inhoud',o.html);
+      show('mon-prev-box');
+      setTxt('btn-mon-pub',o.gepubliceerd?'✅ Gepubliceerd':'✅ Publiceer naar klant');
+      $('mon-prev-box')?.scrollIntoView({behavior:'smooth',block:'start'});
+    } else {
+      UI.warn('Geen HTML gevonden voor dit overzicht');
+    }
   },
 
   async verwijder(periode) {
