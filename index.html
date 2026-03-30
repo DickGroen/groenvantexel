@@ -944,10 +944,8 @@ const Rapport={
     const totaal=bev.reduce((s,b)=>b.bedrag!=null?s+b.bedrag:s,0);
     const heeftPotentieel=totaal>0&&bev.length>0;
     const totaalStr=heeftPotentieel?fmtEur(totaal):'—';
-    const maandBedragBerekend = heeftPotentieel ? Math.round(totaal/12) : null;
-    const maandBedragAI = d.maandimpact ? Math.round(d.maandimpact) : null;
-    const maandBedragVal = maandBedragAI || maandBedragBerekend;
-    const maandBedrag = maandBedragVal ? fmtEur(maandBedragVal) : '—';
+    // Maandbedrag altijd exact totaal/12 — zodat hero-titel en hero-sub consistent zijn
+    const maandBedrag = heeftPotentieel ? fmtEur(Math.round(totaal/12)) : '—';
     const heroTitel=heeftPotentieel
       ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen`
       : `${UI.esc(bedrijf)}, financiële basis op orde — met ruimte voor optimalisatie`;
