@@ -581,6 +581,32 @@ const Config={
 
 const Email={async stuur(p){if(typeof emailjs==='undefined')throw new Error('EmailJS niet geladen');await emailjs.send(Config.service(),Config.template(),p);}};
 
+
+// ─── PRELOAD (vult cache parallel na login) ───────────────────────────────────
+async function _preload() {
+  try {
+    if (sessie?.type === 'admin') {
+      await Promise.all([
+        Store.getKlanten(),
+        Store.getUploads(),
+        Store.get1Pagers(),
+        Store.getBasisscans(),
+        Store.getStresstesten(),
+      ]);
+    } else {
+      // Klant heeft alleen uploads, pagers en basisscans nodig
+      await Promise.all([
+        Store.getUploads(),
+        Store.get1Pagers(),
+        Store.getBasisscans(),
+      ]);
+    }
+  } catch(e) {
+    // Preload fouten zijn niet kritiek — app werkt gewoon door
+    console.warn('Preload waarschuwing:', e.message);
+  }
+}
+
 let sessie=null;
 const Auth={
   login(){
@@ -592,12 +618,14 @@ const Auth={
       if(res.type==='admin'){
         Auth._open({type:'admin'}, res.token);
         Nav.bouw();
+        _preload(); // vult cache op de achtergrond
         Nav.ga('dashboard');
         return;
       }
       if(res.type==='klant'&&res.klant){
         Auth._open({type:'klant',...res.klant, code: res.klant.code || code}, res.token);
         Nav.bouw();
+        _preload(); // vult cache op de achtergrond
         KlantApp.init();
         return;
       }
@@ -663,6 +691,7 @@ const Auth={
 
       hide('login-overlay');
       Nav.bouw();
+      _preload(); // vult cache op de achtergrond bij sessie-herstel
       if(sessie.type==='admin'){
         Nav.ga('dashboard');
       } else {
