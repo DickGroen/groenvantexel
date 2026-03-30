@@ -250,8 +250,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-aanleveren" class="view">
     <div class="card" style="max-width:660px;margin:0 auto;">
       <div style="background:var(--blue);margin:-24px -24px 24px;padding:24px 24px 20px;border-radius:11px 11px 0 0;">
-        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:6px;">Zie binnen 2 minuten waar uw bedrijf winst laat liggen — en hoeveel dat kost</h2>
-        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Upload uw cijfers en ontvang direct inzicht in marge, kosten en verbeterkansen.</p>
+        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:6px;">Ontdek binnen 2 minuten waar uw bedrijf winst verliest — en wat u direct kunt verbeteren</h2>
+        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Upload uw cijfers en zie waar marge weglekt, kosten onnodig oplopen en winst blijft liggen.</p>
         <p id="form-intro" style="color:var(--blue-pale);font-size:13px;"></p>
       </div>
       <div style="background:#F0F7FF;border:1px solid #BFDBFE;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
@@ -262,7 +262,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
           <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">✓</span><span id="sector-trust-3">Volledig vertrouwelijke verwerking van uw cijfers</span></div>
         </div>
       </div>
-      <div id="sector-impact" style="background:#FFF7ED;border:1px solid #FCD34D;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#92400E;line-height:1.6;">Veel bedrijven laten jaarlijks tienduizenden euro’s liggen zonder inzicht.</div>
+      <div id="sector-impact" style="background:#FFF7ED;border:1px solid #FCD34D;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#92400E;line-height:1.6;">Zonder scherp financieel inzicht blijven winstlekken vaak maanden onzichtbaar.</div>
       <div class="form-row cols2">
         <div class="form-group"><label class="form-label">Bedrijfsnaam <span class="req">*</span></label><input id="f-bedrijf" class="form-input" autocomplete="off"></div>
         <div class="form-group"><label class="form-label">Sector <span class="req">*</span></label>
@@ -877,6 +877,7 @@ const Rapport={
   async _teken(){
     const kl=await Store.getKlanten();
     const klant=kl.find(k=>k.naam===_adminKlant);
+    vulConversieCopyVoorKlant(klant?.klantType||'lead', klant?.sector||'');
     const _uplSleutel=await Store.getUploadBySleutel(_adminKlant,_adminPeriode);
     const uploads=_uplSleutel?[_uplSleutel]:[];
     const datum=uploads[0]?.datum||'—';
@@ -1695,8 +1696,8 @@ const SECTOR_CONTENT = {
     ]
   },
   algemeen: {
-    hero: "Zie binnen 2 minuten waar uw bedrijf winst laat liggen — en hoeveel dat kost",
-    sub: "Upload uw cijfers en ontvang direct inzicht in marge, kosten en verbeterkansen.",
+    hero: "Ontdek binnen 2 minuten waar uw bedrijf winst verliest — en wat u direct kunt verbeteren",
+    sub: "Upload uw cijfers en zie waar marge weglekt, kosten onnodig oplopen en winst blijft liggen.",
     bullets: [
       "Waar uw marge onder druk staat",
       "Waar kosten onnodig oplopen",
@@ -1705,7 +1706,7 @@ const SECTOR_CONTENT = {
     reportTitle: "Dit zijn de belangrijkste winstkansen in uw bedrijf",
     upsell: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
     pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Veel bedrijven laten jaarlijks tienduizenden euro’s liggen zonder inzicht.",
+    impact: "Zonder scherp financieel inzicht blijven winstlekken vaak maanden onzichtbaar.",
     trustTitle: "Waarom ondernemers ons vertrouwen",
     trustBullets: [
       "Inzicht in marge, kosten en winstkansen",
