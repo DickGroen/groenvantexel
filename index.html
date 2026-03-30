@@ -338,10 +338,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
           </div>
         </div>
         <div id="mon-upload-box" style="display:none;">
-          <div style="margin-bottom:12px;">
-            <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans deze maand <span class="req">*</span></div>
-            <label class="file-zone"><input type="file" id="mon-vw" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
-            <div id="mon-vw-naam" class="file-ok"></div>
+          <div class="form-row cols2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <div class="form-label" style="margin-bottom:7px;">V&amp;W deze maand <span class="req">*</span></div>
+              <label class="file-zone"><input type="file" id="mon-vw" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
+              <div id="mon-vw-naam" class="file-ok"></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label" style="margin-bottom:7px;">Balans deze maand <span class="req">*</span></div>
+              <label class="file-zone"><input type="file" id="mon-balans" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
+              <div id="mon-balans-naam" class="file-ok"></div>
+            </div>
           </div>
           <button class="btn btn-primary" onclick="Monitoring.genereer()">🤖 Genereer maandoverzicht</button>
           <div id="mon-status" style="color:var(--green);font-size:13px;margin-top:8px;"></div>
@@ -3146,11 +3153,16 @@ const Monitoring = {
     if(!this._klant){ UI.warn('Selecteer een klant'); return; }
     if(!this._maand){ UI.warn('Selecteer een maand'); return; }
     const bestand=$('mon-vw')?.files?.[0];
-    if(!bestand){ UI.warn('Upload de maandcijfers'); return; }
+    const bestandBalans=$('mon-balans')?.files?.[0];
+    if(!bestand){ UI.warn('Upload de V&W-cijfers'); return; }
+    if(!bestandBalans){ UI.warn('Upload de balans'); return; }
     const status=$('mon-status');
     if(status) status.textContent='⏳ Cijfers worden uitgelezen...';
     try {
-      const tekst=await Bestanden.lees(bestand);
+      const tekst=(await Bestanden.lees(bestand))+(bestandBalans?'
+
+=== BALANS ===
+'+await Bestanden.lees(bestandBalans):'');
       // Haal basisscan op als referentie
       const bss=await Store.getBasisscans();
       const bsSleutel=Object.keys(bss).find(k=>k.startsWith(this._klant+'-'));
@@ -3184,9 +3196,7 @@ const Monitoring = {
         +'==VERGELIJKING==\n'
         +'[1-2 zinnen: hoe verhoudt deze maand zich tot de Basisscan-waarden?]';
 
-      const resp=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_tokens:1000})});
-      if(!resp.ok) throw new Error('API fout '+resp.status);
-      const data=await resp.json();
+      const data=await API.call({actie:'analyse', prompt, max_tokens:1000});
       const aiTekst=data.content?.find(b=>b.type==='text')?.text||'';
       if(!aiTekst) throw new Error('Geen resultaat');
 
@@ -3347,6 +3357,8 @@ const Monitoring = {
   // Monitoring bestand listener
   const monVw=$('mon-vw');
   if(monVw) monVw.addEventListener('change',()=>setTxt('mon-vw-naam',monVw.files?.[0]?'✔ '+monVw.files[0].name:''));
+  const monBalans=$('mon-balans');
+  if(monBalans) monBalans.addEventListener('change',()=>setTxt('mon-balans-naam',monBalans.files?.[0]?'✔ '+monBalans.files[0].name:''));
   const jaarSel=$('f-jaar');if(jaarSel){const nu=new Date().getFullYear();jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join('');}
   Config.herstelUI();
   try{const fs=$('f-sector'); if(fs){ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); renderAnalyse(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
