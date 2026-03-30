@@ -384,7 +384,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-2" style="font-size:13px;font-weight:700;">welke kosten direct omlaag kunnen — en hoeveel dat oplevert</span></div>
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-3" style="font-size:13px;font-weight:700;">welke acties binnen 30 dagen aantoonbaar resultaat geven</span></div>
       </div>
-      <button id="conv-modal-cta" onclick="Conversie.bevestigBasiscan()" style="background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:900;cursor:pointer;width:100%;margin-bottom:10px;box-shadow:0 6px 18px rgba(22,163,74,.28);">Ja, bereken hoeveel ik verlies en pak het terug → €397
+      <button id="conv-modal-cta" onclick="Conversie.bevestigBasiscan()" style="background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:900;cursor:pointer;width:100%;margin-bottom:10px;box-shadow:0 6px 18px rgba(22,163,74,.28);">Laat zien waar ik geld terug kan pakken → €397
       </button>
       <div id="conv-modal-impact" style="font-size:11px;color:#888;text-align:center;margin-bottom:8px;">eenmalig • geen abonnement • concreet resultaat binnen 5 werkdagen</div>
       <button onclick="UI.sluitModal()" style="background:none;border:none;color:#aaa;font-size:12px;cursor:pointer;width:100%;padding:4px;">Nu nog niet</button>
@@ -471,7 +471,14 @@ function vulConversieCopyVoorKlant(klanttype='lead', sector='') {
     if (modalTekst) modalTekst.innerHTML =
       'U weet nu dat er geld blijft liggen. De volgende stap is om exact te laten uitwerken waar het lekt, wat het u kost en welke acties het snelst resultaat geven ' +
       haakje + '.<br><br>De Basisscan laat concreet zien:';
-    if (modalCta) modalCta.textContent = 'Ja, bereken hoeveel ik verlies en pak het terug → €397';
+    if (modalCta) {
+      const eenpager = $('eenpager-content') || $('klant-eenpager-inhoud');
+      let bedragVul = '';
+      if(eenpager){ const m=(eenpager.textContent||'').match(/€[ \s]?[\d.,]+/); if(m) bedragVul=m[0].trim(); }
+      modalCta.textContent = bedragVul
+        ? 'Laat zien waar ik ' + bedragVul + ' terug kan pakken → €397'
+        : 'Laat zien waar ik geld terug kan pakken → €397';
+    }
   }
 }
 
@@ -1488,6 +1495,12 @@ const Conversie={
       titel.textContent = bedrag
         ? 'U laat ' + bedrag + ' per jaar liggen — haal het terug'
         : 'U laat aantoonbaar geld liggen — haal het terug';
+    }
+    const ctaKnop = $('conv-modal-cta');
+    if(ctaKnop){
+      ctaKnop.textContent = bedrag
+        ? 'Laat zien waar ik ' + bedrag + ' terug kan pakken → €397'
+        : 'Ja, bereken hoeveel ik verlies en pak het terug → €397';
     }
     SectorCopy.applyModal(sessie?.sector||$('f-sector')?.value||'algemeen');
     UI.openModal();
