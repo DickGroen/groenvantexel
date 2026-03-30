@@ -1170,7 +1170,7 @@ const Rapport={
       </div>
 
       <!-- FOOTER -->
-      <div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;">
+      <div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;text-align:center;">
         <div style="font-size:11px;color:#888;line-height:1.7;">
           <strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>
           MKB Stresstest Methode™ — Vertrouwelijk — Op basis van aangeleverde jaarcijfers
@@ -1434,17 +1434,30 @@ async reset(){
   UI.toast('Basisscan verwijderd');
 },
 
-downloadPDF(){
+async downloadPDF(){
   const el=document.getElementById('basisscan-content');
   if(!el){UI.warn('Geen Basisscan gevonden');return;}
   const klant=sessie?.naam||'basisscan';
-  const win=window.open('','_blank');
-  win.document.write('<html><head><title>Basisscan '+UI.esc(klant)+'</title><style>body{font-family:Arial,sans-serif;margin:0;}@media print{@page{margin:15mm;}}</style></head><body>');
-  win.document.write(el.outerHTML);
-  win.document.write('</body></html>');
-  win.document.close();
-  win.focus();
-    setTimeout(()=>{win.print();},600);
+  const btn=document.querySelector('button[onclick="Basisscan.downloadPDF()"]');
+  if(btn){btn.textContent='⏳ PDF wordt aangemaakt...';btn.disabled=true;}
+  try{
+    if(!window.html2pdf){
+      await laadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+    }
+    const opt={
+      margin: [10,10,10,10],
+      filename: 'Basisscan-'+klant+'.pdf',
+      image: {type:'jpeg',quality:0.97},
+      html2canvas: {scale:2,useCORS:true,letterRendering:true},
+      jsPDF: {unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak: {mode:['avoid-all','css','legacy']}
+    };
+    await html2pdf().set(opt).from(el).save();
+  }catch(e){
+    UI.error('PDF mislukt: '+e.message);
+  }finally{
+    if(btn){btn.textContent='⬇ Download Basisscan als PDF';btn.disabled=false;}
+  }
 },
 };
 
