@@ -3259,6 +3259,7 @@ const Monitoring = {
       const data=await API.call({actie:'analyse', prompt, max_tokens:1000});
       const aiTekst=data.content?.find(b=>b.type==='text')?.text||'';
       if(!aiTekst) throw new Error('Geen resultaat');
+      console.log('🔍 Monitoring AI output:', aiTekst.substring(0,500));
 
       const html=Monitoring._bouw(aiTekst,this._klant,this._maand,maandNaam,sector);
       const d=Fin.parseData(aiTekst);
@@ -3301,18 +3302,28 @@ const Monitoring = {
   },
 
   _parseer(tekst) {
-    const sectie=naam=>{const re=new RegExp('=='+naam+'==([\s\S]*?)(?===|$)','i');return(tekst.match(re)||[])[1]?.trim()||'';};
-    const signalen=sectie('SIGNALEN').split('\n').filter(l=>l.includes('|')&&/SIGNAAL/i.test(l)).map(l=>{
-      const parts=l.replace(/^SIGNAAL_\d+:/i,'').split('|').map(s=>s.trim());
-      const st=(parts[1]||'').toLowerCase();
-      const icoon=st.includes('slecht')||st.includes('rood')?'rood':st.includes('waarschuwing')||st.includes('oranje')?'waarschuwing':'ok';
-      return{naam:parts[0]||'',icoon,waarde:parts[2]||'—',norm:parts[3]||'—',toelichting:parts[4]||''};
+    const sectie = naam => {
+      const upper = tekst.toUpperCase();
+      const marker = '==' + naam.toUpperCase() + '==';
+      const start = upper.indexOf(marker);
+      if (start === -1) return '';
+      const content = tekst.slice(start + marker.length);
+      const next = content.search(/==[A-Z_]+==/ );
+      return (next === -1 ? content : content.slice(0, next)).trim();
+    };
+    const signaalTekst = sectie('SIGNALEN');
+    const signalen = signaalTekst.split('\n').filter(l => l.includes('|') && /SIGNAAL/i.test(l)).map(l => {
+      const parts = l.replace(/^SIGNAAL_\d+:/i,'').split('|').map(s => s.trim());
+      const st = (parts[1]||'').toLowerCase();
+      const icoon = st.includes('slecht')||st.includes('rood') ? 'rood'
+                  : st.includes('waarschuwing')||st.includes('oranje') ? 'waarschuwing' : 'ok';
+      return {naam:parts[0]||'', icoon, waarde:parts[2]||'—', norm:parts[3]||'—', toelichting:parts[4]||''};
     });
-    return{
-      samenvatting:sectie('SAMENVATTING'),
+    return {
+      samenvatting: sectie('SAMENVATTING'),
       signalen,
-      actie:sectie('ACTIE'),
-      vergelijking:sectie('VERGELIJKING'),
+      actie: sectie('ACTIE'),
+      vergelijking: sectie('VERGELIJKING'),
     };
   },
 
