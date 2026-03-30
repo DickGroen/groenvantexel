@@ -3159,10 +3159,7 @@ const Monitoring = {
     const status=$('mon-status');
     if(status) status.textContent='⏳ Cijfers worden uitgelezen...';
     try {
-      const tekst=(await Bestanden.lees(bestand))+(bestandBalans?'
-
-=== BALANS ===
-'+await Bestanden.lees(bestandBalans):'');
+      const tekst=(await Bestanden.lees(bestand))+(bestandBalans?'\n\n=== BALANS ===\n'+await Bestanden.lees(bestandBalans):'');
       // Haal basisscan op als referentie
       const bss=await Store.getBasisscans();
       const bsSleutel=Object.keys(bss).find(k=>k.startsWith(this._klant+'-'));
