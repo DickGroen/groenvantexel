@@ -541,7 +541,13 @@ const Store = {
   },
   async delKlant(code) {
     await API.call({actie:'delKlant', code});
+    // Wis alle caches — oude rapporten/uploads mogen niet meer zichtbaar zijn
     this._klanten = null;
+    this._uploads = null;
+    this._rapporten = null;
+    this._basisscans = null;
+    this._stresstesten = null;
+    this._lastFetch = {};
   },
 
   async getUploads() {
@@ -910,12 +916,21 @@ const Rapport={
       const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display=klant?.klantType==='doorlichting'?'inline-flex':'none';
       ['btn-cashflow','btn-debiteuren','btn-offerte'].forEach(id=>{const b=$(id);if(b)b.style.display='inline-flex';});
     }
-    // Gebruik gecachte pager HTML direct — geen herberekening nodig
+    // Toon pager alleen als die niet ouder is dan de huidige upload
     const pagers=await Store.get1Pagers();const pager=pagers[_adminKlant+'-'+_adminPeriode];
     if(pager){
-      setHTML('prev-inhoud', pager.html);
-      show('prev-box');
-      setTxt('btn-pub', pager.gepubliceerd?'Gepubliceerd':'Publiceer naar klant');
+      const pagerDatum = pager.datum ? new Date(pager.datum.split('-').reverse().join('-')) : null;
+      const uploadDatum = uploads[0]?.datum ? new Date(uploads[0].datum.split('-').reverse().join('-')) : null;
+      const pagerIsOuder = pagerDatum && uploadDatum && uploadDatum > pagerDatum;
+      if(pagerIsOuder){
+        // Upload is nieuwer dan pager — reset zodat admin opnieuw kan genereren
+        await Store.del1Pager(_adminKlant+'-'+_adminPeriode);
+        UI.warn('Nieuwe upload gevonden — genereer de 1-pager opnieuw voor actuele cijfers.');
+      } else {
+        setHTML('prev-inhoud', pager.html);
+        show('prev-box');
+        setTxt('btn-pub', pager.gepubliceerd?'Gepubliceerd':'Publiceer naar klant');
+      }
     }
     const bss=await Store.getBasisscans();const bs=bss[_adminKlant+'-'+_adminPeriode];
     if(bs?.html){setHTML('bs-prev-inhoud',bs.html);show('bs-prev-box');setTxt('btn-bs-pub',bs.gepubliceerd?'Basisscan gepubliceerd':'Publiceer Basisscan naar klant');}
