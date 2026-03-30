@@ -456,16 +456,17 @@ const API = {
 
 // ─── STORE (Supabase via API) ─────────────────────────────────────────────────
 const Store = {
-  // Cache voor snelheid
-  _klanten: null,
-  _uploads: null,
-  _rapporten: null,
-  _basisscans: null,
+  // Cache met TTL (10 seconden)
+  _klanten: null, _uploads: null, _rapporten: null, _basisscans: null,
+  _cacheTTL: 10000,
+  _lastFetch: {},
+  _fresh(key) { return this['_'+key] && this._lastFetch[key] && Date.now() - this._lastFetch[key] < this._cacheTTL; },
+  _set(key, val) { this['_'+key] = val; this._lastFetch[key] = Date.now(); },
 
   async getKlanten() {
-    if (this._klanten) return this._klanten;
+    if (this._fresh('klanten')) return this._klanten;
     const d = await API.call({actie:'getKlanten'});
-    this._klanten = Array.isArray(d) ? d.map(k=>({...k,klantType:k.klanttype})) : [];
+    this._set('klanten', Array.isArray(d) ? d.map(k=>({...k,klantType:k.klanttype})) : []);
     return this._klanten;
   },
   async addKlant(k) {
@@ -482,9 +483,9 @@ const Store = {
   },
 
   async getUploads() {
-    if (this._uploads) return this._uploads;
+    if (this._fresh('uploads')) return this._uploads;
     const d = await API.call({actie:'getUploads'});
-    this._uploads = Array.isArray(d) ? d.map(u=>({...u,pdfTekst:u.pdftekst||''})) : [];
+    this._set('uploads', Array.isArray(d) ? d.map(u=>({...u,pdfTekst:u.pdftekst||''})) : []);
     return this._uploads;
   },
   async upsertUpload(u) {
@@ -501,11 +502,11 @@ const Store = {
   },
 
   async get1Pagers() {
-    if (this._rapporten) return this._rapporten;
+    if (this._fresh('rapporten')) return this._rapporten;
     const d = await API.call({actie:'getRapporten'});
     const map = {};
     if (Array.isArray(d)) d.forEach(r => map[r.sleutel] = r);
-    this._rapporten = map;
+    this._set('rapporten', map);
     return map;
   },
   async set1Pager(sleutel, v) {
@@ -803,8 +804,23 @@ const Rapport={
       const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display=klant?.klantType==='doorlichting'?'inline-flex':'none';
       ['btn-cashflow','btn-debiteuren','btn-offerte'].forEach(id=>{const b=$(id);if(b)b.style.display='inline-flex';});
     }
+    // Admin: altijd opnieuw renderen vanuit _bouw1Pager voor consistentie
     const pagers=await Store.get1Pagers();const pager=pagers[_adminKlant+'-'+_adminPeriode];
-    if(pager?.html){setHTML('prev-inhoud',pager.html);show('prev-box');setTxt('btn-pub',pager.gepubliceerd?'Gepubliceerd':'Publiceer naar klant');}
+    if(pager){
+      // Haal analyse op en herrender
+      const analyseTekst = await Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
+      const alleUpl = await Store.getUploads();
+      const upl = alleUpl.find(u=>u.bedrijf===_adminKlant&&u.periode===_adminPeriode);
+      const sector = upl?.sector || $('ai-sector')?.value || 'Overig';
+      const parseTekst = analyseTekst || upl?.pdfTekst || '';
+      if(parseTekst) {
+        setHTML('prev-inhoud', Rapport._bouw1Pager(_adminKlant, _adminPeriode, sector, Fin.parseData(parseTekst)));
+      } else {
+        setHTML('prev-inhoud', pager.html);
+      }
+      show('prev-box');
+      setTxt('btn-pub', pager.gepubliceerd?'Gepubliceerd':'Publiceer naar klant');
+    }
     const bss=await Store.getBasisscans();const bs=bss[_adminKlant+'-'+_adminPeriode];
     if(bs?.html){setHTML('bs-prev-inhoud',bs.html);show('bs-prev-box');setTxt('btn-bs-pub',bs.gepubliceerd?'Basisscan gepubliceerd':'Publiceer Basisscan naar klant');}
     hide('r-leeg');
