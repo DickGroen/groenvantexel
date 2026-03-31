@@ -483,22 +483,21 @@ const DossierStatus = {
 
   async set(bedrijf, velden) {
     const bestaand = await this.get(bedrijf) || {};
+    // Canonieke veldenset — één bron van waarheid
     await API.call({
-      actie:                 'setDossier',
+      actie:                  'setDossier',
       bedrijf,
-      email:                 velden.email                 ?? bestaand.email                 ?? '',
-      sector:                velden.sector                ?? bestaand.sector                ?? '',
-      type:                  velden.type                  ?? bestaand.type                  ?? 'lead',
-      status:                velden.status                ?? bestaand.status                ?? 'ontvangen',
-      rapport_code:          velden.rapport_code          ?? bestaand.rapport_code          ?? '',
-      rapport_datum:         velden.rapport_datum         ?? bestaand.rapport_datum         ?? '',
-      aanvraag:              bestaand.aanvraag            || UI.datumNL(),
-      publicatie:            velden.publicatie            ?? bestaand.publicatie            ?? '',
-      code:                  velden.code                  ?? bestaand.code                  ?? '',
-      aangemaakt_op:         bestaand.aangemaakt_op       || new Date().toISOString(),
+      email:                  velden.email                  ?? bestaand.email                  ?? '',
+      sector:                 velden.sector                 ?? bestaand.sector                 ?? '',
+      type:                   velden.type                   ?? bestaand.type                   ?? 'lead',
+      status:                 velden.status                 ?? bestaand.status                 ?? 'ontvangen',
+      aangemaakt_op:          bestaand.aangemaakt_op        || new Date().toISOString(),
+      rapport_code:           velden.rapport_code           ?? bestaand.rapport_code           ?? '',
+      rapport_datum:          velden.rapport_datum          ?? bestaand.rapport_datum          ?? '',
+      inlog_code:             velden.inlog_code             ?? bestaand.inlog_code             ?? '',
+      gepubliceerd_op:        velden.gepubliceerd_op        ?? bestaand.gepubliceerd_op        ?? '',
       laatst_gepubliceerd_op: velden.laatst_gepubliceerd_op ?? bestaand.laatst_gepubliceerd_op ?? '',
     });
-    // Invalideer Store-cache zodat Dashboard meteen verse data toont
     if (typeof Store !== 'undefined') Store._dossiers = null;
   },
 };
@@ -535,13 +534,33 @@ const RapportToegang = {
       this._toonStatus('ontvangen');
       return;
     }
-    const dossier = lijst.sort((a,b) =>
-      new Date(b.aangemaakt_op || b.aanvraag || 0) -
-      new Date(a.aangemaakt_op || a.aanvraag || 0)
-    )[0];
 
-    // Genereer code als die er nog niet is
-    if (!dossier.rapport_code && dossier.status === 'klaar') {
+    // Koppel hard op ingelogde klant als sessie beschikbaar is
+    let dossier = null;
+    if (sessie?.type === 'klant') {
+      // Zoek op bedrijfsnaam (primair) of e-mail (secundair)
+      dossier = lijst.find(d => d.bedrijf === sessie.naam)
+             || lijst.find(d => sessie.email && d.email === sessie.email)
+             || null;
+    }
+
+    // Fallback voor anonieme bezoekers of testmodus: meest recente dossier
+    if (!dossier) {
+      dossier = lijst
+        .filter(d => d.status === 'klaar' || d.status === 'gepubliceerd')
+        .sort((a, b) =>
+          new Date(b.aangemaakt_op || b.aanvraag || 0) -
+          new Date(a.aangemaakt_op || a.aanvraag || 0)
+        )[0] || null;
+    }
+
+    if (!dossier) {
+      this._toonStatus('ontvangen');
+      return;
+    }
+
+    // Genereer code als die ontbreekt en rapport klaar is
+    if (!dossier.rapport_code && (dossier.status === 'klaar' || dossier.status === 'gepubliceerd')) {
       dossier.rapport_code = await RapportCode.zorgVoorCode(dossier.bedrijf);
     }
 
@@ -849,20 +868,33 @@ const Store = {
   },
   async setDossier(v) {
     await API.call({
-      actie: 'setDossier',
-      email:    v.email    || '',
-      bedrijf:  v.bedrijf  || '',
-      sector:   v.sector   || '',
-      status:   v.status   || 'ontvangen',
-      type:     v.type     || 'lead',
-      aanvraag: v.aanvraag || UI.datumNL(),
-      publicatie: v.publicatie || '',
-      code:     v.code     || '',
+      actie:                  'setDossier',
+      bedrijf:                v.bedrijf                || '',
+      email:                  v.email                  || '',
+      sector:                 v.sector                 || '',
+      status:                 v.status                 || 'ontvangen',
+      type:                   v.type                   || 'lead',
+      aangemaakt_op:          v.aangemaakt_op          || new Date().toISOString(),
+      rapport_code:           v.rapport_code           || '',
+      rapport_datum:          v.rapport_datum          || '',
+      inlog_code:             v.inlog_code             || '',
+      gepubliceerd_op:        v.gepubliceerd_op        || '',
+      laatst_gepubliceerd_op: v.laatst_gepubliceerd_op || '',
     });
     this._dossiers = null;
   },
   async updateDossierStatus(email, bedrijf, status, extra={}) {
-    await API.call({actie:'updateDossierStatus', email, bedrijf, status, ...extra});
+    await API.call({
+      actie:                  'updateDossierStatus',
+      email,
+      bedrijf,
+      status,
+      type:                   extra.type                   || '',
+      rapport_code:           extra.rapport_code           || '',
+      rapport_datum:          extra.rapport_datum          || '',
+      gepubliceerd_op:        extra.gepubliceerd_op        || '',
+      laatst_gepubliceerd_op: extra.laatst_gepubliceerd_op || (status === 'gepubliceerd' ? new Date().toISOString() : ''),
+    });
     this._dossiers = null;
   },
 
@@ -1241,7 +1273,7 @@ const Rapport={
         // Dossier bijwerken naar 'gepubliceerd' zodra klant het rapport ziet
         try {
           await Store.updateDossierStatus(sessie.email||'', sessie.naam, 'gepubliceerd', {
-            publicatie: UI.datumNL(),
+            gepubliceerd_op: new Date().toISOString(),
             type: _kt,
           });
         } catch(e){ console.warn('Dossier update mislukt:', e); }
@@ -1259,7 +1291,7 @@ const Rapport={
         // Dossier bijwerken naar 'gepubliceerd'
         try {
           await Store.updateDossierStatus(sessie.email||'', sessie.naam, 'gepubliceerd', {
-            publicatie: UI.datumNL(),
+            gepubliceerd_op: new Date().toISOString(),
             type: _kt,
           });
         } catch(e){ console.warn('Dossier update mislukt:', e); }
@@ -1295,11 +1327,11 @@ const Rapport={
       const klant=kl.find(k=>k.naam===_adminKlant);
       const code = await RapportCode.zorgVoorCode(_adminKlant);
       await DossierStatus.set(_adminKlant, {
-        status: 'klaar',
-        rapport_code: code,
-        rapport_datum: UI.datumNL(),
-        publicatie: UI.datumNL(),
-        type: klant?.klantType||'lead',
+        status:                 'klaar',
+        rapport_code:           code,
+        rapport_datum:          UI.datumNL(),
+        gepubliceerd_op:        new Date().toISOString(),
+        type:                   klant?.klantType||'lead',
         laatst_gepubliceerd_op: new Date().toISOString(),
       });
     } catch(e){ console.warn('Dossier publicatie update mislukt:', e); }
@@ -1564,11 +1596,11 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
       const klant=kl.find(k=>k.naam===_adminKlant);
       const code = await RapportCode.zorgVoorCode(_adminKlant);
       await DossierStatus.set(_adminKlant, {
-        status: 'klaar',
-        rapport_code: code,
-        rapport_datum: UI.datumNL(),
-        publicatie: UI.datumNL(),
-        type: klant?.klantType||'doorlichting',
+        status:                 'klaar',
+        rapport_code:           code,
+        rapport_datum:          UI.datumNL(),
+        gepubliceerd_op:        new Date().toISOString(),
+        type:                   klant?.klantType||'doorlichting',
         laatst_gepubliceerd_op: new Date().toISOString(),
       });
     } catch(e){ console.warn('Dossier publicatie update mislukt:', e); }
@@ -1767,16 +1799,13 @@ const Formulier={
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
       // Dossierrecord aanmaken/bijwerken zodat de statuslaag klopt
       try {
-        const klantCode = sessie?.code || '';
         await Store.setDossier({
-          email:     email,
-          bedrijf:   bedrijf,
-          sector:    sector,
+          bedrijf,
+          email,
+          sector,
           status:    'ontvangen',
           type:      sessie?.klanttype || sessie?.klantType || 'lead',
-          aanvraag:  datum,
-          publicatie:'',
-          code:      klantCode,
+          inlog_code: sessie?.code || '',
         });
       } catch(e){ console.warn('Dossier aanmaken mislukt:', e); }
       const scanType = currentScanType();
@@ -2541,11 +2570,11 @@ const StressTest = {
       const klant=kl.find(k=>k.naam===_adminKlant);
       const code = await RapportCode.zorgVoorCode(_adminKlant);
       await DossierStatus.set(_adminKlant, {
-        status: 'klaar',
-        rapport_code: code,
-        rapport_datum: UI.datumNL(),
-        publicatie: UI.datumNL(),
-        type: klant?.klantType||'doorlichting',
+        status:                 'klaar',
+        rapport_code:           code,
+        rapport_datum:          UI.datumNL(),
+        gepubliceerd_op:        new Date().toISOString(),
+        type:                   klant?.klantType||'doorlichting',
         laatst_gepubliceerd_op: new Date().toISOString(),
       });
     } catch(e){ console.warn('Dossier update mislukt:', e); }
@@ -3220,11 +3249,11 @@ const Monitoring = {
     try {
       const code = await RapportCode.zorgVoorCode(this._klant);
       await DossierStatus.set(this._klant, {
-        status: 'klaar',
-        rapport_code: code,
-        rapport_datum: UI.datumNL(),
-        publicatie: UI.datumNL(),
-        type: 'monitoring',
+        status:                 'klaar',
+        rapport_code:           code,
+        rapport_datum:          UI.datumNL(),
+        gepubliceerd_op:        new Date().toISOString(),
+        type:                   'monitoring',
         laatst_gepubliceerd_op: new Date().toISOString(),
       });
     } catch(e){ console.warn('Dossier update mislukt:', e); }
