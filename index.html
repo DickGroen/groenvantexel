@@ -505,19 +505,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <!-- ── PUBLIEKE SEO PAGINA: /tools/marge ──────────────────────────────── -->
   <div id="view-marge" class="view">
     <div style="max-width:640px;margin:0 auto;padding:32px 24px;">
-      <h1 style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--blue);margin-bottom:10px;line-height:1.3;">Marge berekenen (gratis tool) — bereken uw winst in 10 seconden</h1>
-      <p style="color:var(--mid);font-size:15px;line-height:1.75;margin-bottom:12px;">Veel bedrijven denken dat ze winst maken, maar laten ongemerkt geld liggen in hun marge. Met deze tool berekent u direct:</p>
-      <ul style="color:var(--mid);font-size:15px;line-height:2.1;margin-bottom:12px;padding-left:20px;"><li>uw winst in euro's</li><li>uw marge percentage</li><li>en of deze gezond is</li></ul>
-      <p style="color:var(--mid);font-size:14px;margin-bottom:28px;">In veel gevallen ligt de werkelijke marge 5–15% lager dan gedacht.</p>
+
+      <!-- HERO / INTRO -->
+      <h1 style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--blue);margin-bottom:10px;line-height:1.3;">U laat waarschijnlijk winst liggen zonder het te zien</h1>
+      <p style="color:var(--mid);font-size:15px;line-height:1.75;margin-bottom:20px;">Bereken in 10 seconden of uw marge gezond is.</p>
+      <p style="color:var(--mid);font-size:14px;line-height:1.7;margin-bottom:18px;">Veel bedrijven maken winst, maar verliezen ongemerkt marge.</p>
+
+      <!-- TRUST BALK -->
+      <div style="background:#F7FAFC;border:1px solid #D9E2EC;border-radius:12px;padding:18px 20px;margin-bottom:22px;text-align:center;box-shadow:0 2px 10px rgba(31,78,121,.06);">
+        <div style="font-size:15px;font-weight:700;color:var(--blue);margin-bottom:6px;">Direct inzicht in uw marge</div>
+        <div style="font-size:13px;color:var(--mid);line-height:1.6;">Verdieping binnen 3 werkdagen • geen verplichtingen</div>
+      </div>
+
       <div class="card">
-        <div style="background:#F7F9F8;border:1px solid #D8E5DD;border-radius:10px;padding:18px 24px;margin-bottom:24px;text-align:center;box-shadow:0 1px 4px rgba(30,84,73,.06);">
-          <div style="font-size:15px;font-weight:700;color:var(--blue);letter-spacing:-.01em;margin-bottom:5px;">Direct inzicht in uw marge</div>
-          <div style="font-size:12px;color:var(--light);font-weight:400;letter-spacing:.01em;">Verdieping binnen 3 werkdagen &nbsp;•&nbsp; geen verplichtingen</div>
-        </div>
-        <div class="card-title">Bereken uw marge</div>
+        <!-- BOVEN CALCULATOR -->
+        <p style="color:var(--blue);font-size:14px;font-weight:600;line-height:1.6;margin-bottom:14px;">Vul uw cijfers in en zie direct wat er overblijft.</p>
         <div class="form-row cols2">
-          <div class="form-group"><label class="form-label">Omzet (€) <span class="req">*</span></label><input id="mc-omzet" class="form-input" type="number" min="0" placeholder="bijv. 500000" oninput="MargeCalc.bereken()"></div>
-          <div class="form-group"><label class="form-label">Kosten (€) <span class="req">*</span></label><input id="mc-kosten" class="form-input" type="number" min="0" placeholder="bijv. 420000" oninput="MargeCalc.bereken()"></div>
+          <div class="form-group"><label class="form-label">Uw omzet (€) <span class="req">*</span></label><input id="mc-omzet" class="form-input" type="number" min="0" placeholder="bijv. 500000" oninput="MargeCalc.bereken()"></div>
+          <div class="form-group"><label class="form-label">Uw kosten (€) <span class="req">*</span></label><input id="mc-kosten" class="form-input" type="number" min="0" placeholder="bijv. 420000" oninput="MargeCalc.bereken()"></div>
         </div>
         <div class="form-row" style="max-width:300px;">
           <div class="form-group"><label class="form-label">Uren per jaar (optioneel)</label><input id="mc-uren" class="form-input" type="number" min="0" placeholder="bijv. 2000" oninput="MargeCalc.bereken()"></div>
