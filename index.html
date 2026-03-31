@@ -2278,7 +2278,9 @@ const Fin = {
 
     return result;
   },
-};(sector, data = {}) {
+};
+
+function generateSectorAnalyse(sector, data = {}) {
   const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : String(sector || 'algemeen').toLowerCase();
   const scanType = currentScanType();
   const content = getScanAnalysisContent(sector, scanType);
