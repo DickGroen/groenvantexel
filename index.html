@@ -105,7 +105,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 </head>
 <body>
 
-<div id="login-overlay" class="login-overlay active">
+<div id="login-overlay" class="login-overlay">
   <div class="login-box">
     <div style="font-size:36px;margin-bottom:12px;">📊</div>
     <h1>Groen van Texel</h1>
@@ -122,7 +122,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <div class="logo-icon">📊</div>
     <div class="logo-text"><strong>Groen van Texel</strong><span>Financiële Doorlichting &amp; Monitoring</span></div>
   </div>
-  <div class="topbar-nav" id="topnav"></div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="topbar-nav" id="topnav"></div>
+    <button id="topbar-login-btn" onclick="document.getElementById('login-overlay').classList.add('active');document.getElementById('login-code').focus();" style="display:none;padding:8px 16px;background:#fff;color:var(--blue);border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Inloggen →</button>
+  </div>
 </div>
 
 <div class="page">
@@ -963,6 +966,8 @@ const Auth={
   _open(s,token){
     sessie=s;
     hide('login-overlay');
+    // Verberg login knop in topbar zodra sessie actief is
+    const lb=document.getElementById('topbar-login-btn');if(lb)lb.style.display='none';
     try{
       if(token) sessionStorage.setItem('gvt_jwt',token);
       sessionStorage.setItem('gvt_sessie',JSON.stringify(s));
@@ -3759,7 +3764,15 @@ const MargeCalc = {
     laad.id='init-laad';laad.style.cssText='color:#9dc3e6;font-size:13px;margin-top:8px;';
     laad.textContent='Verbinden...';loginBox.appendChild(laad);
   }
-  Auth.herstelSessie().finally(()=>{const l=document.getElementById('init-laad');if(l)l.remove();});
+  Auth.herstelSessie().finally(()=>{
+    const l=document.getElementById('init-laad');if(l)l.remove();
+    // Als geen sessie: tool direct tonen, login knop zichtbaar in topbar
+    if(!sessie){
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      const vt=document.getElementById('view-tools');if(vt)vt.classList.add('active');
+      const lb=document.getElementById('topbar-login-btn');if(lb)lb.style.display='block';
+    }
+  });
   // Publieke route: /tools/marge (geen login vereist)
   const _pad=window.location.pathname.replace(/\/+$/,'');
   if(_pad==='/tools/marge'||window.location.hash==='#tools/marge'){
