@@ -367,9 +367,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
             <strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong>
           </div>
           <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
-          <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:20px;">
+          <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
             <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div>
             <div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div>
+          </div>
+          <div id="mc-pijn-box" style="display:none;margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">💸 Dit laat u nu liggen</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per jaar</div>
+                <div id="mc-pijn-jaar" style="font-size:16px;font-weight:800;color:var(--red);"></div>
+              </div>
+              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per maand</div>
+                <div id="mc-pijn-maand" style="font-size:16px;font-weight:800;color:var(--red);"></div>
+              </div>
+              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per dag</div>
+                <div id="mc-pijn-dag" style="font-size:16px;font-weight:800;color:var(--red);"></div>
+              </div>
+            </div>
           </div>
           <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:10px;padding:18px 20px;text-align:center;">
             <div style="color:#9dc3e6;font-size:12px;margin-bottom:8px;">Dit is een indicatie — in uw cijfers zit vaak meer verborgen</div>
@@ -480,7 +497,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
           </div>
           <div id="mc-uurloon-box" style="display:none;background:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:12px;"><span style="font-size:12px;color:var(--mid);">Omzet per uur: </span><strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong></div>
           <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
-          <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:20px;"><div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div><div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div></div>
+          <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div><div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div></div>
+          <div id="mc-pijn-box" style="display:none;margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">💸 Dit laat u nu liggen</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per jaar</div><div id="mc-pijn-jaar" style="font-size:16px;font-weight:800;color:var(--red);"></div></div>
+              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per maand</div><div id="mc-pijn-maand" style="font-size:16px;font-weight:800;color:var(--red);"></div></div>
+              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per dag</div><div id="mc-pijn-dag" style="font-size:16px;font-weight:800;color:var(--red);"></div></div>
+            </div>
+          </div>
           <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:12px;padding:22px 24px;text-align:center;">
             <div style="color:rgba(255,255,255,.9);font-size:14px;font-weight:700;margin-bottom:6px;">Uw marge is een indicatie — in uw cijfers zit vaak meer verborgen</div>
             <div style="color:var(--blue-pale);font-size:13px;margin-bottom:16px;line-height:1.6;">Deze berekening geeft een eerste inzicht. In de praktijk zien we dat bedrijven vaak meerdere winstlekken hebben die hier niet zichtbaar zijn.</div>
@@ -3593,16 +3618,27 @@ const MargeCalc = {
       int.style.background = 'var(--green-pale)'; int.style.color = 'var(--green)';
     }
 
-    // Gemiste winst vs 30% norm
+    // Gemiste winst vs 30% norm + pijnblok €/jaar €/maand €/dag
     const gemistBox = document.getElementById('mc-gemist-box');
+    const pijnBox   = document.getElementById('mc-pijn-box');
     if (marge < 30) {
-      const gewenst = omzet * 0.30;
-      const gemist  = gewenst - winst;
+      const gewenst   = omzet * 0.30;
+      const gemist    = gewenst - winst;
+      const perMaand  = Math.round(gemist / 12);
+      const perDag    = Math.round(gemist / 365);
       document.getElementById('mc-gemist').textContent =
         'Bij een marge van 30% zou uw winst ' + fmt(gewenst) + ' zijn. Dat is ' + fmt(gemist) + ' meer dan nu.';
       gemistBox.style.display = 'block';
+      // Pijnblok
+      if (pijnBox) {
+        document.getElementById('mc-pijn-jaar').textContent  = fmt(gemist)   + ' per jaar';
+        document.getElementById('mc-pijn-maand').textContent = fmt(perMaand) + ' per maand';
+        document.getElementById('mc-pijn-dag').textContent   = '€ ' + perDag.toLocaleString('nl-NL') + ' per dag';
+        pijnBox.style.display = 'block';
+      }
     } else {
       gemistBox.style.display = 'none';
+      if (pijnBox) pijnBox.style.display = 'none';
     }
 
     document.getElementById('mc-resultaat').style.display = 'block';
