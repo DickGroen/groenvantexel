@@ -3769,10 +3769,10 @@ const MargeCalc = {
   }
   Auth.herstelSessie().finally(()=>{
     const l=document.getElementById('init-laad');if(l)l.remove();
-    // Als geen sessie: tool direct tonen, login knop zichtbaar in topbar
+    // Als geen sessie: marge landingspagina tonen, login knop zichtbaar in topbar
     if(!sessie){
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-      const vt=document.getElementById('view-tools');if(vt)vt.classList.add('active');
+      const vt=document.getElementById('view-marge');if(vt)vt.classList.add('active');
       const lb=document.getElementById('topbar-login-btn');if(lb)lb.style.display='block';
     }
   });
