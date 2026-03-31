@@ -3617,45 +3617,58 @@ const Monitoring = {
 
 // ─── MARGE CALCULATOR ────────────────────────────────────────────────────────
 const MargeCalc = {
+  // Hulpfunctie: zoek element binnen de actieve view (fix voor dubbele id's)
+  _el(id) {
+    const actieveView = document.querySelector('.view.active');
+    if (actieveView) {
+      const el = actieveView.querySelector('#' + id);
+      if (el) return el;
+    }
+    return document.getElementById(id);
+  },
+
   bereken() {
-    const omzet  = parseFloat(document.getElementById('mc-omzet')?.value)  || 0;
-    const kosten = parseFloat(document.getElementById('mc-kosten')?.value) || 0;
-    const uren   = parseFloat(document.getElementById('mc-uren')?.value)   || 0;
+    const _ = id => MargeCalc._el(id);
+    const omzet  = parseFloat(_('mc-omzet')?.value)  || 0;
+    const kosten = parseFloat(_('mc-kosten')?.value) || 0;
+    const uren   = parseFloat(_('mc-uren')?.value)   || 0;
 
     if (!omzet || !kosten || omzet <= 0) {
-      document.getElementById('mc-resultaat').style.display = 'none';
+      const res = _('mc-resultaat'); if (res) res.style.display = 'none';
       return;
     }
 
     const winst  = omzet - kosten;
     const marge  = (winst / omzet) * 100;
-    const fmt    = v => '€ ' + Math.round(v).toLocaleString('nl-NL');
+    const fmt    = v => '€ ' + Math.round(v).toLocaleString('nl-NL');
 
-    document.getElementById('mc-winst').textContent = fmt(winst);
-    document.getElementById('mc-marge').textContent = marge.toFixed(1) + '%';
-    document.getElementById('mc-marge').style.color =
+    _('mc-winst').textContent = fmt(winst);
+    _('mc-marge').textContent = marge.toFixed(1) + '%';
+    _('mc-marge').style.color =
       marge < 15 ? 'var(--red)' : marge < 30 ? 'var(--orange)' : 'var(--green)';
 
     // Uurloon
-    const uurBox = document.getElementById('mc-uurloon-box');
+    const uurBox = _('mc-uurloon-box');
     if (uren > 0) {
-      document.getElementById('mc-uurloon').textContent = fmt(omzet / uren) + ' / uur';
-      uurBox.style.display = 'block';
+      _('mc-uurloon').textContent = fmt(omzet / uren) + ' / uur';
+      if (uurBox) uurBox.style.display = 'block';
     } else {
-      uurBox.style.display = 'none';
+      if (uurBox) uurBox.style.display = 'none';
     }
 
     // Interpretatie
-    const int = document.getElementById('mc-interpretatie');
-    if (marge < 15) {
-      int.textContent = '⚠ Lage marge — hier blijft waarschijnlijk geld liggen. Veel bedrijven met deze marge hebben onzichtbare kosten of te lage tarieven.';
-      int.style.background = 'var(--red-pale)'; int.style.color = 'var(--red)';
-    } else if (marge <= 30) {
-      int.textContent = '◑ Redelijke marge — maar vaak is meer mogelijk. Bij vergelijkbare bedrijven ligt de marge gemiddeld 5–10% hoger.';
-      int.style.background = 'var(--orange-pale)'; int.style.color = 'var(--orange)';
-    } else {
-      int.textContent = '✓ Goede marge — maar optimalisatie kan nog winst opleveren via tarieven, kosten en werkkapitaal.';
-      int.style.background = 'var(--green-pale)'; int.style.color = 'var(--green)';
+    const int = _('mc-interpretatie');
+    if (int) {
+      if (marge < 15) {
+        int.textContent = '⚠ Lage marge — hier blijft waarschijnlijk geld liggen. Veel bedrijven met deze marge hebben onzichtbare kosten of te lage tarieven.';
+        int.style.background = 'var(--red-pale)'; int.style.color = 'var(--red)';
+      } else if (marge <= 30) {
+        int.textContent = '◑ Redelijke marge — maar vaak is meer mogelijk. Bij vergelijkbare bedrijven ligt de marge gemiddeld 5–10% hoger.';
+        int.style.background = 'var(--orange-pale)'; int.style.color = 'var(--orange)';
+      } else {
+        int.textContent = '✓ Goede marge — maar optimalisatie kan nog winst opleveren via tarieven, kosten en werkkapitaal.';
+        int.style.background = 'var(--green-pale)'; int.style.color = 'var(--green)';
+      }
     }
 
     // Sectorvergelijking + waarschuwingsblok
@@ -3666,8 +3679,8 @@ const MargeCalc = {
       'Horeca':                   [60,75], 'Zorg':[55,70],
       'ICT':                      [45,65], 'ZZP / Freelance':[40,60], 'Overig':[30,45],
     };
-    const sectorEl  = document.getElementById('mc-sector');
-    const signaalBox = document.getElementById('mc-signaal-box');
+    const sectorEl  = _('mc-sector');
+    const signaalBox = _('mc-signaal-box');
     if (signaalBox && sectorEl && sectorEl.value) {
       const norm = _sectorNormen[sectorEl.value];
       if (norm) {
@@ -3694,11 +3707,11 @@ const MargeCalc = {
         }
         signaalBox.style.background     = bg;
         signaalBox.style.borderColor    = borderColor;
-        document.getElementById('mc-signaal-icon').textContent  = icon;
-        document.getElementById('mc-signaal-titel').textContent = titel;
-        document.getElementById('mc-signaal-titel').style.color = textColor;
-        document.getElementById('mc-signaal-vergelijk').innerHTML = vergelijk;
-        document.getElementById('mc-signaal-vergelijk').style.color = textColor;
+        _('mc-signaal-icon').textContent  = icon;
+        _('mc-signaal-titel').textContent = titel;
+        _('mc-signaal-titel').style.color = textColor;
+        _('mc-signaal-vergelijk').innerHTML = vergelijk;
+        _('mc-signaal-vergelijk').style.color = textColor;
         signaalBox.style.display = 'block';
       }
     } else if (signaalBox) {
@@ -3706,39 +3719,39 @@ const MargeCalc = {
     }
 
     // Gemiste winst vs 30% norm + pijnblok €/jaar €/maand €/dag
-    const gemistBox = document.getElementById('mc-gemist-box');
-    const pijnBox   = document.getElementById('mc-pijn-box');
+    const gemistBox = _('mc-gemist-box');
+    const pijnBox   = _('mc-pijn-box');
     if (marge < 30) {
       const gewenst   = omzet * 0.30;
       const gemist    = gewenst - winst;
       const perMaand  = Math.round(gemist / 12);
       const perDag    = Math.round(gemist / 365);
-      document.getElementById('mc-gemist').textContent =
+      const gemistEl  = _('mc-gemist');
+      if (gemistEl) gemistEl.textContent =
         'Bij een marge van 30% zou uw winst ' + fmt(gewenst) + ' zijn. Dat is ' + fmt(gemist) + ' meer dan nu.';
-      gemistBox.style.display = 'block';
+      if (gemistBox) gemistBox.style.display = 'block';
       // Pijnblok
       if (pijnBox) {
-        document.getElementById('mc-pijn-jaar').textContent  = fmt(gemist)   + ' per jaar';
-        document.getElementById('mc-pijn-maand').textContent = fmt(perMaand) + ' per maand';
-        document.getElementById('mc-pijn-dag').textContent   = '€ ' + perDag.toLocaleString('nl-NL') + ' per dag';
+        _('mc-pijn-jaar').textContent  = fmt(gemist)   + ' per jaar';
+        _('mc-pijn-maand').textContent = fmt(perMaand) + ' per maand';
+        _('mc-pijn-dag').textContent   = '€ ' + perDag.toLocaleString('nl-NL') + ' per dag';
         pijnBox.style.display = 'block';
       }
       // CTA: persoonlijk + €-bedrag
-      const ctaBtn = document.getElementById('mc-cta-btn');
+      const ctaBtn = _('mc-cta-btn');
       if (ctaBtn) {
         ctaBtn.textContent = 'Laat zien waar ik ' + fmt(gemist) + ' kan terugpakken →';
       }
     } else {
-      gemistBox.style.display = 'none';
+      if (gemistBox) gemistBox.style.display = 'none';
       if (pijnBox) pijnBox.style.display = 'none';
       // Fallback CTA bij goede marge
-      const ctaBtn = document.getElementById('mc-cta-btn');
+      const ctaBtn = _('mc-cta-btn');
       if (ctaBtn) ctaBtn.textContent = 'Laat zien waar ik nog meer winst kan pakken →';
     }
 
-    document.getElementById('mc-resultaat').style.display = 'block';
+    const res = _('mc-resultaat'); if (res) res.style.display = 'block';
   },
-
   naarScan() {
     if (sessie?.type === 'klant') {
       Nav.ga('aanleveren');
@@ -3874,6 +3887,6 @@ Groen van Texel`;
 })();
 </script>
 
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1.1 live</div>
+<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1.4 live</div>
 </body>
 </html>
