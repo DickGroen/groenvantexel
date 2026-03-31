@@ -1690,7 +1690,7 @@ const KlantApp={
       const sl=sessie.naam+'-'+uploads[0].periode;
       const bsMap=await Store.getBasisscans();const heeftBs=!!bsMap[sl]?.gepubliceerd;
       const stap=heeftBs?3:2;
-      const ok='background:#1F4E79;color:#fff;';const wacht='background:#f5f5f5;color:#888;';
+      const ok='background:#1F4E79;color:#fff;';const wacht='background:#2E4F6F;color:rgba(255,255,255,0.55);';
       const _kt2=sessie.klanttype||sessie.klantType||'lead';
       const s2=_kt2==='doorlichting'?'2. Basisscan in uitvoering':'2. Analyse in uitvoering';
       const s3=_kt2==='doorlichting'?'3. Basisscan klaar':'3. Rapport klaar';
