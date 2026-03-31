@@ -36,7 +36,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 .nav-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
 .nav-btn.active{background:rgba(255,255,255,.15);color:#fff;}
 .view{display:none;}.view.active{display:block;}
-.page{max-width:920px;margin:0 auto;padding:32px 24px;min-height:calc(100vh - 64px);}
+.{max-width:920px;margin:0 auto;padding:32px 24px;min-height:calc(100vh - 64px);}
 .card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:24px;margin-bottom:20px;}
 .card-title{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--green-pale);}
 .form-row{display:grid;gap:16px;margin-bottom:16px;}
@@ -100,7 +100,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 #conv-modal{transition:opacity .2s;}
 #conv-modal-box{animation:modalIn .25s ease;}
 @keyframes modalIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-@media(max-width:500px){#eenpager-content [style*="1fr 1fr"]{grid-template-columns:1fr!important;}}
+@media(max-width:500px){#eenr-content [style*="1fr 1fr"]{grid-template-columns:1fr!important;}}
 </style>
 </head>
 <body>
@@ -327,7 +327,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-diensten" class="view">
     <div id="diensten-inhoud"></div>
   </div>
-  <div id="view-tools" class="view">
+  <div id="" class="view">
   <div class="page" style="max-width:640px;">
     <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Tools</h2>
     <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Berekeningen en slimme tools</p>
@@ -1723,8 +1723,8 @@ const Conversie={
     openBasisscanModal(){
     const eenpager = $('eenpager-content') || $('klant-eenpager-inhoud');
     let bedrag = '';
-    if(eenpager){
-      const txt = eenpager.textContent || '';
+    if(eenr){
+      const txt = eenr.textContent || '';
       const m = txt.match(/€[ \s]?[\d.,]+/);
       if(m) bedrag = m[0].trim();
     }
@@ -1838,7 +1838,7 @@ function laadScript(src){if(_scripts[src])return _scripts[src];_scripts[src]=new
 
 const Bestanden={
   async lees(file){if(!file?.name)return '[Ongeldig bestand]';const delen=file.name.split('.');const ext=delen.length>1?(delen.pop()||'').toLowerCase():'';if(ext==='pdf')return Bestanden.leesPDF(file);if(ext==='xlsx'||ext==='xls')return Bestanden.leesExcel(file);return '[formaat niet ondersteund: '+(ext?'.'+ext:'geen extensie')+']';},
-  async leesPDF(file){try{if(!window.pdfjsLib)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[PDF is leeg]';const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;let t='';for(let i=1;i<=Math.min(pdf.numPages,12);i++){const pg=await pdf.getPage(i);const c=await pg.getTextContent();t+='\n--- Pagina '+i+' ---\n'+c.items.map(x=>x.str).join(' ');}return t.trim()||'[Geen tekst gevonden]';}catch(e){return '[PDF leesfout: '+e.message+']';}},
+  async leesPDF(file){try{if(!window.pdfjsLib)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[PDF is leeg]';const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;let t='';for(let i=1;i<=Math.min(pdf.nums,12);i++){const pg=await pdf.get(i);const c=await pg.getTextContent();t+='\n--- Pagina '+i+' ---\n'+c.items.map(x=>x.str).join(' ');}return t.trim()||'[Geen tekst gevonden]';}catch(e){return '[PDF leesfout: '+e.message+']';}},
   async leesExcel(file){try{if(!window.XLSX)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[Excel: leeg]';const wb=window.XLSX.read(new Uint8Array(buf),{type:'array'});if(!wb.SheetNames.length)return '[Excel: geen tabbladen]';return wb.SheetNames.map(n=>'\n--- '+n+' ---\n'+window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:' | '})).join('');}catch(e){return '[Excel leesfout: '+e.message+']';}},
   koppelListeners(){[['f-vw1','f-vw1-naam'],['f-balans1','f-balans1-naam'],['f-jaar2','f-jaar2-naam'],['f-jaar3','f-jaar3-naam']].forEach(([inp,nm])=>{const el=$(inp);if(!el)return;el.addEventListener('change',()=>setTxt(nm,el.files?.[0]?'Gekozen: '+el.files[0].name:''));});},
 };
@@ -2416,7 +2416,7 @@ function extractAnalyseData(rawText = '') {
 }
 
 function renderAnalyse(sector) {
-  const sourceText = (document.getElementById('ai-tekst')?.textContent || '') || (document.getElementById('eenpager-content')?.textContent || '') || (document.getElementById('klant-eenpager-inhoud')?.textContent || '');
+  const sourceText = (document.getElementById('ai-tekst')?.textContent || '') || (document.getElementById('eenr-content')?.textContent || '') || (document.getElementById('klant-eenr-inhoud')?.textContent || '');
   const analyseData = extractAnalyseData(sourceText);
   const analyse = generateSectorAnalyse(sector, analyseData);
   const rapport = document.getElementById('rapport-analyse');
@@ -3191,7 +3191,7 @@ const Diensten = {
     html+=`<div style="background:var(--blue);border-radius:12px;padding:28px 24px;text-align:center;margin-top:8px;">
       <div style="color:#9dc3e6;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Interesse in een van deze diensten?</div>
       <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:6px;">Neem contact op met Groen van Texel</div>
-      <div style="color:#9dc3e6;font-size:13px;margin-bottom:16px;">06 4215 2499 &nbsp;·&nbsp; groenvantexel.pages.dev</div>
+      <div style="color:#9dc3e6;font-size:13px;margin-bottom:16px;">06 4215 2499 &nbsp;·&nbsp; groenvantexel.s.dev</div>
       <a href="tel:0642152499" style="display:inline-block;background:#fff;color:var(--blue);border-radius:8px;padding:11px 28px;font-weight:700;font-size:14px;text-decoration:none;">📞 Bel direct</a>
     </div>`;
 
