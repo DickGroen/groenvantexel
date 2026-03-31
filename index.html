@@ -36,7 +36,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 .nav-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
 .nav-btn.active{background:rgba(255,255,255,.15);color:#fff;}
 .view{display:none;}.view.active{display:block;}
-.{max-width:920px;margin:0 auto;padding:32px 24px;min-height:calc(100vh - 64px);}
+.page{max-width:920px;margin:0 auto;padding:32px 24px;min-height:calc(100vh - 64px);}
 .card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:24px;margin-bottom:20px;}
 .card-title{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--green-pale);}
 .form-row{display:grid;gap:16px;margin-bottom:16px;}
@@ -100,7 +100,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 #conv-modal{transition:opacity .2s;}
 #conv-modal-box{animation:modalIn .25s ease;}
 @keyframes modalIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-@media(max-width:500px){#eenr-content [style*="1fr 1fr"]{grid-template-columns:1fr!important;}}
+@media(max-width:500px){#eenpager-content [style*="1fr 1fr"]{grid-template-columns:1fr!important;}}
 </style>
 </head>
 <body>
@@ -327,147 +327,60 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-diensten" class="view">
     <div id="diensten-inhoud"></div>
   </div>
-<div id="view-tools" class="view">
-  <div class="page" style="max-width:640px;">
-    <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Tools</h2>
-    <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Berekeningen en slimme tools</p>
 
-    <div id="tools-marge-calculator" class="card">
-      <div class="card-title">Bereken uw marge</div>
-
-      <div class="form-row cols2">
-        <div class="form-group">
-          <label class="form-label">Omzet (€) <span class="req">*</span></label>
-          <input id="mc-omzet" class="form-input" type="number" min="0" placeholder="bijv. 500000" oninput="MargeCalc.bereken()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Kosten (€) <span class="req">*</span></label>
-          <input id="mc-kosten" class="form-input" type="number" min="0" placeholder="bijv. 420000" oninput="MargeCalc.bereken()">
-        </div>
-      </div>
-
-      <div class="form-row" style="max-width:300px;">
-        <div class="form-group">
-          <label class="form-label">Uren per jaar (optioneel)</label>
-          <input id="mc-uren" class="form-input" type="number" min="0" placeholder="bijv. 2000" oninput="MargeCalc.bereken()">
-        </div>
-      </div>
-
-      <div id="mc-resultaat" style="display:none;margin-top:8px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-          <div style="background:var(--blue-pale);border-radius:10px;padding:16px 20px;">
-            <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Winst</div>
-            <div id="mc-winst" style="font-size:26px;font-weight:800;color:var(--blue);">—</div>
+  <div id="view-tools" class="view">
+    <div class="page" style="max-width:640px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Marge Calculator</h2>
+      <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Bereken direct uw marge en verbeterpotentieel</p>
+      <div id="tools-marge-calculator" class="card">
+        <div class="card-title">Bereken uw marge</div>
+        <div class="form-row cols2">
+          <div class="form-group">
+            <label class="form-label">Omzet (€) <span class="req">*</span></label>
+            <input id="mc-omzet" class="form-input" type="number" min="0" placeholder="bijv. 500000" oninput="MargeCalc.bereken()">
           </div>
-          <div style="background:var(--green-pale);border-radius:10px;padding:16px 20px;">
-            <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Marge %</div>
-            <div id="mc-marge" style="font-size:26px;font-weight:800;color:var(--green);">—</div>
+          <div class="form-group">
+            <label class="form-label">Kosten (€) <span class="req">*</span></label>
+            <input id="mc-kosten" class="form-input" type="number" min="0" placeholder="bijv. 420000" oninput="MargeCalc.bereken()">
           </div>
         </div>
-
-        <div id="mc-uurloon-box" style="display:none;background:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:12px;">
-          <span style="font-size:12px;color:var(--mid);">Omzet per uur: </span>
-          <strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong>
+        <div class="form-row" style="max-width:300px;">
+          <div class="form-group">
+            <label class="form-label">Uren per jaar (optioneel)</label>
+            <input id="mc-uren" class="form-input" type="number" min="0" placeholder="bijv. 2000" oninput="MargeCalc.bereken()">
+          </div>
         </div>
-
-        <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
-
-        <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:20px;">
-          <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div>
-          <div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div>
-        </div>
-
-        <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:10px;padding:18px 20px;text-align:center;">
-          <div style="color:#9dc3e6;font-size:12px;margin-bottom:8px;">Dit is een indicatie — in uw cijfers zit vaak meer verborgen</div>
-          <button onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:13px 24px;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
-          <div style="color:rgba(255,255,255,.6);font-size:11px;">Gratis scan • direct inzicht in € impact</div>
+        <div id="mc-resultaat" style="display:none;margin-top:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:var(--blue-pale);border-radius:10px;padding:16px 20px;">
+              <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Winst</div>
+              <div id="mc-winst" style="font-size:26px;font-weight:800;color:var(--blue);">—</div>
+            </div>
+            <div style="background:var(--green-pale);border-radius:10px;padding:16px 20px;">
+              <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Marge %</div>
+              <div id="mc-marge" style="font-size:26px;font-weight:800;color:var(--green);">—</div>
+            </div>
+          </div>
+          <div id="mc-uurloon-box" style="display:none;background:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:12px;">
+            <span style="font-size:12px;color:var(--mid);">Omzet per uur: </span>
+            <strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong>
+          </div>
+          <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
+          <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div>
+            <div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div>
+          </div>
+          <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:10px;padding:18px 20px;text-align:center;">
+            <div style="color:#9dc3e6;font-size:12px;margin-bottom:8px;">Dit is een indicatie — in uw cijfers zit vaak meer verborgen</div>
+            <button onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:13px 24px;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
+            <div style="color:rgba(255,255,255,.6);font-size:11px;">Gratis scan • direct inzicht in € impact</div>
+          </div>
         </div>
       </div>
     </div>
-
-    <div id="tools-offerte-generator" class="card">
-      <div class="card-title">Offerte generator</div>
-
-      <div class="form-row cols2">
-        <div class="form-group">
-          <label class="form-label">Klantnaam</label>
-          <input id="og-klant" class="form-input" placeholder="bijv. Jan de Vries">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Bedrijfsnaam klant</label>
-          <input id="og-bedrijf" class="form-input" placeholder="bijv. De Vries Bouw">
-        </div>
-      </div>
-
-      <div class="form-row cols2">
-        <div class="form-group">
-          <label class="form-label">Type project <span class="req">*</span></label>
-          <input id="og-project" class="form-input" placeholder="bijv. website, schilderwerk, onderhoud">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Sector <span class="req">*</span></label>
-          <select id="og-sector" class="form-select">
-            <option value="">— Kies sector —</option>
-            <option>Installatietechniek</option>
-            <option>Bouw & Aannemerij</option>
-            <option>Zakelijke dienstverlening</option>
-            <option>Horeca</option>
-            <option>ICT</option>
-            <option>ZZP / Freelance</option>
-            <option>Overig</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row cols2">
-        <div class="form-group">
-          <label class="form-label">Prijs (€) <span class="req">*</span></label>
-          <input id="og-prijs" class="form-input" type="number" min="0" placeholder="bijv. 2500">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Extra info</label>
-          <input id="og-extra" class="form-input" placeholder="bijv. oplevering 2 weken, incl. support">
-        </div>
-      </div>
-
-      <div class="form-row cols2">
-        <div class="form-group">
-          <label class="form-label">Stijl</label>
-          <select id="og-stijl" class="form-select">
-            <option value="zakelijk">Zakelijk</option>
-            <option value="warm">Warm & persoonlijk</option>
-            <option value="sales">Commercieel sterk</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Doel</label>
-          <select id="og-doel" class="form-select">
-            <option value="standaard">Standaard offerte</option>
-            <option value="snelle-close">Sneller akkoord krijgen</option>
-            <option value="premium">Premium positionering</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-        <button class="btn btn-primary" onclick="Offerte.genereer()">📝 Genereer offerte</button>
-        <button class="btn btn-ghost" onclick="Offerte.kopieer()">📋 Kopieer</button>
-      </div>
-
-      <div id="og-status" style="font-size:13px;color:var(--green);margin-bottom:10px;"></div>
-
-      <div id="og-result" style="display:none;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;">
-        <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Gegenereerde offerte</div>
-        <div id="og-tekst" style="white-space:pre-wrap;font-size:14px;line-height:1.75;color:#1F2937;"></div>
-      </div>
-    </div>
-
   </div>
-</div>
+
+  <!-- ── PUBLIEKE SEO PAGINA: /tools/marge ──────────────────────────────── -->
   <div id="view-marge" class="view">
     <div style="max-width:640px;margin:0 auto;padding:32px 24px;">
       <h1 style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--blue);margin-bottom:10px;line-height:1.3;">Marge berekenen (gratis tool) — bereken uw winst in 10 seconden</h1>
@@ -1705,8 +1618,8 @@ const Conversie={
     openBasisscanModal(){
     const eenpager = $('eenpager-content') || $('klant-eenpager-inhoud');
     let bedrag = '';
-    if(eenr){
-      const txt = eenr.textContent || '';
+    if(eenpager){
+      const txt = eenpager.textContent || '';
       const m = txt.match(/€[ \s]?[\d.,]+/);
       if(m) bedrag = m[0].trim();
     }
@@ -1820,7 +1733,7 @@ function laadScript(src){if(_scripts[src])return _scripts[src];_scripts[src]=new
 
 const Bestanden={
   async lees(file){if(!file?.name)return '[Ongeldig bestand]';const delen=file.name.split('.');const ext=delen.length>1?(delen.pop()||'').toLowerCase():'';if(ext==='pdf')return Bestanden.leesPDF(file);if(ext==='xlsx'||ext==='xls')return Bestanden.leesExcel(file);return '[formaat niet ondersteund: '+(ext?'.'+ext:'geen extensie')+']';},
-  async leesPDF(file){try{if(!window.pdfjsLib)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[PDF is leeg]';const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;let t='';for(let i=1;i<=Math.min(pdf.nums,12);i++){const pg=await pdf.get(i);const c=await pg.getTextContent();t+='\n--- Pagina '+i+' ---\n'+c.items.map(x=>x.str).join(' ');}return t.trim()||'[Geen tekst gevonden]';}catch(e){return '[PDF leesfout: '+e.message+']';}},
+  async leesPDF(file){try{if(!window.pdfjsLib)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[PDF is leeg]';const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;let t='';for(let i=1;i<=Math.min(pdf.numPages,12);i++){const pg=await pdf.getPage(i);const c=await pg.getTextContent();t+='\n--- Pagina '+i+' ---\n'+c.items.map(x=>x.str).join(' ');}return t.trim()||'[Geen tekst gevonden]';}catch(e){return '[PDF leesfout: '+e.message+']';}},
   async leesExcel(file){try{if(!window.XLSX)await laadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');const buf=await file.arrayBuffer();if(!buf||buf.byteLength===0)return '[Excel: leeg]';const wb=window.XLSX.read(new Uint8Array(buf),{type:'array'});if(!wb.SheetNames.length)return '[Excel: geen tabbladen]';return wb.SheetNames.map(n=>'\n--- '+n+' ---\n'+window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{FS:' | '})).join('');}catch(e){return '[Excel leesfout: '+e.message+']';}},
   koppelListeners(){[['f-vw1','f-vw1-naam'],['f-balans1','f-balans1-naam'],['f-jaar2','f-jaar2-naam'],['f-jaar3','f-jaar3-naam']].forEach(([inp,nm])=>{const el=$(inp);if(!el)return;el.addEventListener('change',()=>setTxt(nm,el.files?.[0]?'Gekozen: '+el.files[0].name:''));});},
 };
@@ -2398,7 +2311,7 @@ function extractAnalyseData(rawText = '') {
 }
 
 function renderAnalyse(sector) {
-  const sourceText = (document.getElementById('ai-tekst')?.textContent || '') || (document.getElementById('eenr-content')?.textContent || '') || (document.getElementById('klant-eenr-inhoud')?.textContent || '');
+  const sourceText = (document.getElementById('ai-tekst')?.textContent || '') || (document.getElementById('eenpager-content')?.textContent || '') || (document.getElementById('klant-eenpager-inhoud')?.textContent || '');
   const analyseData = extractAnalyseData(sourceText);
   const analyse = generateSectorAnalyse(sector, analyseData);
   const rapport = document.getElementById('rapport-analyse');
@@ -3173,7 +3086,7 @@ const Diensten = {
     html+=`<div style="background:var(--blue);border-radius:12px;padding:28px 24px;text-align:center;margin-top:8px;">
       <div style="color:#9dc3e6;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Interesse in een van deze diensten?</div>
       <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:6px;">Neem contact op met Groen van Texel</div>
-      <div style="color:#9dc3e6;font-size:13px;margin-bottom:16px;">06 4215 2499 &nbsp;·&nbsp; groenvantexel.s.dev</div>
+      <div style="color:#9dc3e6;font-size:13px;margin-bottom:16px;">06 4215 2499 &nbsp;·&nbsp; groenvantexel.pages.dev</div>
       <a href="tel:0642152499" style="display:inline-block;background:#fff;color:var(--blue);border-radius:8px;padding:11px 28px;font-weight:700;font-size:14px;text-decoration:none;">📞 Bel direct</a>
     </div>`;
 
@@ -3666,105 +3579,6 @@ const MargeCalc = {
       const _mv=document.getElementById('view-marge');if(_mv)_mv.classList.add('active');
     }
   });
-const Offerte = {
-
-  async genereer() {
-    const klant   = $('og-klant')?.value?.trim() || '';
-    const bedrijf = $('og-bedrijf')?.value?.trim() || '';
-    const project = $('og-project')?.value?.trim() || '';
-    const sector  = $('og-sector')?.value?.trim() || '';
-    const prijs   = $('og-prijs')?.value?.trim() || '';
-    const extra   = $('og-extra')?.value?.trim() || '';
-    const stijl   = $('og-stijl')?.value?.trim() || 'zakelijk';
-    const doel    = $('og-doel')?.value?.trim() || 'standaard';
-
-    if (!project || !sector || !prijs) {
-      UI.warn('Vul projecttype, sector en prijs in');
-      return;
-    }
-
-    const status = $('og-status');
-    const box    = $('og-result');
-    const tekst  = $('og-tekst');
-
-    status.textContent = 'Offerte wordt gegenereerd...';
-    box.style.display = 'none';
-    tekst.textContent = '';
-
-    try {
-      const stijlUitleg = {
-        zakelijk: 'Schrijf helder, professioneel en betrouwbaar.',
-        warm: 'Schrijf professioneel maar ook warm, menselijk en toegankelijk.',
-        sales: 'Schrijf overtuigend, resultaatgericht en commercieel sterk zonder opdringerig te zijn.'
-      };
-
-      const doelUitleg = {
-        standaard: 'Maak een normale, nette offerte.',
-        'snelle-close': 'Maak de tekst zo dat de kans op snel akkoord hoger wordt.',
-        premium: 'Positioneer de aanbieding als kwalitatief en waardevol, niet als goedkoop.'
-      };
-
-      const prompt = `
-Schrijf een kant-en-klare offerte in het Nederlands.
-
-Gegevens:
-- Klantnaam: ${klant || 'niet opgegeven'}
-- Bedrijfsnaam klant: ${bedrijf || 'niet opgegeven'}
-- Type project: ${project}
-- Sector: ${sector}
-- Prijs: €${prijs}
-- Extra info: ${extra || 'geen'}
-- Gewenste stijl: ${stijl}
-- Gewenst doel: ${doel}
-
-Instructies:
-${stijlUitleg[stijl]}
-${doelUitleg[doel]}
-
-Vereisten:
-- Gebruik duidelijke professionele taal
-- Begin met een korte persoonlijke opening
-- Beschrijf kort wat er geleverd wordt
-- Benoem de prijs duidelijk en zelfverzekerd
-- Sluit af met een logische call-to-action
-- Maak het direct bruikbaar om te versturen
-- Geen markdown
-- Geen opsommingstekens
-- Geen uitleg vooraf of achteraf
-- Alleen de offerte zelf
-
-Als klantnaam of bedrijfsnaam ontbreekt, schrijf dan alsnog natuurlijk.
-`;
-
-      const res = await API.call({
-        actie: 'analyseerTekst',
-        prompt
-      });
-
-      const output = res?.tekst || res?.resultaat || 'Geen resultaat ontvangen.';
-      tekst.textContent = output;
-      box.style.display = 'block';
-      status.textContent = 'Offerte klaar';
-      UI.toast('Offerte gegenereerd');
-    } catch (e) {
-      status.textContent = '';
-      UI.error('Fout: ' + e.message);
-    }
-  },
-
-  kopieer() {
-    const txt = $('og-tekst')?.textContent?.trim();
-
-    if (!txt) {
-      UI.warn('Geen tekst om te kopiëren');
-      return;
-    }
-
-    navigator.clipboard.writeText(txt)
-      .then(() => UI.toast('Offerte gekopieerd'))
-      .catch(() => UI.error('Kopiëren mislukt'));
-  }
-};  
 })();
 </script>
 
