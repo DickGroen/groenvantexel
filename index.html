@@ -101,6 +101,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 #conv-modal{transition:opacity .2s;}
 #conv-modal-box{animation:modalIn .25s ease;}
 @keyframes modalIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+#aanvraag-modal{transition:opacity .2s;}
+#aanvraag-modal-box{animation:modalIn .25s ease;}
+.am-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.am-label{font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;}
+.am-input,.am-select{padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:#fff;width:100%;}
+.am-input:focus,.am-select:focus{border-color:var(--blue);}
+.am-file-zone{border:1.5px dashed var(--border);border-radius:8px;padding:11px 14px;background:#fafafa;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mid);transition:all .15s;}
+.am-file-zone:hover{border-color:var(--blue);background:var(--blue-pale);}
+.am-file-zone input{display:none;}
+.am-file-ok{font-size:12px;color:var(--green);font-weight:600;margin-top:4px;}
+.am-submit{width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;margin-bottom:10px;}
+.am-submit:hover:not(:disabled){background:var(--blue-mid);}
+.am-submit:disabled{background:#b0c4b1;cursor:not-allowed;}
+.am-meta{text-align:center;font-size:12px;color:var(--light);}
+.am-bevestiging{display:none;text-align:center;padding:12px 0 4px;}
+.am-bevestiging-icon{font-size:40px;margin-bottom:12px;}
+.am-bevestiging h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--blue);margin-bottom:8px;}
+.am-bevestiging p{font-size:14px;color:var(--mid);line-height:1.7;}
 @media(max-width:500px){#eenpager-content [style*="1fr 1fr"]{grid-template-columns:1fr!important;}}
 </style>
 <style>
@@ -122,7 +140,50 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 .aanvraag-kop p{font-size:14px;color:var(--mid);line-height:1.7;}
 .aanvraag-rapport-melding{background:#F0F7FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px 18px;margin-bottom:24px;font-size:13px;color:#1E3A5F;line-height:1.6;}
 /* Rapport-toegang (code invoer) */
-.rapport-toegang-wrapper{max-width:420px;margin:0 auto;padding:80px 24px;text-align:center;}
+.rapport-toegang-wrapper{max-width:420px;margin:0 auto;padding:64px 24px;text-align:center;}
+.rt-status-box{max-width:520px;margin:0 auto;padding:64px 24px;}
+.rt-status-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:36px 32px;text-align:center;}
+.rt-status-icon{font-size:36px;margin-bottom:14px;}
+.rt-status-titel{font-family:'DM Serif Display',serif;font-size:20px;color:var(--blue);margin-bottom:8px;line-height:1.3;}
+.rt-status-tekst{font-size:14px;color:var(--mid);line-height:1.7;}
+.rt-code-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:36px 32px;text-align:left;max-width:420px;margin:0 auto;}
+.rt-code-icon{font-size:32px;margin-bottom:14px;display:block;text-align:center;}
+.rt-code-titel{font-family:'DM Serif Display',serif;font-size:22px;color:var(--blue);margin-bottom:6px;text-align:center;}
+.rt-code-sub{font-size:14px;color:var(--mid);line-height:1.65;margin-bottom:22px;text-align:center;}
+.rt-code-label{font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;}
+.rt-code-input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;letter-spacing:1px;margin-bottom:4px;}
+.rt-code-input:focus{border-color:var(--blue);}
+.rt-code-fout{font-size:13px;color:var(--red);margin-bottom:14px;min-height:18px;display:none;}
+.rt-code-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;margin-bottom:10px;}
+.rt-code-btn:hover:not(:disabled){background:var(--blue-mid);}
+.rt-code-btn:disabled{background:#b0c4b1;cursor:not-allowed;}
+.rt-code-help{font-size:12px;color:var(--light);text-align:center;}
+.rt-rapport-wrapper{max-width:680px;margin:0 auto;padding:40px 24px 64px;}
+.rt-rapport-header{background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:12px;padding:28px 32px;margin-bottom:28px;color:#fff;}
+.rt-rapport-meta{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#9dc3e6;font-weight:700;margin-bottom:8px;}
+.rt-rapport-titel{font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:10px;}
+.rt-rapport-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.13);border-radius:6px;padding:6px 12px;font-size:12px;color:rgba(255,255,255,.85);}
+.rt-rapport-section{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:16px;}
+.rt-rapport-section-titel{font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1.2px;padding-bottom:8px;border-bottom:2px solid var(--green-pale);margin-bottom:16px;}
+.rt-rapport-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f0f2f0;gap:16px;}
+.rt-rapport-row:last-child{border-bottom:none;padding-bottom:0;}
+.rt-rapport-row-lbl{font-size:13px;color:var(--dark);font-weight:500;}
+.rt-rapport-row-val{font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;}
+.rt-rapport-bevinding{border-left:4px solid var(--red);background:#fdf8f3;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:8px;}
+.rt-rapport-bevinding.oranje{border-color:var(--orange);}
+.rt-rapport-bevinding-titel{font-size:13px;font-weight:700;color:#1F4E79;margin-bottom:3px;}
+.rt-rapport-bevinding-tekst{font-size:13px;color:#444;line-height:1.6;}
+.rt-rapport-impact{display:inline-block;font-size:11px;font-weight:700;margin-top:6px;padding:2px 8px;border-radius:4px;background:var(--red-pale);color:var(--red);}
+.rt-rapport-bevinding.oranje .rt-rapport-impact{background:var(--orange-pale);color:var(--orange);}
+.rt-rapport-totaal{background:#E8F5E9;border:1.5px solid var(--green);border-radius:8px;padding:14px 18px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+.rt-rapport-totaal-lbl{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.8px;}
+.rt-rapport-totaal-val{font-size:20px;font-weight:800;color:var(--green);}
+.rt-rapport-cta{background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:12px;padding:24px 28px;margin-top:8px;color:#fff;text-align:center;}
+.rt-rapport-cta h3{font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:8px;}
+.rt-rapport-cta p{font-size:13px;color:rgba(255,255,255,.8);margin-bottom:16px;line-height:1.65;}
+.rt-rapport-cta-btn{background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+.rt-rapport-footer{text-align:center;padding:20px 0 8px;font-size:11px;color:var(--light);line-height:1.7;}
+@media(max-width:640px){.rt-rapport-header{padding:22px 20px;}.rt-rapport-section{padding:18px 16px;}.rt-rapport-wrapper{padding:24px 16px 48px;}}
 @media(max-width:680px){.landing-wrapper,.aanvraag-wrapper{padding-left:16px;padding-right:16px;}}
 @media(max-width:500px){#eenpager-content [style*="1fr 1fr"]{grid-template-columns:1fr!important;}}
 </style>
@@ -149,7 +210,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="topbar-nav" id="topnav"></div>
-    <button id="topbar-rapport-btn" onclick="toonRapportToegang()" style="display:none;padding:8px 18px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Toegang tot mijn rapport</button>
+    <button id="topbar-rapport-btn" onclick="toonRapportToegang()" style="display:block;padding:8px 18px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Toegang tot mijn rapport</button>
     <button id="topbar-login-btn" onclick="document.getElementById('login-overlay').classList.add('active');document.getElementById('login-code').focus();" style="display:none;padding:8px 16px;background:#fff;color:var(--blue);border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Inloggen →</button>
   </div>
 </div>
@@ -246,15 +307,83 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 
   <!-- ── RAPPORT TOEGANG (voor klanten zonder sessie) ──────────────────────── -->
   <div id="view-rapport-toegang" class="view">
-    <div class="rapport-toegang-wrapper">
-      <div style="font-size:32px;margin-bottom:16px;">📄</div>
-      <h2 id="rt-titel" style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--blue);margin-bottom:10px;"></h2>
-      <p id="rt-intro" style="font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:24px;"></p>
-      <input id="login-code-rapport" type="password" class="login-input" placeholder="Uw toegangscode" autocomplete="off" style="margin-bottom:12px;">
-      <button id="rt-knop" class="login-btn" onclick="rapportLogin()"></button>
-      <p style="font-size:12px;color:var(--light);margin-top:14px;"><span id="rt-geen-code"></span> <a id="rt-email" href="#" style="color:var(--blue);"></a></p>
-      <div id="rapport-login-error" style="color:var(--red);font-size:13px;margin-top:8px;display:none;"></div>
+
+    <!-- Status: ontvangen -->
+    <div id="rt-staat-ontvangen" style="display:none;">
+      <div class="rt-status-box">
+        <div class="rt-status-card">
+          <div class="rt-status-icon">📬</div>
+          <h2 class="rt-status-titel">Uw aanvraag is ontvangen</h2>
+          <p class="rt-status-tekst">Zodra uw rapport gereed is, ontvangt u een persoonlijke toegangscode via e-mail waarmee u uw analyse kunt openen.</p>
+        </div>
+      </div>
     </div>
+
+    <!-- Status: in behandeling -->
+    <div id="rt-staat-behandeling" style="display:none;">
+      <div class="rt-status-box">
+        <div class="rt-status-card">
+          <div class="rt-status-icon">🔍</div>
+          <h2 class="rt-status-titel">Uw analyse wordt opgesteld</h2>
+          <p class="rt-status-tekst">Uw analyse wordt momenteel opgesteld. U ontvangt bericht zodra deze klaarstaat — gemiddeld binnen 3 werkdagen na ontvangst van uw jaarcijfers.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status: klaar — codeformulier -->
+    <div id="rt-staat-klaar" style="display:none;">
+      <div class="rapport-toegang-wrapper">
+        <div class="rt-code-box">
+          <span class="rt-code-icon">📄</span>
+          <h2 class="rt-code-titel">Bekijk uw rapport</h2>
+          <p class="rt-code-sub">Voer uw persoonlijke toegangscode in om uw analyse te openen.</p>
+          <label class="rt-code-label" for="rt-code-input">Persoonlijke toegangscode</label>
+          <input id="rt-code-input" class="rt-code-input" type="password" placeholder="Uw toegangscode" autocomplete="off">
+          <div id="rt-code-fout" class="rt-code-fout"></div>
+          <button id="rt-code-btn" class="rt-code-btn" onclick="RapportToegang.valideer()">Open mijn rapport &#x2192;</button>
+          <p class="rt-code-help">Geen code ontvangen? Neem contact op via <a href="mailto:dick@groenvantexel.nl" style="color:var(--blue);">dick@groenvantexel.nl</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rapport (zichtbaar na correcte code) -->
+    <div id="rt-rapport-inhoud" style="display:none;">
+      <div class="rt-rapport-wrapper">
+
+        <div class="rt-rapport-header">
+          <div class="rt-rapport-meta">Groen van Texel &mdash; Persoonlijke analyse</div>
+          <div class="rt-rapport-titel" id="rt-rapport-titel"></div>
+          <div class="rt-rapport-badge">&#x1F512; Beveiligd rapport &nbsp;&bull;&nbsp; <span id="rt-rapport-datum"></span></div>
+        </div>
+
+        <div class="rt-rapport-section">
+          <div class="rt-rapport-section-titel">Uw kerncijfers versus de sectornorm</div>
+          <div id="rt-rapport-kerncijfers"></div>
+        </div>
+
+        <div class="rt-rapport-section">
+          <div class="rt-rapport-section-titel">Waar winst weglekt</div>
+          <div id="rt-rapport-bevindingen"></div>
+          <div id="rt-rapport-totaal" class="rt-rapport-totaal" style="display:none;">
+            <div class="rt-rapport-totaal-lbl">Totaal verbeterpotentieel</div>
+            <div class="rt-rapport-totaal-val" id="rt-rapport-totaal-val"></div>
+          </div>
+        </div>
+
+        <div class="rt-rapport-cta">
+          <h3>Wilt u dit verder uitwerken?</h3>
+          <p>Maandelijkse begeleiding zorgt dat dezelfde lekken niet maand na maand doorgaan.</p>
+          <button class="rt-rapport-cta-btn" onclick="AanvraagModal.open()">Neem contact op &#x2192;</button>
+        </div>
+
+        <div class="rt-rapport-footer">
+          <strong>Dick Groen</strong> &nbsp;&bull;&nbsp; Groen van Texel &nbsp;&bull;&nbsp; 06 4215 2499<br>
+          Vertrouwelijk &mdash; uitsluitend bestemd voor de ontvanger
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
   <!-- ── ADMIN & KLANT VIEWS (behoud volledig) ──────────────────────────────── -->
@@ -271,6 +400,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div class="card-title">Klantenoverzicht</div>
       <table class="tbl"><thead><tr><th>Bedrijf</th><th>Type</th><th>Sector</th><th>Status</th><th></th></tr></thead>
       <tbody id="dash-tbody"></tbody></table>
+    </div>
+    <div class="card" id="dash-leads-card" style="display:none;">
+      <div class="card-title">Aanvragen (leads)</div>
+      <table class="tbl">
+        <thead><tr><th>Bedrijf</th><th>E-mail</th><th>Sector</th><th>Status</th><th>Type</th><th>Aanvraag</th><th>Gepubliceerd</th><th>Code</th></tr></thead>
+        <tbody id="dash-leads-tbody"></tbody>
+      </table>
     </div>
   </div>
 
@@ -461,6 +597,82 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 </div>
 
 <!-- CONVERSIE MODAL -->
+<!-- ── AANVRAAG MODAL ────────────────────────────────────────────────────── -->
+<div id="aanvraag-modal" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.65);z-index:9400;align-items:center;justify-content:center;padding:20px;" onclick="AanvraagModal.sluit(event)">
+  <div id="aanvraag-modal-box" style="background:#fff;border-radius:16px;max-width:480px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.28);" onclick="event.stopPropagation()">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);padding:22px 26px 18px;display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div style="color:#9dc3e6;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:6px;">Financiële analyse</div>
+        <div style="color:#fff;font-size:19px;font-weight:800;line-height:1.25;">Laat uw analyse opstellen</div>
+      </div>
+      <button onclick="AanvraagModal.sluit()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;line-height:1;flex-shrink:0;margin-left:12px;">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:22px 26px 20px;">
+
+      <!-- Formulier -->
+      <div id="am-form-body">
+        <p style="font-size:13px;color:var(--mid);line-height:1.65;margin-bottom:18px;">U ontvangt binnen 3 werkdagen een overzicht van uw marge, winst en verbeterkansen.</p>
+
+        <div class="am-field">
+          <label class="am-label">Bedrijfsnaam <span style="color:var(--red)">*</span></label>
+          <input id="am-bedrijf" class="am-input" type="text" placeholder="Uw bedrijfsnaam" autocomplete="organization">
+        </div>
+
+        <div class="am-field">
+          <label class="am-label">E-mailadres <span style="color:var(--red)">*</span></label>
+          <input id="am-email" class="am-input" type="email" placeholder="uw@emailadres.nl" autocomplete="email">
+        </div>
+
+        <div class="am-field">
+          <label class="am-label">Sector <span style="color:var(--red)">*</span></label>
+          <select id="am-sector" class="am-select">
+            <option value="">— Kies uw sector —</option>
+            <option>Installatietechniek</option>
+            <option>Bouw &amp; Aannemerij</option>
+            <option>Groothandel</option>
+            <option>Detailhandel</option>
+            <option>Zakelijke dienstverlening</option>
+            <option>Horeca</option>
+            <option>Transport &amp; Logistiek</option>
+            <option>Zorg</option>
+            <option>ICT</option>
+            <option>E-commerce / Webshop</option>
+            <option>ZZP / Freelance</option>
+            <option>Overig</option>
+          </select>
+        </div>
+
+        <div class="am-field">
+          <label class="am-label">Jaarcijfers uploaden <span style="color:var(--light);font-weight:400;text-transform:none;font-size:11px;">(optioneel — PDF of Excel)</span></label>
+          <label class="am-file-zone">
+            <input type="file" id="am-bestand" accept=".pdf,.xlsx,.xls">
+            <span style="font-size:16px;">📎</span>
+            <span id="am-bestand-naam">Bestand kiezen</span>
+          </label>
+          <div id="am-bestand-ok" class="am-file-ok"></div>
+        </div>
+
+        <div id="am-fout" style="display:none;background:var(--red-pale);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px;"></div>
+
+        <button id="am-submit" class="am-submit" onclick="AanvraagModal.submit()">Vraag mijn analyse aan →</button>
+        <p class="am-meta">Uw rapport wordt beveiligd voor u klaargezet.</p>
+      </div>
+
+      <!-- Bevestiging (verborgen tot na submit) -->
+      <div class="am-bevestiging" id="am-bevestiging">
+        <div class="am-bevestiging-icon">✅</div>
+        <h3>Bedankt — uw aanvraag is ontvangen</h3>
+        <p>We stellen uw analyse op en laten u weten zodra deze klaarstaat.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div id="conv-modal" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.7);z-index:9500;align-items:center;justify-content:center;padding:20px;">
   <div id="conv-modal-box" style="background:#fff;border-radius:16px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3);">
     <div style="background:linear-gradient(135deg,#1A3F6F,#2563EB);padding:24px 28px;">
@@ -485,7 +697,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 
 <script>
 'use strict';
-console.log("🚀 Groen van Texel v3.1.1 geladen");
+const APP_VERSIE = "3.3.2";
+console.log("🚀 Groen van Texel v" + APP_VERSIE + " geladen");
 window.onerror = function (msg, src, line, col, err) { console.error("💥 JS ERROR:", msg, "at", line, col, err || ""); };
 const $=id=>document.getElementById(id)||null;
 const setTxt=(id,v)=>{const e=$(id);if(e)e.textContent=String(v??'');};
@@ -753,6 +966,115 @@ const Config={
 
 const Email={async stuur(p){if(typeof emailjs==='undefined')throw new Error('EmailJS niet geladen');await emailjs.send(Config.service(),Config.template(),p);}};
 
+// ─── PUBLICATIE MAIL HELPER ───────────────────────────────────────────────────
+async function verstuurPublicatieMail({ type, klant, email, code = '', link = '' }) {
+  if (!email || !email.includes('@')) return 'geen-email';
+  const typeLabel = {
+    '1-pager':       'uw financiele analyse (1-pager)',
+    'basisscan':     'uw Financiele Basisscan',
+    'stresstest':    'uw stresstest-rapport',
+    'maandoverzicht':'uw maandoverzicht',
+  }[type] || 'uw rapport';
+  const toegang = code
+    ? 'Uw persoonlijke toegangscode: ' + code
+    : link
+      ? 'Bekijk uw rapport via: ' + link
+      : 'Gebruik uw persoonlijke toegangscode om het rapport te openen.';
+  const bericht =
+    'Beste ' + klant + ',\n\n' +
+    'Goed nieuws: ' + typeLabel + ' staat klaar.\n\n' +
+    'Het rapport is beveiligd beschikbaar gesteld. ' + toegang + '\n\n' +
+    'Heeft u vragen? Neem gerust contact met ons op.\n\n' +
+    'Met vriendelijke groet,\nDick Groen\nGroen van Texel\n06 4215 2499';
+  try {
+    await Email.stuur({
+      to_email: email,
+      to_name:  klant,
+      bedrijf:  klant,
+      name:     klant,
+      periode:  typeLabel,
+      subject:  'Uw analyse staat klaar',
+      time:     UI.datumNL(),
+      message:  bericht,
+    });
+    return 'verzonden';
+  } catch(e) {
+    console.warn('Publicatiemail mislukt:', e.message || e);
+    return 'mislukt';
+  }
+}
+async function _getKlantEmail(naam) {
+  try {
+    const kl = await Store.getKlanten();
+    return kl.find(k => k.naam === naam)?.email || '';
+  } catch(e) { return ''; }
+}
+function _toonPublicatieToast(mailResult) {
+  if (mailResult === 'verzonden')   UI.toast('Gepubliceerd en e-mail verzonden.');
+  else if (mailResult === 'geen-email') UI.warn('Gepubliceerd, maar er is geen e-mailadres ingesteld voor deze klant.');
+  else                              UI.warn('Gepubliceerd, maar e-mail versturen is mislukt.');
+}
+
+
+// ─── DOSSIER STATUS ───────────────────────────────────────────────────────────
+// Slaat per bedrijf een dossier op in localStorage (prefix 'dossier:')
+// Velden: bedrijf, email, sector, aangemaakt_op, status, type,
+//         rapport_code, rapport_datum, laatste_publicatie
+const DossierStatus = {
+  _key(bedrijf) { return 'dossier:' + bedrijf.trim().toLowerCase(); },
+
+  get(bedrijf) {
+    try { return JSON.parse(localStorage.getItem(DossierStatus._key(bedrijf)) || 'null'); }
+    catch { return null; }
+  },
+
+  set(bedrijf, patch) {
+    const huidig = DossierStatus.get(bedrijf) || { bedrijf, aangemaakt_op: UI.datumNL() };
+    const nieuw  = Object.assign({}, huidig, patch, { bedrijf });
+    try { localStorage.setItem(DossierStatus._key(bedrijf), JSON.stringify(nieuw)); }
+    catch(e) { console.warn('DossierStatus.set:', e); }
+    return nieuw;
+  },
+
+  lijst() {
+    const result = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('dossier:')) {
+          try { const v = JSON.parse(localStorage.getItem(k)); if (v) result.push(v); }
+          catch {}
+        }
+      }
+    } catch {}
+    return result.sort((a, b) => (b.aangemaakt_op || '').localeCompare(a.aangemaakt_op || ''));
+  },
+
+  verwijder(bedrijf) {
+    try { localStorage.removeItem(DossierStatus._key(bedrijf)); } catch {}
+  },
+};
+
+// ─── RAPPORT CODE ─────────────────────────────────────────────────────────────
+const RapportCode = {
+  // Genereert een herhaalbaar deterministische code op basis van bedrijfsnaam
+  maak(bedrijf) {
+    const basis = bedrijf.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 5) || 'GVT';
+    const hash  = Array.from(bedrijf).reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0);
+    const num   = Math.abs(hash) % 9000 + 1000;
+    return basis + num;
+  },
+
+  // Geeft bestaande code terug of maakt nieuwe aan en slaat op
+  zorgVoorCode(bedrijf) {
+    const dossier = DossierStatus.get(bedrijf);
+    if (dossier?.rapport_code) return dossier.rapport_code;
+    const code = RapportCode.maak(bedrijf);
+    DossierStatus.set(bedrijf, { rapport_code: code });
+    return code;
+  },
+};
+
 
 // ─── PRELOAD (vult cache parallel na login) ───────────────────────────────────
 async function _preload() {
@@ -913,6 +1235,38 @@ const Dashboard={
       const st=hu?'<span class="badge badge-ok">✓ Upload ontvangen</span>':'<span class="badge badge-wacht">Wacht op aanlevering</span>';
       return `<tr><td><span class="link" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">${UI.esc(k.naam)}</span></td><td>${UI.typeBadge(k.klantType)}</td><td>${UI.esc(k.sector||'—')}</td><td>${st}</td><td><button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="Rapport.adminNaar('${UI.esc(k.naam)}')">Rapport →</button></td></tr>`;
     }).join('');
+    // Leads uit DossierStatus
+    Dashboard._laadLeads();
+  },
+  _laadLeads(){
+    const dossiers = DossierStatus.lijst();
+    const card = $('dash-leads-card');
+    const tb   = $('dash-leads-tbody');
+    if (!card || !tb) return;
+    if (!dossiers.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const statusBadge = s => ({
+      ontvangen:     '<span class="badge badge-wacht">Ontvangen</span>',
+      in_behandeling:'<span class="badge" style="background:var(--blue-pale);color:var(--blue);">In behandeling</span>',
+      klaar:         '<span class="badge badge-ok">Klaar</span>',
+    }[s] || '<span class="badge">—</span>');
+    tb.innerHTML = dossiers.map(d => `
+      <tr>
+        <td style="font-weight:600;">${UI.esc(d.bedrijf||'—')}</td>
+        <td style="font-size:12px;">${UI.esc(d.email||'—')}</td>
+        <td>${UI.esc(d.sector||'—')}</td>
+        <td>${statusBadge(d.status)}</td>
+        <td>${UI.esc(d.type||'—')}</td>
+        <td style="font-size:12px;color:var(--light);">${UI.esc(d.aangemaakt_op||'—')}</td>
+        <td style="font-size:12px;color:var(--light);">${UI.esc(d.laatste_publicatie||'—')}</td>
+        <td>
+          ${d.rapport_code
+            ? `<span style="font-family:monospace;font-size:12px;background:#f0f0f0;padding:2px 6px;border-radius:4px;">${UI.esc(d.rapport_code)}</span>`
+            : '<span style="color:var(--light);font-size:12px;">—</span>'}
+          <button class="btn btn-ghost" style="padding:3px 8px;font-size:11px;margin-left:4px;" onclick="DossierStatus.set('${UI.esc(d.bedrijf)}',{status:'in_behandeling'});Dashboard._laadLeads();">In beh.</button>
+          <button class="btn btn-ghost" style="padding:3px 8px;font-size:11px;" onclick="DossierStatus.set('${UI.esc(d.bedrijf)}',{status:'klaar'});Dashboard._laadLeads();">Klaar</button>
+        </td>
+      </tr>`).join('');
   },
 };
 
@@ -1097,7 +1451,11 @@ const Rapport={
     if(!_adminKlant||!_adminPeriode)return;
     const inhoud=$('prev-inhoud');if(!inhoud||!inhoud.innerHTML.trim()){UI.warn('Genereer eerst een 1-pager');return;}
     await Store.set1Pager(_adminKlant+'-'+_adminPeriode,{html:inhoud.innerHTML,gepubliceerd:true,datum:UI.datumNL()});
-    setTxt('btn-pub','Gepubliceerd');UI.toast('1-pager gepubliceerd — klant ziet hem nu in zijn portaal');
+    setTxt('btn-pub','Gepubliceerd');
+    const _rCode  = RapportCode.zorgVoorCode(_adminKlant);
+    DossierStatus.set(_adminKlant, { status:'klaar', type:'1-pager', rapport_datum:UI.datumNL(), laatste_publicatie:UI.datumNL(), rapport_code:_rCode });
+    const _rEmail = await _getKlantEmail(_adminKlant);
+    _toonPublicatieToast(await verstuurPublicatieMail({type:'1-pager', klant:_adminKlant, email:_rEmail, code:_rCode}));
   },
   async reset1Pager(){
     if(!_adminKlant||!_adminPeriode)return;
@@ -1489,7 +1847,10 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
     const inhoud=$('bs-prev-inhoud');if(!inhoud||!inhoud.innerHTML.trim()){UI.warn('Genereer eerst een Basisscan');return;}
     await Store.setBasisscan(_adminKlant+'-'+_adminPeriode,{html:inhoud.innerHTML,gepubliceerd:true,datum:UI.datumNL()});
     setTxt('btn-bs-pub','Basisscan gepubliceerd');
-    UI.toast('Basisscan gepubliceerd — klant kan hem nu inzien');
+    const _bsCode  = RapportCode.zorgVoorCode(_adminKlant);
+    DossierStatus.set(_adminKlant, { status:'klaar', type:'basisscan', rapport_datum:UI.datumNL(), laatste_publicatie:UI.datumNL(), rapport_code:_bsCode });
+    const _bsEmail = await _getKlantEmail(_adminKlant);
+    _toonPublicatieToast(await verstuurPublicatieMail({type:'basisscan', klant:_adminKlant, email:_bsEmail, code:_bsCode}));
     // Toon upsell monitoring blok in preview
     Basisscan._toonUpsell();
   },
@@ -2647,7 +3008,10 @@ const StressTest = {
     const sleutel = _adminKlant + '-' + _adminPeriode + '-' + StressTest._actief;
     await Store.setStresstest(sleutel, {html: inhoud.innerHTML, gepubliceerd: true, datum: UI.datumNL()});
     setTxt('btn-st-pub', 'Gepubliceerd');
-    UI.toast('Rapport gepubliceerd — klant ziet het nu');
+    const _stCode  = RapportCode.zorgVoorCode(_adminKlant);
+    DossierStatus.set(_adminKlant, { status:'klaar', type:'stresstest', rapport_datum:UI.datumNL(), laatste_publicatie:UI.datumNL(), rapport_code:_stCode });
+    const _stEmail = await _getKlantEmail(_adminKlant);
+    _toonPublicatieToast(await verstuurPublicatieMail({type:'stresstest', klant:_adminKlant, email:_stEmail, code:_stCode}));
   },
 
   _toonDataCheck(voldoende, aanwezig, ontbreekt, advies, cfg, type) {
@@ -3326,7 +3690,10 @@ const Monitoring = {
       solvabiliteit:d.solvabiliteit, nettoresultaat:d.ebitda,
     });
     setTxt('btn-mon-pub','✅ Gepubliceerd');
-    UI.toast('✅ Maandoverzicht gepubliceerd — klant ziet hem nu');
+    const _monCode  = RapportCode.zorgVoorCode(this._klant);
+    DossierStatus.set(this._klant, { status:'klaar', type:'maandoverzicht', rapport_datum:UI.datumNL(), laatste_publicatie:UI.datumNL(), rapport_code:_monCode });
+    const _monEmail = await _getKlantEmail(this._klant);
+    _toonPublicatieToast(await verstuurPublicatieMail({type:'maandoverzicht', klant:this._klant, email:_monEmail, code:_monCode}));
     this._laadGeschiedenis();
   },
 
@@ -3662,6 +4029,8 @@ function renderVoorbeeldPager() {
 
   const el = document.getElementById('eenpager-content');
   if (el) el.innerHTML = html;
+  const vl = document.getElementById('versie-label');
+  if (vl) vl.textContent = 'v' + (typeof APP_VERSIE !== 'undefined' ? APP_VERSIE : '?') + ' live';
 
   // ── Aanvraagformulier ────────────────────────────────────────────────────
   _t('aanvraag-kop-titel',  d.aanvraagTitel);
@@ -3703,6 +4072,15 @@ function renderVoorbeeldPager() {
   const lc=$('login-code');if(lc)lc.addEventListener('keydown',e=>{if(e.key==='Enter')Auth.login();});
   // Toon publieke landingspagina direct — geen login vereist bij binnenkomst
   renderVoorbeeldPager();
+  // Aanvraag modal — bestandskiezer label
+  const amBest = document.getElementById('am-bestand');
+  if (amBest) amBest.addEventListener('change', () => {
+    const f = amBest.files?.[0];
+    const nm = document.getElementById('am-bestand-naam');
+    const ok = document.getElementById('am-bestand-ok');
+    if (nm) nm.textContent = f ? f.name : 'Bestand kiezen';
+    if (ok) ok.textContent = f ? '✔ ' + f.name : '';
+  });
   Auth.herstelSessie().finally(()=>{
     if(!sessie){
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -3791,33 +4169,240 @@ function naarAanvraag() {
   if (sessie) {
     Nav.ga('aanleveren');
   } else {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    const v = document.getElementById('view-aanleveren');
-    if (v) v.classList.add('active');
-    window.scrollTo(0, 0);
+    AanvraagModal.open();
   }
 }
 
+const AanvraagModal = {
+  open() {
+    const m = document.getElementById('aanvraag-modal');
+    if (!m) return;
+    // Reset naar formulier-staat
+    const formBody = document.getElementById('am-form-body');
+    const bev      = document.getElementById('am-bevestiging');
+    const fout     = document.getElementById('am-fout');
+    const submit   = document.getElementById('am-submit');
+    if (formBody) formBody.style.display = '';
+    if (bev)      bev.style.display = 'none';
+    if (fout)     { fout.style.display = 'none'; fout.textContent = ''; }
+    if (submit)   { submit.disabled = false; submit.textContent = 'Vraag mijn analyse aan →'; }
+    m.style.display = 'flex';
+    document.getElementById('am-bedrijf')?.focus();
+  },
+
+  sluit(e) {
+    if (e && e.target !== document.getElementById('aanvraag-modal')) return;
+    const m = document.getElementById('aanvraag-modal');
+    if (m) m.style.display = 'none';
+  },
+
+  async submit() {
+    const bedrijf = (document.getElementById('am-bedrijf')?.value || '').trim();
+    const email   = (document.getElementById('am-email')?.value || '').trim();
+    const sector  = document.getElementById('am-sector')?.value || '';
+    const fout    = document.getElementById('am-fout');
+    const submit  = document.getElementById('am-submit');
+
+    // Validatie
+    if (fout) { fout.style.display = 'none'; fout.textContent = ''; }
+    if (!bedrijf) { AanvraagModal._fout('Vul uw bedrijfsnaam in.'); return; }
+    if (!email || !email.includes('@')) { AanvraagModal._fout('Vul een geldig e-mailadres in.'); return; }
+    if (!sector) { AanvraagModal._fout('Kies uw sector.'); return; }
+
+    if (submit) { submit.disabled = true; submit.textContent = 'Versturen…'; }
+
+    // Bestand uitlezen indien aanwezig
+    let bestandTekst = '';
+    const bestandFile = document.getElementById('am-bestand')?.files?.[0];
+    if (bestandFile) {
+      try {
+        bestandTekst = await Bestanden.lees(bestandFile);
+      } catch(e) {
+        bestandTekst = '[bestand kon niet worden uitgelezen]';
+      }
+    }
+
+    // Sla op als lead + stuur e-mail + maak dossier aan
+    try {
+      const datum = UI.datumNL();
+      await Store.upsertUpload({
+        bedrijf,
+        periode: 'lead-' + new Date().getFullYear(),
+        datum,
+        sector,
+        pdfTekst: bestandTekst.substring(0, 80000),
+      });
+      // Dossier aanmaken / bijwerken
+      RapportCode.zorgVoorCode(bedrijf); // genereert en slaat code op
+      DossierStatus.set(bedrijf, {
+        email,
+        sector,
+        status: 'ontvangen',
+        type:   'lead',
+        aangemaakt_op: datum,
+      });
+      await Email.stuur({
+        bedrijf,
+        periode: 'Aanvraag via site',
+        name: bedrijf,
+        time: datum,
+        message: 'Nieuwe aanvraag via de landingspagina.\n\nBedrijf: ' + bedrijf + '\nE-mail: ' + email + '\nSector: ' + sector + (bestandFile ? '\nBestand: ' + bestandFile.name : '\nGeen bestand ge\u00FCpload'),
+      });
+    } catch(e) {
+      console.warn('Opslaan/mail:', e.message);
+      // Flow gaat door — bevestiging tonen ongeacht backend-fout
+    }
+
+    // Toon bevestiging
+    const formBody = document.getElementById('am-form-body');
+    const bev      = document.getElementById('am-bevestiging');
+    if (formBody) formBody.style.display = 'none';
+    if (bev)      bev.style.display = 'block';
+  },
+
+  _fout(tekst) {
+    const el = document.getElementById('am-fout');
+    if (el) { el.textContent = tekst; el.style.display = 'block'; }
+    const submit = document.getElementById('am-submit');
+    if (submit) { submit.disabled = false; submit.textContent = 'Vraag mijn analyse aan →'; }
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RAPPORT_CONFIG — pas hier de toegangscode, status en rapportinhoud aan
+// ═══════════════════════════════════════════════════════════════════════════
+const RAPPORT_CONFIG = {
+  code:      'TEXEL2026',
+  rapportId: 'voorbeeld-rapport-1',
+};
+
+const RAPPORT_STATUS = {
+  // Kies: 'ontvangen' | 'in_behandeling' | 'klaar'
+  status: 'klaar',
+};
+
+const RAPPORT_INHOUD = {
+  titel:   'Financiële analyse 2023 — Uw bedrijf',
+  sector:  'Bouw & Aannemerij',
+  datum:   'Opgesteld april 2025',
+  kerncijfers: [
+    { label: 'Omzet',            werkelijk: '€ 1.240.000', norm: '—',        kleur: '#1F4E79' },
+    { label: 'Brutomarge',       werkelijk: '18%',              norm: '22–30%',   kleur: '#C0392B' },
+    { label: 'Debiteurendagen',  werkelijk: '58 dagen',         norm: '30–45 dgn',kleur: '#E67E22' },
+    { label: 'Solvabiliteit',    werkelijk: '34%',              norm: '25–40%',   kleur: '#1E8449' },
+    { label: 'Nettoresultaat',   werkelijk: '3,5%',             norm: '6–10%',    kleur: '#C0392B' },
+  ],
+  bevindingen: [
+    { kleur: 'rood',   titel: 'Te lage projectmarges',             tekst: 'Uw brutomarge ligt 6 procentpunten onder het sectorgemiddelde. Op jaarbasis levert dit een structureel margeverlies op per project.', impact: '€ 24.800' },
+    { kleur: 'oranje', titel: 'Trage debiteuren — kapitaal staat stil', tekst: 'Met 58 debiteurendagen staat gemiddeld €198.000 onnodig lang vast, wat uw liquiditeit onder druk zet.', impact: '€ 11.200' },
+    { kleur: 'oranje', titel: 'Personeelskosten niet in verhouding', tekst: 'De loonkostenratio van 41% overtreft het sectorgemiddelde met 6 procentpunten.', impact: '€ 6.800' },
+  ],
+  totaal: '€ 42.800',
+};
+
+// ── RapportToegang controller ─────────────────────────────────────────────────
+const RapportToegang = {
+
+  toon(bedrijf) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const v = document.getElementById('view-rapport-toegang');
+    if (v) v.classList.add('active');
+    this._bedrijf = bedrijf || null;
+    this._renderStatus();
+  },
+
+  _renderStatus() {
+    // Gebruik DossierStatus indien beschikbaar, anders RAPPORT_STATUS als fallback
+    const dossier = this._bedrijf ? DossierStatus.get(this._bedrijf) : null;
+    const s = (dossier?.status) || RAPPORT_STATUS.status;
+    document.getElementById('rt-staat-ontvangen').style.display  = s === 'ontvangen'     ? '' : 'none';
+    document.getElementById('rt-staat-behandeling').style.display = s === 'in_behandeling' ? '' : 'none';
+    document.getElementById('rt-staat-klaar').style.display      = s === 'klaar'          ? '' : 'none';
+    document.getElementById('rt-rapport-inhoud').style.display   = 'none';
+    if (s === 'klaar') {
+      setTimeout(() => document.getElementById('rt-code-input')?.focus(), 50);
+    }
+  },
+
+  valideer() {
+    const ingevoerd = (document.getElementById('rt-code-input')?.value || '').trim().toUpperCase();
+    const verwacht  = (RAPPORT_CONFIG.code || '').toUpperCase();
+    const fout      = document.getElementById('rt-code-fout');
+    const btn       = document.getElementById('rt-code-btn');
+
+    if (fout) { fout.style.display = 'none'; fout.textContent = ''; }
+    if (!ingevoerd) return;
+
+    // Controleer ook tegen dossiercode indien aanwezig
+    const _dossierCode = this._bedrijf ? (DossierStatus.get(this._bedrijf)?.rapport_code || '').toUpperCase() : '';
+    if (ingevoerd === verwacht || (_dossierCode && ingevoerd === _dossierCode)) {
+      // Code correct — toon rapport
+      document.getElementById('rt-staat-klaar').style.display = 'none';
+      this._renderRapport();
+      document.getElementById('rt-rapport-inhoud').style.display = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      if (fout) {
+        fout.textContent = 'De toegangscode is niet herkend. Controleer de code en probeer opnieuw.';
+        fout.style.display = 'block';
+      }
+      const inp = document.getElementById('rt-code-input');
+      if (inp) { inp.select(); }
+    }
+  },
+
+  _renderRapport() {
+    const d = RAPPORT_INHOUD;
+
+    document.getElementById('rt-rapport-titel').textContent  = d.titel;
+    document.getElementById('rt-rapport-datum').textContent  = d.datum;
+
+    // Kerncijfers
+    const kcEl = document.getElementById('rt-rapport-kerncijfers');
+    if (kcEl) {
+      kcEl.innerHTML = d.kerncijfers.map(r => `
+        <div class="rt-rapport-row">
+          <span class="rt-rapport-row-lbl">${r.label}</span>
+          <span style="display:flex;gap:16px;align-items:center;">
+            <span style="font-size:12px;color:#aaa;">${r.norm}</span>
+            <span class="rt-rapport-row-val" style="color:${r.kleur};">${r.werkelijk}</span>
+          </span>
+        </div>`).join('');
+    }
+
+    // Bevindingen
+    const bevEl = document.getElementById('rt-rapport-bevindingen');
+    if (bevEl) {
+      bevEl.innerHTML = d.bevindingen.map(b => `
+        <div class="rt-rapport-bevinding${b.kleur === 'oranje' ? ' oranje' : ''}">
+          <div class="rt-rapport-bevinding-titel">${b.titel}</div>
+          <div class="rt-rapport-bevinding-tekst">${b.tekst}</div>
+          <span class="rt-rapport-impact">${b.impact}</span>
+        </div>`).join('');
+    }
+
+    // Totaal
+    const totEl = document.getElementById('rt-rapport-totaal');
+    const totVal = document.getElementById('rt-rapport-totaal-val');
+    if (totEl && totVal && d.totaal) {
+      totVal.textContent = d.totaal;
+      totEl.style.display = 'flex';
+    }
+  },
+};
+
 function toonRapportToegang() {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  const v = document.getElementById('view-rapport-toegang');
-  if (v) v.classList.add('active');
-  const inp = document.getElementById('login-code-rapport');
-  if (inp) inp.focus();
+  RapportToegang.toon();
 }
 
-function rapportLogin() {
-  const code = (document.getElementById('login-code-rapport')?.value || '').trim();
-  const err = document.getElementById('rapport-login-error');
-  if (err) err.style.display = 'none';
-  if (!code) return;
-  // Sync code naar het echte login veld en roep Auth.login() aan
-  const lc = document.getElementById('login-code');
-  if (lc) lc.value = code;
-  Auth.login();
-}
+// Enter-toets in codeinvoer
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.activeElement?.id === 'rt-code-input') {
+    RapportToegang.valideer();
+  }
+});
 </script>
 
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.2.3 live</div>
+<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;"id="versie-label">v?</div>
 </body>
 </html>
