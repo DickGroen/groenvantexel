@@ -390,7 +390,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
           </div>
           <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:10px;padding:18px 20px;text-align:center;">
             <div style="color:#9dc3e6;font-size:12px;margin-bottom:8px;">Dit is een indicatie — in uw cijfers zit vaak meer verborgen</div>
-            <button onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:13px 24px;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
+            <button id="mc-cta-btn" onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:13px 24px;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
             <div style="color:rgba(255,255,255,.6);font-size:11px;">Gratis scan • direct inzicht in € impact</div>
           </div>
         </div>
@@ -509,7 +509,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
           <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:12px;padding:22px 24px;text-align:center;">
             <div style="color:rgba(255,255,255,.9);font-size:14px;font-weight:700;margin-bottom:6px;">Uw marge is een indicatie — in uw cijfers zit vaak meer verborgen</div>
             <div style="color:var(--blue-pale);font-size:13px;margin-bottom:16px;line-height:1.6;">Deze berekening geeft een eerste inzicht. In de praktijk zien we dat bedrijven vaak meerdere winstlekken hebben die hier niet zichtbaar zijn.</div>
-            <button onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
+            <button id="mc-cta-btn" onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
             <div style="color:rgba(255,255,255,.6);font-size:12px;">Gratis scan • direct inzicht in € impact</div>
           </div>
         </div>
@@ -3636,9 +3636,17 @@ const MargeCalc = {
         document.getElementById('mc-pijn-dag').textContent   = '€ ' + perDag.toLocaleString('nl-NL') + ' per dag';
         pijnBox.style.display = 'block';
       }
+      // CTA: persoonlijk + €-bedrag
+      const ctaBtn = document.getElementById('mc-cta-btn');
+      if (ctaBtn) {
+        ctaBtn.textContent = 'Laat zien waar ik ' + fmt(gemist) + ' kan terugpakken →';
+      }
     } else {
       gemistBox.style.display = 'none';
       if (pijnBox) pijnBox.style.display = 'none';
+      // Fallback CTA bij goede marge
+      const ctaBtn = document.getElementById('mc-cta-btn');
+      if (ctaBtn) ctaBtn.textContent = 'Laat zien waar ik nog meer winst kan pakken →';
     }
 
     document.getElementById('mc-resultaat').style.display = 'block';
