@@ -462,6 +462,53 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <div id="og-tekst" style="white-space:pre-wrap;font-size:14px;line-height:1.75;color:#1F2937;"></div>
   </div>
 </div>
+  <div id="tools-offerte-generator" class="card">
+  <div class="card-title">Offerte generator</div>
+
+  <div class="form-row cols2">
+    <div class="form-group">
+      <label class="form-label">Type project <span class="req">*</span></label>
+      <input id="og-project" class="form-input" placeholder="bijv. website, schilderwerk">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Sector <span class="req">*</span></label>
+      <select id="og-sector" class="form-select">
+        <option value="">— Kies sector —</option>
+        <option>Installatietechniek</option>
+        <option>Bouw & Aannemerij</option>
+        <option>Zakelijke dienstverlening</option>
+        <option>Horeca</option>
+        <option>ICT</option>
+        <option>ZZP / Freelance</option>
+        <option>Overig</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row cols2">
+    <div class="form-group">
+      <label class="form-label">Prijs (€) <span class="req">*</span></label>
+      <input id="og-prijs" class="form-input" type="number" placeholder="bijv. 2500">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Extra info</label>
+      <input id="og-extra" class="form-input" placeholder="bijv. oplevering 2 weken">
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:12px;">
+    <button class="btn btn-primary" onclick="Offerte.genereer()">📝 Genereer offerte</button>
+    <button class="btn btn-ghost" onclick="Offerte.kopieer()">📋 Kopieer</button>
+  </div>
+
+  <div id="og-status" style="font-size:13px;color:var(--green);margin-bottom:10px;"></div>
+
+  <div id="og-result" style="display:none;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;">
+    <div id="og-tekst" style="white-space:pre-wrap;font-size:14px;line-height:1.7;"></div>
+  </div>
+</div>
   <!-- ── PUBLIEKE SEO PAGINA: /tools/marge ──────────────────────────────── -->
   <div id="view-marge" class="view">
     <div style="max-width:640px;margin:0 auto;padding:32px 24px;">
