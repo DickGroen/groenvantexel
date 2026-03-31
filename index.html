@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Marge berekenen (gratis tool) — bereken uw winst in 10 seconden | Groen van Texel</title>
-<meta name="description" content="Bereken direct uw marge en winst in euro's. Gratis marge calculator voor ondernemers — ontdek of uw marge gezond is en waar winst blijft liggen.">
+<title>Financiële analyse voor MKB-ondernemers | Groen van Texel</title>
+<meta name="description" content="Ontdek waar uw bedrijf winst laat liggen. Groen van Texel analyseert uw jaarcijfers en laat exact zien waar u rendement kunt verbeteren.">
 <meta name="robots" content="index, follow">
-<meta property="og:title" content="Marge berekenen (gratis tool) — bereken uw winst in 10 seconden">
-<meta property="og:description" content="Bereken direct uw marge en winst in euro's. Gratis tool voor ondernemers.">
+<meta property="og:title" content="Financiële analyse voor MKB-ondernemers | Groen van Texel">
+<meta property="og:description" content="Ontdek waar uw bedrijf winst laat liggen — op basis van uw eigen jaarcijfers.">
 <meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -103,18 +103,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 @keyframes modalIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 @media(max-width:500px){#eenpager-content [style*="1fr 1fr"]{grid-template-columns:1fr!important;}}
 </style>
+<style>
+/* Aanvullend: landing-specifieke stijlen */
+.landing-wrapper{max-width:680px;margin:0 auto;padding:48px 24px 64px;}
+.landing-intro{margin-bottom:10px;font-size:13px;font-weight:600;color:var(--mid);letter-spacing:.3px;text-transform:uppercase;}
+.landing-voorbeeld-label{font-family:'DM Serif Display',serif;font-size:22px;color:var(--blue);margin-bottom:6px;line-height:1.35;}
+.landing-voorbeeld-sub{font-size:14px;color:var(--light);margin-bottom:28px;line-height:1.6;}
+.landing-cta-blok{margin-top:32px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:28px 28px 24px;text-align:center;}
+.landing-cta-titel{font-family:'DM Serif Display',serif;font-size:21px;color:var(--blue);margin-bottom:8px;line-height:1.3;}
+.landing-cta-sub{font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:22px;}
+.landing-cta-btn{display:inline-block;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:15px 32px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.2px;transition:background .15s;}
+.landing-cta-btn:hover{background:var(--blue-mid);}
+.landing-cta-meta{margin-top:12px;font-size:12px;color:var(--light);}
+/* Aanvraagformulier stijl — rustig, niet als tool */
+.aanvraag-wrapper{max-width:620px;margin:0 auto;padding:40px 24px 64px;}
+.aanvraag-kop{margin-bottom:32px;}
+.aanvraag-kop h2{font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:8px;}
+.aanvraag-kop p{font-size:14px;color:var(--mid);line-height:1.7;}
+.aanvraag-rapport-melding{background:#F0F7FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px 18px;margin-bottom:24px;font-size:13px;color:#1E3A5F;line-height:1.6;}
+/* Rapport-toegang (code invoer) */
+.rapport-toegang-wrapper{max-width:420px;margin:0 auto;padding:80px 24px;text-align:center;}
+@media(max-width:680px){.landing-wrapper,.aanvraag-wrapper{padding-left:16px;padding-right:16px;}}
+@media(max-width:500px){#eenpager-content [style*="1fr 1fr"]{grid-template-columns:1fr!important;}}
+</style>
 </head>
 <body>
 
+<!-- Login overlay — alleen voor admin toegang, niet bij binnenkomst getoond -->
 <div id="login-overlay" class="login-overlay">
   <div class="login-box">
     <div style="font-size:36px;margin-bottom:12px;">📊</div>
-    <h1>Groen van Texel</h1>
-    <p>Financiële Doorlichting &amp; Monitoring</p>
-    <input id="login-code" type="password" class="login-input" placeholder="Inlogcode" autocomplete="off">
-    <button class="login-btn" onclick="Auth.login()">Inloggen →</button>
-<div style="text-align:center;margin-top:10px;font-size:12px;color:#6b7280;font-weight:600;">✔ Gratis • geen verplichtingen • binnen 3 werkdagen</div>
-    <div id="login-error" class="login-error">Inlogcode niet herkend.</div>
+    <h1 id="lo-bedrijfsnaam"></h1>
+    <p id="lo-subtitel"></p>
+    <input id="login-code" type="password" class="login-input" placeholder="Uw toegangscode" autocomplete="off">
+    <button id="lo-knop" class="login-btn" onclick="Auth.login()"></button>
+    <div id="lo-beveiliging" style="text-align:center;margin-top:10px;font-size:12px;color:#6b7280;font-weight:600;"></div>
+    <div id="login-error" class="login-error"></div>
   </div>
 </div>
 
@@ -125,12 +149,115 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div class="topbar-nav" id="topnav"></div>
+    <button id="topbar-rapport-btn" onclick="toonRapportToegang()" style="display:none;padding:8px 18px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Toegang tot mijn rapport</button>
     <button id="topbar-login-btn" onclick="document.getElementById('login-overlay').classList.add('active');document.getElementById('login-code').focus();" style="display:none;padding:8px 16px;background:#fff;color:var(--blue);border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Inloggen →</button>
   </div>
 </div>
 
 <div class="page">
 
+  <!-- ── LANDINGSPAGINA (standaard startscherm) ─────────────────────────────── -->
+  <div id="view-landing" class="view">
+    <div class="landing-wrapper">
+
+      <p class="landing-intro" id="landing-intro-label"></p>
+      <h1 class="landing-voorbeeld-label" id="landing-titel"></h1>
+      <p class="landing-voorbeeld-sub" id="landing-subtitel"></p>
+
+      <!-- 1-PAGER VOORBEELD -->
+      <div id="eenpager-content"></div>
+
+      <!-- CTA DIRECT ONDER DE 1-PAGER -->
+      <div class="landing-cta-blok">
+        <h2 class="landing-cta-titel" id="cta-titel"></h2>
+        <p class="landing-cta-sub" id="cta-sub"></p>
+        <button class="landing-cta-btn" onclick="naarAanvraag()" id="cta-btn"></button>
+        <p class="landing-cta-meta" id="cta-meta"></p>
+      </div>
+
+    </div>
+  </div>
+  <!-- ── EINDE LANDINGSPAGINA ─────────────────────────────────────────────── -->
+
+  <!-- ── AANVRAAGFORMULIER ──────────────────────────────────────────────────── -->
+  <div id="view-aanleveren" class="view">
+    <div class="aanvraag-wrapper">
+
+      <div class="aanvraag-kop">
+        <h2 id="aanvraag-kop-titel"></h2>
+        <p id="aanvraag-kop-sub"></p>
+      </div>
+
+      <div class="aanvraag-rapport-melding">
+        <strong id="aanvraag-melding-hoofdtekst"></strong><br>
+        <span id="aanvraag-melding-body"></span>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Uw gegevens</div>
+        <div class="form-row cols2">
+          <div class="form-group"><label class="form-label">Bedrijfsnaam <span class="req">*</span></label><input id="f-bedrijf" class="form-input" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">Sector <span class="req">*</span></label>
+            <select id="f-sector" class="form-select"><option value="">— Kies sector —</option><option>Installatietechniek</option><option>Bouw &amp; Aannemerij</option><option>Groothandel</option><option>Detailhandel</option><option>Zakelijke dienstverlening</option><option>Horeca</option><option>Transport &amp; Logistiek</option><option>Zorg</option><option>ICT</option><option>E-commerce / Webshop</option><option>ZZP / Freelance</option><option>Overig</option></select>
+          </div>
+        </div>
+        <div class="form-row cols2">
+          <div class="form-group"><label class="form-label">E-mailadres</label><input id="f-email" type="email" class="form-input" autocomplete="off" placeholder="Voor toezending van uw toegangscode"></div>
+          <div class="form-group"><label class="form-label">Boekjaar <span class="req">*</span></label><select id="f-jaar" class="form-select"></select></div>
+        </div>
+        <input type="hidden" id="f-scan-type" value="winst">
+      </div>
+
+      <div class="card">
+        <div class="card-title">Uw jaarcijfers</div>
+        <p style="font-size:13px;color:var(--mid);margin-bottom:16px;line-height:1.6;">Exporteer vanuit uw boekhoudprogramma als PDF of Excel. Minimaal V&amp;W en balans van het laatste boekjaar.</p>
+        <div style="margin-bottom:14px;">
+          <div class="form-label" style="margin-bottom:7px;">Winst- en verliesrekening — laatste jaar <span class="req">*</span></div>
+          <label class="file-zone"><input type="file" id="f-vw1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen (.pdf of .xlsx)</label>
+          <div id="f-vw1-naam" class="file-ok"></div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div class="form-label" style="margin-bottom:7px;">Balans — laatste jaar <span class="req">*</span></div>
+          <label class="file-zone"><input type="file" id="f-balans1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
+          <div id="f-balans1-naam" class="file-ok"></div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div class="form-label" style="margin-bottom:7px;">Vorig boekjaar <span style="color:var(--light);font-weight:400;">(aanbevolen voor trendanalyse)</span></div>
+          <label class="file-zone"><input type="file" id="f-jaar2" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
+          <div id="f-jaar2-naam" class="file-ok"></div>
+        </div>
+        <div style="margin-bottom:4px;">
+          <div class="form-label" style="margin-bottom:7px;">Twee jaar geleden <span style="color:var(--light);font-weight:400;">(optioneel)</span></div>
+          <label class="file-zone"><input type="file" id="f-jaar3" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
+          <div id="f-jaar3-naam" class="file-ok"></div>
+        </div>
+      </div>
+
+      <div id="f-micro-belofte" style="display:none;background:var(--blue-pale);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--blue);line-height:1.6;">
+        <span id="f-micro-belofte-tekst"></span>
+      </div>
+
+      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()"></button>
+      <p id="aanvraag-submit-meta" style="font-size:12px;color:var(--light);text-align:center;margin-top:10px;"></p>
+
+    </div>
+  </div>
+  <!-- ── EINDE AANVRAAGFORMULIER ─────────────────────────────────────────────── -->
+
+  <!-- ── RAPPORT TOEGANG (voor klanten zonder sessie) ──────────────────────── -->
+  <div id="view-rapport-toegang" class="view">
+    <div class="rapport-toegang-wrapper">
+      <div style="font-size:32px;margin-bottom:16px;">📄</div>
+      <h2 id="rt-titel" style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--blue);margin-bottom:10px;"></h2>
+      <p id="rt-intro" style="font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:24px;"></p>
+      <input id="login-code-rapport" type="password" class="login-input" placeholder="Uw toegangscode" autocomplete="off" style="margin-bottom:12px;">
+      <button id="rt-knop" class="login-btn" onclick="rapportLogin()"></button>
+      <p style="font-size:12px;color:var(--light);margin-top:14px;"><span id="rt-geen-code"></span> <a id="rt-email" href="#" style="color:var(--blue);"></a></p>
+      <div id="rapport-login-error" style="color:var(--red);font-size:13px;margin-top:8px;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ── ADMIN & KLANT VIEWS (behoud volledig) ──────────────────────────────── -->
   <div id="view-dashboard" class="view">
     <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Dashboard</h2>
     <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Overzicht alle klanten</p>
@@ -138,7 +265,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div class="stat"><div class="stat-lbl">Klanten</div><div class="stat-val" id="s-totaal">0</div></div>
       <div class="stat"><div class="stat-lbl">Leads</div><div class="stat-val" id="s-leads">0</div><div class="stat-sub">Gratis 1-pager</div></div>
       <div class="stat"><div class="stat-lbl">Doorlichtingen</div><div class="stat-val" id="s-doorl">0</div><div class="stat-sub">€397 excl. BTW</div></div>
-      <div class="stat"><div class="stat-lbl">Begeleiding</div><div class="stat-val" id="s-monit">0</div><div class="stat-sub">Doorlopende begeleiding — €249 per maand</div></div>
+      <div class="stat"><div class="stat-lbl">Begeleiding</div><div class="stat-val" id="s-monit">0</div><div class="stat-sub">€249 per maand</div></div>
     </div>
     <div class="card">
       <div class="card-title">Klantenoverzicht</div>
@@ -203,7 +330,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <button id="btn-basisscan" class="btn btn-primary" style="background:var(--purple);display:none;" onclick="Basisscan.genereer()">🔍 Genereer Basisscan</button>
         <button id="btn-cashflow" class="btn btn-primary" style="background:#1F4E79;display:none;" onclick="StressTest.genereer('cashflow')">💧 Cashflow Stresstest</button>
         <button id="btn-debiteuren" class="btn btn-primary" style="background:#C0392B;display:none;" onclick="StressTest.genereer('debiteuren')">📋 Debiteuren Stresstest</button>
-        <button id="btn-offerte" class="btn btn-primary" style="background:#E67E22;display:none;" onclick="StressTest.genereer('offerte')">📝 Offerte & Marge</button>
+        <button id="btn-offerte" class="btn btn-primary" style="background:#E67E22;display:none;" onclick="StressTest.genereer('offerte')">📝 Offerte &amp; Marge</button>
         <button class="btn btn-ghost" style="color:var(--blue);background:rgba(255,255,255,.15);" onclick="UI.toast('Analyse is opgeslagen')">💾 Analyse opgeslagen</button>
       </div>
     </div>
@@ -255,311 +382,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
     </div>
   </div>
-
-  <div id="view-aanleveren" class="view">
-    <div class="card" style="max-width:660px;margin:0 auto;">
-      <div style="background:var(--blue);margin:-24px -24px 24px;padding:24px 24px 20px;border-radius:11px 11px 0 0;">
-        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:6px;">Uw bedrijf laat waarschijnlijk geld liggen — vaak gaat het om duizenden tot tienduizenden euro's per jaar</h2>
-        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Upload uw jaarcijfers en zie exact welke winstlekken u dit jaar geld kosten.</p>
-        <p id="form-intro" style="color:var(--blue-pale);font-size:13px;"></p>
-      </div>
-      <div style="background:#F0F7FF;border:1px solid #BFDBFE;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
-        <div id="sector-trust-title" style="font-weight:700;font-size:13px;color:#1E3A5F;margin-bottom:10px;">Waarom ondernemers ons vertrouwen</div>
-        <div style="display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">✓</span><span id="sector-trust-1">Concrete euro's: waar u nu geld verliest en hoeveel</span></div>
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">✓</span><span id="sector-trust-2">Welke acties binnen 30 dagen extra winst opleveren</span></div>
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#2563EB;flex-shrink:0;margin-top:1px;">✓</span><span id="sector-trust-3">Vertrouwelijk — uw cijfers worden nooit gedeeld</span></div>
-        </div>
-      </div>
-      <div id="sector-impact" style="background:#FFF7ED;border:1px solid #FCD34D;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#92400E;line-height:1.6;">Veel MKB-bedrijven lopen marge mis via kosten en prijzen die ze niet actief bewaken. Upload uw cijfers en zie wat dat u kost.</div>
-      <div class="form-row cols2">
-        <div class="form-group"><label class="form-label">Bedrijfsnaam <span class="req">*</span></label><input id="f-bedrijf" class="form-input" autocomplete="off"></div>
-        <div class="form-group"><label class="form-label">Sector <span class="req">*</span></label>
-          <select id="f-sector" class="form-select"><option value="">— Kies sector —</option><option>Installatietechniek</option><option>Bouw &amp; Aannemerij</option><option>Groothandel</option><option>Detailhandel</option><option>Zakelijke dienstverlening</option><option>Horeca</option><option>Transport &amp; Logistiek</option><option>Zorg</option><option>ICT</option><option>E-commerce / Webshop</option><option>ZZP / Freelance</option><option>Overig</option></select>
-        </div>
-      </div>
-      <div class="form-row cols2">
-        <div class="form-group"><label class="form-label">Type scan <span class="req">*</span></label><select id="f-scan-type" class="form-select"><option value="winst">Winstscan</option><option value="belasting">Belasting optimalisatie scan</option></select></div>
-        <div class="form-group"><label class="form-label">Boekjaar <span class="req">*</span></label><select id="f-jaar" class="form-select"></select></div>
-        <div class="form-group"><label class="form-label">E-mailadres</label><input id="f-email" type="email" class="form-input" autocomplete="off"></div>
-      </div>
-      <div style="margin-bottom:14px;">
-        <div class="form-label" style="margin-bottom:7px;">V&amp;W — laatste jaar <span class="req">*</span></div>
-        <label class="file-zone"><input type="file" id="f-vw1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen (.pdf of .xlsx)</label>
-        <div id="f-vw1-naam" class="file-ok"></div>
-        <div style="font-size:11px;color:var(--light);margin-top:3px;">Exporteer uit uw boekhoudprogramma als PDF of Excel.</div>
-      </div>
-      <div style="margin-bottom:14px;">
-        <div class="form-label" style="margin-bottom:7px;">Balans — laatste jaar <span class="req">*</span></div>
-        <label class="file-zone"><input type="file" id="f-balans1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
-        <div id="f-balans1-naam" class="file-ok"></div>
-      </div>
-      <div style="margin-bottom:14px;">
-        <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans — jaar daarvoor <span style="color:var(--light);font-weight:400;">(aanbevolen voor trendanalyse)</span></div>
-        <label class="file-zone"><input type="file" id="f-jaar2" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
-        <div id="f-jaar2-naam" class="file-ok"></div>
-      </div>
-      <div style="margin-bottom:20px;">
-        <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans — twee jaar geleden <span style="color:var(--light);font-weight:400;">(optioneel)</span></div>
-        <label class="file-zone"><input type="file" id="f-jaar3" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
-        <div id="f-jaar3-naam" class="file-ok"></div>
-      </div>
-      <div style="background:var(--blue-pale);border-radius:8px;padding:14px 16px;margin-bottom:20px;">
-        <div style="font-weight:700;font-size:13px;color:var(--blue);margin-bottom:4px;">Wat ontvangt u?</div>
-        <div id="form-wat" style="font-size:13px;color:var(--blue);line-height:1.7;"></div><div id="form-resultaat-extra" style="font-size:13px;color:var(--blue);line-height:1.8;margin-top:8px;"></div>
-      </div>
-      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">Start gratis winstscan →</button>
-    </div>
-  </div>
-
-  <div id="view-instellen" class="view">
-    <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:24px;">Instellingen</h2>
-    <div class="card" style="max-width:520px;">
-      <div class="card-title">Opslag beheer</div>
-      <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Verwijder dubbele uploads uit de opslag.</p>
-      <button class="btn btn-danger" onclick="Config.opruimenUploads()">🧹 Dubbele uploads opruimen</button>
-    </div>
-    <div class="card" style="max-width:520px;">
-      <div class="card-title">EmailJS instellingen</div>
-      <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Service ID</label><input id="cfg-service" class="form-input" value="service_oqgsajg"></div>
-      <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Template ID</label><input id="cfg-template" class="form-input" value="template_q3aea4c"></div>
-      <div class="form-group" style="margin-bottom:20px;"><label class="form-label">Public Key</label><input id="cfg-pubkey" class="form-input" value="ubJuLGAX11M-mSoIZ"></div>
-      <button class="btn btn-primary" onclick="Config.opslaan()">Opslaan</button>
-    </div>
-  </div>
-
-  <div id="view-diensten" class="view">
-    <div id="diensten-inhoud"></div>
-  </div>
-
-  <div id="view-tools" class="view">
-    <div class="page" style="max-width:1100px!important; margin:0 auto; width:100%;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Tools</h2>
-      <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Berekeningen en slimme tools</p>
-      <div class="tools-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
-
-      <div id="tools-marge-calculator" class="card">
-        <div style="background:#F7F9F8;border:1px solid #D8E5DD;border-radius:10px;padding:18px 24px;margin-bottom:24px;text-align:center;box-shadow:0 1px 4px rgba(30,84,73,.06);">
-          <div style="font-size:15px;font-weight:700;color:var(--blue);letter-spacing:-.01em;margin-bottom:5px;">Direct inzicht in uw marge</div>
-          <div style="font-size:12px;color:var(--light);font-weight:400;letter-spacing:.01em;">Verdieping binnen 3 werkdagen &nbsp;•&nbsp; geen verplichtingen</div>
-        </div>
-        <div class="card-title">Bereken uw marge</div>
-        <div class="form-row cols2">
-          <div class="form-group">
-            <label class="form-label">Omzet (€) <span class="req">*</span></label>
-            <input id="mc-omzet" class="form-input" type="number" min="0" placeholder="bijv. 500000" oninput="MargeCalc.bereken()">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Kosten (€) <span class="req">*</span></label>
-            <input id="mc-kosten" class="form-input" type="number" min="0" placeholder="bijv. 420000" oninput="MargeCalc.bereken()">
-          </div>
-        </div>
-        <div class="form-row cols2" style="max-width:620px;">
-          <div class="form-group">
-            <label class="form-label">Uren per jaar (optioneel)</label>
-            <input id="mc-uren" class="form-input" type="number" min="0" placeholder="bijv. 2000" oninput="MargeCalc.bereken()">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Sector (voor vergelijking)</label>
-            <select id="mc-sector" class="form-select" onchange="MargeCalc.bereken()">
-              <option value="">— Kies sector —</option>
-              <option>Installatietechniek</option>
-              <option>Bouw &amp; Aannemerij</option>
-              <option>Groothandel</option>
-              <option>Detailhandel</option>
-              <option>Zakelijke dienstverlening</option>
-              <option>Horeca</option>
-              <option>Transport &amp; Logistiek</option>
-              <option>Zorg</option>
-              <option>ICT</option>
-              <option>ZZP / Freelance</option>
-              <option>Overig</option>
-            </select>
-          </div>
-        </div>
-        <div id="mc-resultaat" style="display:none;margin-top:8px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-            <div style="background:var(--blue-pale);border-radius:10px;padding:16px 20px;">
-              <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Winst</div>
-              <div id="mc-winst" style="font-size:26px;font-weight:800;color:var(--blue);">—</div>
-            </div>
-            <div style="background:var(--green-pale);border-radius:10px;padding:16px 20px;">
-              <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Marge %</div>
-              <div id="mc-marge" style="font-size:26px;font-weight:800;color:var(--green);">—</div>
-            </div>
-          </div>
-          <div id="mc-uurloon-box" style="display:none;background:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:12px;">
-            <span style="font-size:12px;color:var(--mid);">Omzet per uur: </span>
-            <strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong>
-          </div>
-          <div id="mc-signaal-box" style="display:none;border-radius:10px;padding:14px 18px;margin-bottom:12px;border:2px solid;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div id="mc-signaal-icon" style="font-size:20px;"></div><div id="mc-signaal-titel" style="font-size:14px;font-weight:800;"></div></div><div id="mc-signaal-vergelijk" style="font-size:13px;line-height:1.7;"></div></div>
-          <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
-          <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
-            <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div>
-            <div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div>
-          </div>
-          <div id="mc-pijn-box" style="display:none;margin-bottom:20px;">
-            <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">💸 Dit laat u nu liggen</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per jaar</div>
-                <div id="mc-pijn-jaar" style="font-size:16px;font-weight:800;color:var(--red);"></div>
-              </div>
-              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per maand</div>
-                <div id="mc-pijn-maand" style="font-size:16px;font-weight:800;color:var(--red);"></div>
-              </div>
-              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per dag</div>
-                <div id="mc-pijn-dag" style="font-size:16px;font-weight:800;color:var(--red);"></div>
-              </div>
-            </div>
-          </div>
-          <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:10px;padding:18px 20px;text-align:center;">
-            <div style="color:#9dc3e6;font-size:12px;margin-bottom:8px;">Dit is een indicatie — in uw cijfers zit vaak meer verborgen</div>
-            <button id="mc-cta-btn" onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:13px 24px;font-size:14px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
-            <div style="color:rgba(255,255,255,.6);font-size:11px;">Gratis scan • direct inzicht in € impact</div>
-          </div>
-        </div>
-      </div>
-
-      <div id="tools-offerte-generator" class="card">
-        <div class="card-title">Offerte generator</div>
-
-        <div class="form-row cols2">
-          <div class="form-group">
-            <label class="form-label">Klantnaam</label>
-            <input id="og-klant" class="form-input" placeholder="bijv. Jan de Vries">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Bedrijfsnaam klant</label>
-            <input id="og-bedrijf" class="form-input" placeholder="bijv. De Vries Bouw">
-          </div>
-        </div>
-
-        <div class="form-row cols2">
-          <div class="form-group">
-            <label class="form-label">Type project <span class="req">*</span></label>
-            <input id="og-project" class="form-input" placeholder="bijv. website, schilderwerk, onderhoud">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Sector <span class="req">*</span></label>
-            <select id="og-sector" class="form-select">
-              <option value="">— Kies sector —</option>
-              <option>Installatietechniek</option>
-              <option>Bouw & Aannemerij</option>
-              <option>Zakelijke dienstverlening</option>
-              <option>Horeca</option>
-              <option>ICT</option>
-              <option>ZZP / Freelance</option>
-              <option>Overig</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row cols2">
-          <div class="form-group">
-            <label class="form-label">Prijs (€) <span class="req">*</span></label>
-            <input id="og-prijs" class="form-input" type="number" min="0" placeholder="bijv. 2500">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Extra info</label>
-            <input id="og-extra" class="form-input" placeholder="bijv. oplevering 2 weken, incl. support">
-          </div>
-        </div>
-
-        <div class="form-row cols2">
-          <div class="form-group">
-            <label class="form-label">Stijl</label>
-            <select id="og-stijl" class="form-select">
-              <option value="zakelijk">Zakelijk</option>
-              <option value="warm">Warm & persoonlijk</option>
-              <option value="sales">Commercieel sterk</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Doel</label>
-            <select id="og-doel" class="form-select">
-              <option value="standaard">Standaard offerte</option>
-              <option value="snelle-close">Sneller akkoord krijgen</option>
-              <option value="premium">Premium positionering</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-          <button class="btn btn-primary" onclick="Offerte.genereer()">📝 Genereer offerte</button>
-          <button class="btn btn-ghost" onclick="Offerte.kopieer()">📋 Kopieer</button>
-        </div>
-
-        <div id="og-status" style="font-size:13px;color:var(--green);margin-bottom:10px;"></div>
-
-        <div id="og-result" style="display:none;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;">
-          <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Gegenereerde offerte</div>
-          <div id="og-tekst" style="white-space:pre-wrap;font-size:14px;line-height:1.75;color:#1F2937;"></div>
-        </div>
-      </div>
-      </div><!-- einde grid -->
-    </div>
-  </div>
-  <!-- ── PUBLIEKE SEO PAGINA: /tools/marge ──────────────────────────────── -->
-  <div id="view-marge" class="view">
-    <div style="max-width:640px;margin:0 auto;padding:32px 24px;">
-
-      <!-- HERO / INTRO -->
-      <h1 style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--blue);margin-bottom:10px;line-height:1.3;">U laat waarschijnlijk winst liggen zonder het te zien</h1>
-      <p style="color:var(--mid);font-size:15px;line-height:1.75;margin-bottom:20px;">Bereken in 10 seconden of uw marge gezond is.</p>
-      <p style="color:var(--mid);font-size:14px;line-height:1.7;margin-bottom:18px;">Veel bedrijven maken winst, maar verliezen ongemerkt marge.</p>
-
-      <!-- TRUST BALK -->
-      <div style="background:#F7FAFC;border:1px solid #D9E2EC;border-radius:12px;padding:18px 20px;margin-bottom:22px;text-align:center;box-shadow:0 2px 10px rgba(31,78,121,.06);">
-        <div style="font-size:15px;font-weight:700;color:var(--blue);margin-bottom:6px;">Direct inzicht in uw marge</div>
-        <div style="font-size:13px;color:var(--mid);line-height:1.6;">Verdieping binnen 3 werkdagen • geen verplichtingen</div>
-      </div>
-
-      <div class="card">
-        <!-- BOVEN CALCULATOR -->
-        <p style="color:var(--blue);font-size:14px;font-weight:600;line-height:1.6;margin-bottom:14px;">Vul uw cijfers in en zie direct wat er overblijft.</p>
-        <div class="form-row cols2">
-          <div class="form-group"><label class="form-label">Uw omzet (€) <span class="req">*</span></label><input id="mc-omzet" class="form-input" type="number" min="0" placeholder="bijv. 500000" oninput="MargeCalc.bereken()"></div>
-          <div class="form-group"><label class="form-label">Uw kosten (€) <span class="req">*</span></label><input id="mc-kosten" class="form-input" type="number" min="0" placeholder="bijv. 420000" oninput="MargeCalc.bereken()"></div>
-        </div>
-        <div class="form-row" style="max-width:300px;">
-          <div class="form-group"><label class="form-label">Uren per jaar (optioneel)</label><input id="mc-uren" class="form-input" type="number" min="0" placeholder="bijv. 2000" oninput="MargeCalc.bereken()"></div>
-        </div>
-        <div id="mc-resultaat" style="display:none;margin-top:8px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-            <div style="background:var(--blue-pale);border-radius:10px;padding:16px 20px;"><div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Winst</div><div id="mc-winst" style="font-size:26px;font-weight:800;color:var(--blue);">—</div></div>
-            <div style="background:var(--green-pale);border-radius:10px;padding:16px 20px;"><div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Marge %</div><div id="mc-marge" style="font-size:26px;font-weight:800;color:var(--green);">—</div></div>
-          </div>
-          <div id="mc-uurloon-box" style="display:none;background:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:12px;"><span style="font-size:12px;color:var(--mid);">Omzet per uur: </span><strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong></div>
-          <div id="mc-signaal-box" style="display:none;border-radius:10px;padding:14px 18px;margin-bottom:12px;border:2px solid;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div id="mc-signaal-icon" style="font-size:20px;"></div><div id="mc-signaal-titel" style="font-size:14px;font-weight:800;"></div></div><div id="mc-signaal-vergelijk" style="font-size:13px;line-height:1.7;"></div></div>
-          <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
-          <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div><div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div></div>
-          <div id="mc-pijn-box" style="display:none;margin-bottom:20px;">
-            <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">💸 Dit laat u nu liggen</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per jaar</div><div id="mc-pijn-jaar" style="font-size:16px;font-weight:800;color:var(--red);"></div></div>
-              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per maand</div><div id="mc-pijn-maand" style="font-size:16px;font-weight:800;color:var(--red);"></div></div>
-              <div style="background:var(--red-pale);border:1px solid #e8b4b0;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Per dag</div><div id="mc-pijn-dag" style="font-size:16px;font-weight:800;color:var(--red);"></div></div>
-            </div>
-          </div>
-          <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:12px;padding:22px 24px;text-align:center;">
-            <div style="color:rgba(255,255,255,.9);font-size:14px;font-weight:700;margin-bottom:6px;">Uw marge is een indicatie — in uw cijfers zit vaak meer verborgen</div>
-            <div style="color:var(--blue-pale);font-size:13px;margin-bottom:16px;line-height:1.6;">Deze berekening geeft een eerste inzicht. In de praktijk zien we dat bedrijven vaak meerdere winstlekken hebben die hier niet zichtbaar zijn.</div>
-            <button id="mc-cta-btn" onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
-            <div style="color:rgba(255,255,255,.6);font-size:12px;">Gratis scan • direct inzicht in € impact</div>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--blue);margin-bottom:12px;">Wat is een goede marge?</h2>
-        <p style="color:var(--mid);font-size:14px;line-height:1.85;">Een gezonde marge ligt in veel sectoren tussen de 20% en 40%. Onder de 20% ontstaat vaak druk op winst, terwijl hogere marges ruimte geven voor groei en tegenvallers.</p>
-        <p style="color:var(--mid);font-size:14px;line-height:1.85;margin-top:10px;">Belangrijk is niet alleen de marge op papier, maar wat er daadwerkelijk overblijft na kosten, inefficiëntie en werkkapitaal.</p>
-      </div>
-    </div>
-  </div>
-  <!-- ── EINDE PUBLIEKE PAGINA ─────────────────────────────────────────────── -->
 
   <div id="view-monitoring" class="view">
     <div id="mon-admin" style="display:none;">
@@ -613,24 +435,46 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div id="mon-overzichten-box"></div>
     </div>
   </div>
+
+  <div id="view-instellen" class="view">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:24px;">Instellingen</h2>
+    <div class="card" style="max-width:520px;">
+      <div class="card-title">EmailJS configuratie</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Service ID</label><input id="cfg-service" class="form-input" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">Template ID</label><input id="cfg-template" class="form-input" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">Public Key</label><input id="cfg-pubkey" class="form-input" autocomplete="off"></div>
+      </div>
+      <button class="btn btn-primary" onclick="Config.opslaan()">Opslaan</button>
+    </div>
+    <div class="card" style="max-width:520px;margin-top:20px;">
+      <div class="card-title">Opslag beheer</div>
+      <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Verwijder dubbele uploads uit de opslag.</p>
+      <button class="btn btn-ghost" onclick="Config.opruimenUploads()">🗑 Duplicaten opruimen</button>
+    </div>
+  </div>
+
+  <div id="view-diensten" class="view">
+    <div id="diensten-inhoud"></div>
+  </div>
+
 </div>
+
 <!-- CONVERSIE MODAL -->
 <div id="conv-modal" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.7);z-index:9500;align-items:center;justify-content:center;padding:20px;">
   <div id="conv-modal-box" style="background:#fff;border-radius:16px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3);">
     <div style="background:linear-gradient(135deg,#1A3F6F,#2563EB);padding:24px 28px;">
-      <div style="color:rgba(255,255,255,.55);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Financiëele Basisscan &mdash; &euro;397 excl. BTW</div>
+      <div style="color:rgba(255,255,255,.55);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Financiële Basisscan &mdash; &euro;397 excl. BTW</div>
       <div style="color:#fff;font-size:20px;font-weight:900;line-height:1.3;" id="conv-modal-titel">U laat aantoonbaar geld liggen — laat exact uitwerken hoeveel en waar</div>
     </div>
     <div style="padding:22px 28px;">
-      <div style="font-size:14px;color:#333;line-height:1.7;margin-bottom:16px;" id="conv-modal-tekst" style="font-size:14px;color:#333;line-height:1.75;margin-bottom:16px;">Elke maand zonder verdieping kost u geld. De Basisscan berekent exact waar uw winst weglekt, wat het u per jaar kost en welke acties het snelst rendement opleveren.<br><br>De Basisscan laat concreet zien:
-</div>
+      <div style="font-size:14px;color:#333;line-height:1.7;margin-bottom:16px;" id="conv-modal-tekst">Elke maand zonder verdieping kost u geld. De Basisscan berekent exact waar uw winst weglekt, wat het u per jaar kost en welke acties het snelst rendement opleveren.</div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-1" style="font-size:13px;font-weight:700;">waar u structureel marge verliest — uitgedrukt in euro's</span></div>
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-2" style="font-size:13px;font-weight:700;">welke kosten direct omlaag kunnen — en hoeveel dat oplevert</span></div>
         <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-3" style="font-size:13px;font-weight:700;">welke acties binnen 30 dagen aantoonbaar resultaat geven</span></div>
       </div>
-      <button id="conv-modal-cta" onclick="Conversie.bevestigBasiscan()" style="background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:900;cursor:pointer;width:100%;margin-bottom:10px;box-shadow:0 6px 18px rgba(22,163,74,.28);">Laat zien waar ik geld terug kan pakken → €397
-      </button>
+      <button id="conv-modal-cta" onclick="Conversie.bevestigBasiscan()" style="background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:900;cursor:pointer;width:100%;margin-bottom:10px;box-shadow:0 6px 18px rgba(22,163,74,.28);">Laat zien waar ik geld terug kan pakken → €397</button>
       <div id="conv-modal-impact" style="font-size:11px;color:#888;text-align:center;margin-bottom:8px;">eenmalig • geen abonnement • concreet resultaat binnen 5 werkdagen</div>
       <button onclick="UI.sluitModal()" style="background:none;border:none;color:#aaa;font-size:12px;cursor:pointer;width:100%;padding:4px;">Nu nog niet</button>
     </div>
@@ -1036,11 +880,11 @@ const Auth={
 const Nav={
   bouw(){
     const nav=$('topnav');if(!nav||!sessie)return;
-    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button><button class="nav-btn" id="nb-tools" onclick="Nav.ga('tools')">🧮 Calculator</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
+    if(sessie.type==='admin'){nav.innerHTML=`<button class="nav-btn" id="nb-dashboard" onclick="Nav.ga('dashboard')">Dashboard</button><button class="nav-btn" id="nb-klanten" onclick="Nav.ga('klanten')">Klanten</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">Rapport</button><button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button><button class="nav-btn" id="nb-instellen" onclick="Nav.ga('instellen')">⚙ Instellen</button><button class="nav-btn" style="color:#fca5a5;" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;}
     else{
       const kt=sessie?.klanttype||sessie?.klantType||'lead';
       const monBtn=kt==='monitoring'?`<button class="nav-btn" id="nb-monitoring" onclick="Nav.ga('monitoring')">📅 Begeleiding</button>`:'';
-      nav.innerHTML=`<button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">📄 Mijn rapport</button>${monBtn}<button class="nav-btn" id="nb-tools" onclick="Nav.ga('tools')">🧮 Calculator</button><button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">✨ Meer diensten</button><button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;
+      nav.innerHTML=`<button class="nav-btn" id="nb-aanleveren" onclick="Nav.ga('aanleveren')">📤 Aanleveren</button><button class="nav-btn" id="nb-rapport" onclick="Nav.ga('rapport')">📄 Mijn rapport</button>${monBtn}<button class="nav-btn" id="nb-diensten" onclick="Nav.ga('diensten')">✨ Meer diensten</button><button class="nav-btn" style="color:#fca5a5;background:rgba(255,255,255,.1);" onclick="Auth.uitloggen()">↩ Uitloggen</button>`;
     }
   },
   ga(naam){
@@ -3616,158 +3460,239 @@ const Monitoring = {
 
 
 // ─── MARGE CALCULATOR ────────────────────────────────────────────────────────
-const MargeCalc = {
-  // Hulpfunctie: zoek element binnen de actieve view (fix voor dubbele id's)
-  _el(id) {
-    const actieveView = document.querySelector('.view.active');
-    if (actieveView) {
-      const el = actieveView.querySelector('#' + id);
-      if (el) return el;
-    }
-    return document.getElementById(id);
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// EENPAGER_DATA — centraal data-object voor de voorbeeld 1-pager
+// Pas hier alle zichtbare content aan; de rendering gebeurt automatisch.
+// ═══════════════════════════════════════════════════════════════════════════
+const EENPAGER_DATA = {
+
+  // ── Intro boven de 1-pager ────────────────────────────────────────────────
+  introLabel:   'Voorbeeld analyse',
+  titel:        'Zo ziet een analyse eruit — gebaseerd op echte bedrijfsdata',
+  subtitel:     'Bedrijfsnaam en details zijn geanonimiseerd. De structuur, bevindingen en berekeningen zijn representatief voor een doorsnee MKB-analyse.',
+
+  // ── Header van de 1-pager ─────────────────────────────────────────────────
+  bedrijfLabel: 'Groen van Texel — Winstoptimalisatie & Begeleiding',
+  heroTitel:    'Voorbeeld BV laat jaarlijks €42.800 aan winst liggen — zonder het te zien',
+  maandBedrag:  '€ 3.567',
+  sectorMeta:   'Sector: Bouw & Aannemerij &nbsp;•&nbsp; Boekjaar 2023 &nbsp;•&nbsp; Vertrouwelijk',
+
+  // ── Sectietitels ──────────────────────────────────────────────────────────
+  kerncijfersTitel:  '1 &nbsp; Wat uw cijfers zeggen versus de sectornorm',
+  inzichtTitel:      '2 &nbsp; Hier lekt de winst — dit kost u geld',
+
+  // ── Kerncijfers tabel ─────────────────────────────────────────────────────
+  // { label, werkelijk, norm, signaal, kleur (optioneel, default '#1F4E79'), alt (zebra) }
+  kerncijfers: [
+    { label: 'Omzet',          werkelijk: '€ 1.240.000', norm: '—',       signaal: '—',  kleur: '#1F4E79', alt: true  },
+    { label: 'Brutomarge %',   werkelijk: '18%',          norm: '22–30%',  signaal: '🔴', kleur: '#C0392B', alt: false },
+    { label: 'Debiteurendagen',werkelijk: '58 dgn',       norm: '30–45 dgn',signaal:'🟡', kleur: '#E67E22', alt: true  },
+    { label: 'Solvabiliteit %',werkelijk: '34%',          norm: '25–40%',  signaal: '🟢', kleur: '#1E8449', alt: false },
+    { label: 'Nettoresultaat %',werkelijk: '3,5%',        norm: '6–10%',   signaal: '🔴', kleur: '#C0392B', alt: true  },
+  ],
+
+  // ── Bevindingen (winstlekken) ─────────────────────────────────────────────
+  // { kleur, titel, tekst, impact }  — kleur = border + impactkleur
+  bevindingen: [
+    {
+      kleur:  '#C0392B',
+      titel:  'Te lage projectmarges',
+      tekst:  'Uw brutomarge van 18% ligt significant onder het sectorgemiddelde van 24%. Op een omzet van €1,24M is dit een structureel verlies dat per project oploopt.',
+      impact: '€ 24.800',
+    },
+    {
+      kleur:  '#E67E22',
+      titel:  'Trage debiteuren — kapitaal staat stil',
+      tekst:  'Met 58 debiteurendagen staat gemiddeld €198.000 onnodig lang vast. Dit drukt uw liquiditeit en dwingt u tot duurder werkkapitaal.',
+      impact: '€ 11.200',
+    },
+    {
+      kleur:  '#E67E22',
+      titel:  'Personeelskosten niet in verhouding',
+      tekst:  'De loonkostenratio van 41% overtreft het sectorgemiddelde met 6 procentpunten. Dit duidt op onvoldoende doorbelasting of te weinig productieve uren.',
+      impact: '€ 6.800',
+    },
+  ],
+
+  // ── Impact-totaalblok ─────────────────────────────────────────────────────
+  kansTitel:    'Dit bedrag ligt nu onbenut',
+  kansTekst:    'Op basis van aangeleverde jaarcijfers — 2023',
+  totaalBedrag: '€ 42.800',
+  maandLabel:   'Elke maand dat dit doorgaat',
+
+  // ── Footer van de 1-pager ─────────────────────────────────────────────────
+  footerTekst: '<strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>Vertrouwelijk — Op basis van aangeleverde jaarcijfers',
+
+  // ── CTA onder de 1-pager ─────────────────────────────────────────────────
+  ctaTitel:         'Laat dit ook voor uw bedrijf uitwerken →',
+  ctaSub:           'Upload uw jaarcijfers. Wij analyseren waar winst weglekt, vergelijken met uw sector en leveren een persoonlijk rapport — vertrouwelijk, binnen 5 werkdagen.',
+  ctaKnop:          'Start uw analyse →',
+  ctaMeta:          'Vertrouwelijk  •  Geen abonnement  •  €397 excl. BTW',
+
+  // ── Beveiligingstekst (aanvraagformulier) ────────────────────────────────
+  beveiligingTekst: 'Uw rapport wordt beveiligd voor u klaargezet.',
+
+  // ── Aanvraagformulier ────────────────────────────────────────────────────
+  aanvraagTitel:       'Uw analyse aanvragen',
+  aanvraagSub:         'Upload uw jaarcijfers. Wij stellen uw persoonlijke rapport op en zetten het beveiligd voor u klaar. U ontvangt toegang zodra het gereed is.',
+  aanvraagMeldingHoofd:'Uw rapport wordt beveiligd voor u klaargezet.',
+  aanvraagMeldingBody: 'Na ontvangst van uw bestanden ontvangt u een persoonlijke toegangscode waarmee u uw rapport kunt inzien. Uw jaarcijfers worden vertrouwelijk behandeld en niet gedeeld.',
+  aanvraagSubmitKnop:  'Verstuur jaarcijfers →',
+  aanvraagSubmitMeta:  'Na ontvangst zetten wij uw rapport beveiligd klaar — u ontvangt toegang via e-mail.',
+  aanvraagVerwerkTekst:'Bestanden worden verwerkt — een moment geduld.',
+
+  // ── Rapport-toegang view ─────────────────────────────────────────────────
+  rapportToegang: {
+    titel:       'Toegang tot uw rapport',
+    intro:       'Vul de toegangscode in die u per e-mail heeft ontvangen. Uw rapport staat beveiligd voor u klaar.',
+    knop:        'Bekijk mijn rapport →',
+    geenCode:    'Nog geen code ontvangen? Neem contact op via',
+    email:       'dick@groenvantexel.nl',
+    fout:        'Code niet herkend. Controleer uw e-mail of neem contact op.',
   },
 
-  bereken() {
-    const _ = id => MargeCalc._el(id);
-    const omzet  = parseFloat(_('mc-omzet')?.value)  || 0;
-    const kosten = parseFloat(_('mc-kosten')?.value) || 0;
-    const uren   = parseFloat(_('mc-uren')?.value)   || 0;
-
-    if (!omzet || !kosten || omzet <= 0) {
-      const res = _('mc-resultaat'); if (res) res.style.display = 'none';
-      return;
-    }
-
-    const winst  = omzet - kosten;
-    const marge  = (winst / omzet) * 100;
-    const fmt    = v => '€ ' + Math.round(v).toLocaleString('nl-NL');
-
-    _('mc-winst').textContent = fmt(winst);
-    _('mc-marge').textContent = marge.toFixed(1) + '%';
-    _('mc-marge').style.color =
-      marge < 15 ? 'var(--red)' : marge < 30 ? 'var(--orange)' : 'var(--green)';
-
-    // Uurloon
-    const uurBox = _('mc-uurloon-box');
-    if (uren > 0) {
-      _('mc-uurloon').textContent = fmt(omzet / uren) + ' / uur';
-      if (uurBox) uurBox.style.display = 'block';
-    } else {
-      if (uurBox) uurBox.style.display = 'none';
-    }
-
-    // Interpretatie
-    const int = _('mc-interpretatie');
-    if (int) {
-      if (marge < 15) {
-        int.textContent = '⚠ Lage marge — hier blijft waarschijnlijk geld liggen. Veel bedrijven met deze marge hebben onzichtbare kosten of te lage tarieven.';
-        int.style.background = 'var(--red-pale)'; int.style.color = 'var(--red)';
-      } else if (marge <= 30) {
-        int.textContent = '◑ Redelijke marge — maar vaak is meer mogelijk. Bij vergelijkbare bedrijven ligt de marge gemiddeld 5–10% hoger.';
-        int.style.background = 'var(--orange-pale)'; int.style.color = 'var(--orange)';
-      } else {
-        int.textContent = '✓ Goede marge — maar optimalisatie kan nog winst opleveren via tarieven, kosten en werkkapitaal.';
-        int.style.background = 'var(--green-pale)'; int.style.color = 'var(--green)';
-      }
-    }
-
-    // Sectorvergelijking + waarschuwingsblok
-    const _sectorNormen = {
-      'Installatietechniek':      [42,52], 'Bouw & Aannemerij':[18,28],
-      'Transport & Logistiek':    [20,32], 'Groothandel':[18,28],
-      'Detailhandel':             [32,48], 'Zakelijke dienstverlening':[55,75],
-      'Horeca':                   [60,75], 'Zorg':[55,70],
-      'ICT':                      [45,65], 'ZZP / Freelance':[40,60], 'Overig':[30,45],
-    };
-    const sectorEl  = _('mc-sector');
-    const signaalBox = _('mc-signaal-box');
-    if (signaalBox && sectorEl && sectorEl.value) {
-      const norm = _sectorNormen[sectorEl.value];
-      if (norm) {
-        const normMin = norm[0], normMax = norm[1];
-        const normMid = Math.round((normMin + normMax) / 2);
-        const verschil = marge - normMid;
-        let icon, titel, vergelijk, bg, borderColor, textColor;
-        if (marge < normMin - 5) {
-          icon = '🔴'; bg = 'var(--red-pale)'; borderColor = 'var(--red)'; textColor = 'var(--red)';
-          titel = 'Waarschuwing: uw marge ligt ver onder het sectorniveau';
-          vergelijk = `Uw marge: <strong>${marge.toFixed(1)}%</strong> &nbsp;•&nbsp; Sectorgemiddelde ${sectorEl.value}: <strong>${normMid}%</strong> &nbsp;•&nbsp; U zit <strong>${Math.abs(verschil).toFixed(1)}% onder</strong> het gemiddelde. Dat is een serieus signaal.`;
-        } else if (marge < normMin) {
-          icon = '🟡'; bg = 'var(--orange-pale)'; borderColor = 'var(--orange)'; textColor = 'var(--orange)';
-          titel = 'Uw marge ligt onder het gebruikelijke niveau in uw sector';
-          vergelijk = `Uw marge: <strong>${marge.toFixed(1)}%</strong> &nbsp;•&nbsp; Gezond voor ${sectorEl.value}: <strong>${normMin}%–${normMax}%</strong> &nbsp;•&nbsp; Er is <strong>ruimte voor verbetering</strong>.`;
-        } else if (marge <= normMax) {
-          icon = '🟢'; bg = 'var(--green-pale)'; borderColor = 'var(--green)'; textColor = 'var(--green)';
-          titel = 'Uw marge past binnen het gezonde sectorgemiddelde';
-          vergelijk = `Uw marge: <strong>${marge.toFixed(1)}%</strong> &nbsp;•&nbsp; Sectorbandbreedte ${sectorEl.value}: <strong>${normMin}%–${normMax}%</strong> &nbsp;•&nbsp; Goed — maar er zijn <strong>altijd verborgen lekken</strong>.`;
-        } else {
-          icon = '✅'; bg = '#f0fdf4'; borderColor = '#16a34a'; textColor = '#15803d';
-          titel = 'Uitstekend — uw marge ligt boven het sectorgemiddelde';
-          vergelijk = `Uw marge: <strong>${marge.toFixed(1)}%</strong> &nbsp;•&nbsp; Sectortop ${sectorEl.value}: <strong>${normMax}%</strong> &nbsp;•&nbsp; U doet het beter dan de meeste concurrenten.`;
-        }
-        signaalBox.style.background     = bg;
-        signaalBox.style.borderColor    = borderColor;
-        _('mc-signaal-icon').textContent  = icon;
-        _('mc-signaal-titel').textContent = titel;
-        _('mc-signaal-titel').style.color = textColor;
-        _('mc-signaal-vergelijk').innerHTML = vergelijk;
-        _('mc-signaal-vergelijk').style.color = textColor;
-        signaalBox.style.display = 'block';
-      }
-    } else if (signaalBox) {
-      signaalBox.style.display = 'none';
-    }
-
-    // Gemiste winst vs 30% norm + pijnblok €/jaar €/maand €/dag
-    const gemistBox = _('mc-gemist-box');
-    const pijnBox   = _('mc-pijn-box');
-    if (marge < 30) {
-      const gewenst   = omzet * 0.30;
-      const gemist    = gewenst - winst;
-      const perMaand  = Math.round(gemist / 12);
-      const perDag    = Math.round(gemist / 365);
-      const gemistEl  = _('mc-gemist');
-      if (gemistEl) gemistEl.textContent =
-        'Bij een marge van 30% zou uw winst ' + fmt(gewenst) + ' zijn. Dat is ' + fmt(gemist) + ' meer dan nu.';
-      if (gemistBox) gemistBox.style.display = 'block';
-      // Pijnblok
-      if (pijnBox) {
-        _('mc-pijn-jaar').textContent  = fmt(gemist)   + ' per jaar';
-        _('mc-pijn-maand').textContent = fmt(perMaand) + ' per maand';
-        _('mc-pijn-dag').textContent   = '€ ' + perDag.toLocaleString('nl-NL') + ' per dag';
-        pijnBox.style.display = 'block';
-      }
-      // CTA: persoonlijk + €-bedrag
-      const ctaBtn = _('mc-cta-btn');
-      if (ctaBtn) {
-        ctaBtn.textContent = 'Laat zien waar ik ' + fmt(gemist) + ' kan terugpakken →';
-      }
-    } else {
-      if (gemistBox) gemistBox.style.display = 'none';
-      if (pijnBox) pijnBox.style.display = 'none';
-      // Fallback CTA bij goede marge
-      const ctaBtn = _('mc-cta-btn');
-      if (ctaBtn) ctaBtn.textContent = 'Laat zien waar ik nog meer winst kan pakken →';
-    }
-
-    const res = _('mc-resultaat'); if (res) res.style.display = 'block';
-  },
-  naarScan() {
-    if (sessie?.type === 'klant') {
-      Nav.ga('aanleveren');
-    } else if (sessie?.type === 'admin') {
-      Nav.ga('dashboard');
-    } else {
-      const overlay = document.getElementById('login-overlay');
-      if (overlay) overlay.style.display = 'flex';
-    }
+  // ── Login-overlay (voor admin / rapport-toegang) ─────────────────────────
+  loginOverlay: {
+    bedrijfsnaam: 'Groen van Texel',
+    subtitel:     'Toegang tot uw rapport',
+    knop:         'Toegang →',
+    beveiliging:  'Uw rapport wordt beveiligd voor u klaargezet',
+    fout:         'Toegangscode niet herkend.',
   },
 };
+
+// ── Renderer ──────────────────────────────────────────────────────────────────
+function renderVoorbeeldPager() {
+  const d = EENPAGER_DATA;
+  const _t = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+
+  // Intro-teksten
+  const elLabel    = document.getElementById('landing-intro-label');
+  const elTitel    = document.getElementById('landing-titel');
+  const elSubtitel = document.getElementById('landing-subtitel');
+  if (elLabel)    elLabel.textContent   = d.introLabel;
+  if (elTitel)    elTitel.textContent   = d.titel;
+  if (elSubtitel) elSubtitel.textContent = d.subtitel;
+
+  // CTA-teksten
+  const elCtaTitel = document.getElementById('cta-titel');
+  const elCtaSub   = document.getElementById('cta-sub');
+  const elCtaBtn   = document.getElementById('cta-btn');
+  const elCtaMeta  = document.getElementById('cta-meta');
+  if (elCtaTitel) elCtaTitel.textContent = d.ctaTitel;
+  if (elCtaSub)   elCtaSub.textContent   = d.ctaSub;
+  if (elCtaBtn)   elCtaBtn.textContent   = d.ctaKnop;
+  if (elCtaMeta)  elCtaMeta.textContent  = d.ctaMeta;
+
+  // Kerncijfers rijen
+  const rijHTML = d.kerncijfers.map(r => `
+    <tr${r.alt ? ' style="background:#f9fbfa;"' : ''}>
+      <td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${r.label}</td>
+      <td style="padding:8px 10px;text-align:right;font-weight:700;color:${r.kleur};border-bottom:1px solid #eef1ee;">${r.werkelijk}</td>
+      <td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">${r.norm}</td>
+      <td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${r.signaal}</td>
+    </tr>`).join('');
+
+  // Bevindingen rijen
+  const bevHTML = d.bevindingen.map((b, i) => `
+    <div style="border-left:4px solid ${b.kleur};background:${i % 2 === 0 ? '#fdf8f3' : '#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div style="flex:1;">
+        <div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${b.titel}</div>
+        <div style="color:#444;font-size:13px;line-height:1.6;">${b.tekst}</div>
+      </div>
+      <div style="text-align:right;white-space:nowrap;">
+        <div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div>
+        <div style="font-weight:700;color:${b.kleur};font-size:13px;">${b.impact}</div>
+      </div>
+    </div>`).join('');
+
+  // Volledige 1-pager HTML
+  const html = `
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #dde3e8;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08);">
+
+  <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);padding:28px 28px 24px;text-align:center;">
+    <div style="color:#9dc3e6;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:10px;">${d.bedrijfLabel}</div>
+    <div style="color:#fff;font-size:22px;font-weight:800;line-height:1.25;margin-bottom:10px;">${d.heroTitel}</div>
+    <div style="background:rgba(255,255,255,.13);border-radius:6px;padding:8px 16px;display:inline-block;margin-bottom:10px;">
+      <span style="color:#FFD700;font-size:16px;font-weight:800;">${d.maandBedrag}</span>
+      <span style="color:rgba(255,255,255,.8);font-size:13px;"> per maand dat nu blijft liggen</span>
+    </div>
+    <div style="color:#9dc3e6;font-size:11px;">${d.sectorMeta}</div>
+  </div>
+
+  <div style="padding:20px 24px 0;">
+    <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1.2px;padding-bottom:6px;border-bottom:2px solid #D5F5E3;margin-bottom:14px;">${d.kerncijfersTitel}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="background:#1F4E79;">
+        <td style="padding:9px 10px;color:#fff;font-weight:700;">Cijfer</td>
+        <td style="padding:9px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td>
+        <td style="padding:9px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td>
+        <td style="padding:9px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td>
+      </tr>
+      ${rijHTML}
+    </table>
+  </div>
+
+  <div style="padding:16px 24px 0;">
+    <div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1.2px;padding-bottom:6px;border-bottom:2px solid #fadbd8;margin-bottom:14px;">${d.inzichtTitel}</div>
+    ${bevHTML}
+    <div style="background:#E8F5E9;border:1.5px solid #1E8449;border-radius:6px;padding:12px 16px;margin-top:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">${d.kansTitel}</div>
+          <div style="font-size:11px;color:#555;">${d.kansTekst}</div>
+        </div>
+        <div style="font-size:20px;font-weight:700;color:#1E8449;">${d.totaalBedrag}</div>
+      </div>
+      <div style="border-top:1px solid #c3e6cb;padding-top:6px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:11px;color:#555;">${d.maandLabel}</div>
+        <div style="font-size:15px;font-weight:700;color:#1E8449;">≈ ${d.maandBedrag}</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#f4f6f8;padding:14px 24px;border-top:1px solid #e2e8e4;margin-top:18px;text-align:center;">
+    <div style="font-size:11px;color:#888;line-height:1.7;">${d.footerTekst}</div>
+  </div>
+
+</div>`;
+
+  const el = document.getElementById('eenpager-content');
+  if (el) el.innerHTML = html;
+
+  // ── Aanvraagformulier ────────────────────────────────────────────────────
+  _t('aanvraag-kop-titel',  d.aanvraagTitel);
+  _t('aanvraag-kop-sub',    d.aanvraagSub);
+  _t('aanvraag-melding-hoofdtekst', d.aanvraagMeldingHoofd);
+  _t('aanvraag-melding-body',       d.aanvraagMeldingBody);
+  _t('f-submit',            d.aanvraagSubmitKnop);
+  _t('aanvraag-submit-meta',d.aanvraagSubmitMeta);
+  _t('f-micro-belofte-tekst',d.aanvraagVerwerkTekst);
+
+  // ── Rapport-toegang view ─────────────────────────────────────────────────
+  _t('rt-titel',   d.rapportToegang.titel);
+  _t('rt-intro',   d.rapportToegang.intro);
+  _t('rt-knop',    d.rapportToegang.knop);
+  _t('rt-geen-code', d.rapportToegang.geenCode);
+  const rtEmail = document.getElementById('rt-email');
+  if (rtEmail) { rtEmail.textContent = d.rapportToegang.email; rtEmail.href = 'mailto:' + d.rapportToegang.email; }
+  _t('rapport-login-error', d.rapportToegang.fout);
+
+  // ── Login-overlay ────────────────────────────────────────────────────────
+  _t('lo-bedrijfsnaam', d.loginOverlay.bedrijfsnaam);
+  _t('lo-subtitel',     d.loginOverlay.subtitel);
+  _t('lo-knop',         d.loginOverlay.knop);
+  _t('lo-beveiliging',  d.loginOverlay.beveiliging);
+  _t('login-error',     d.loginOverlay.fout);
+}
+
 
 (function init(){
   try{emailjs.init(Config.pubkey());}catch{}
   Bestanden.koppelListeners();
-  // Monitoring bestand listener
   const monVw=$('mon-vw');
   if(monVw) monVw.addEventListener('change',()=>setTxt('mon-vw-naam',monVw.files?.[0]?'✔ '+monVw.files[0].name:''));
   const monBalans=$('mon-balans');
@@ -3775,37 +3700,13 @@ const MargeCalc = {
   const jaarSel=$('f-jaar');if(jaarSel){const nu=new Date().getFullYear();jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join('');}
   Config.herstelUI();
   try{const fs=$('f-sector'); if(fs){ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); renderAnalyse(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
-  // Deduplicatie wordt server-side afgehandeld via UNIQUE constraint
-  // Testklant wordt aangemaakt via SQL setup
   const lc=$('login-code');if(lc)lc.addEventListener('keydown',e=>{if(e.key==='Enter')Auth.login();});
-  // Laad sessie - toon laadmelding
-  const loginBox=document.querySelector('.login-box');
-  if(loginBox){
-    const laad=document.createElement('div');
-    laad.id='init-laad';laad.style.cssText='color:#9dc3e6;font-size:13px;margin-top:8px;';
-    laad.textContent='Verbinden...';loginBox.appendChild(laad);
-  }
+  // Toon publieke landingspagina direct — geen login vereist bij binnenkomst
+  renderVoorbeeldPager();
   Auth.herstelSessie().finally(()=>{
-    const l=document.getElementById('init-laad');if(l)l.remove();
-    // Als geen sessie: marge landingspagina tonen, login knop zichtbaar in topbar
     if(!sessie){
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-      const vt=document.getElementById('view-marge');if(vt)vt.classList.add('active');
-      const lb=document.getElementById('topbar-login-btn');if(lb)lb.style.display='block';
-    }
-  });
-  // Publieke route: /tools/marge (geen login vereist)
-  const _pad=window.location.pathname.replace(/\/+$/,'');
-  if(_pad==='/tools/marge'||window.location.hash==='#tools/marge'){
-    const _ov=document.getElementById('login-overlay');if(_ov)_ov.style.display='none';
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    const _mv=document.getElementById('view-marge');if(_mv)_mv.classList.add('active');
-  }
-  window.addEventListener('hashchange',function(){
-    if(window.location.hash==='#tools/marge'){
-      const _ov=document.getElementById('login-overlay');if(_ov)_ov.style.display='none';
-      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-      const _mv=document.getElementById('view-marge');if(_mv)_mv.classList.add('active');
+      const vl=document.getElementById('view-landing');if(vl)vl.classList.add('active');
     }
   });
 
@@ -3885,8 +3786,38 @@ Groen van Texel`;
   }
 };
 })();
+// Publieke navigatie-helpers
+function naarAanvraag() {
+  if (sessie) {
+    Nav.ga('aanleveren');
+  } else {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const v = document.getElementById('view-aanleveren');
+    if (v) v.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+}
+
+function toonRapportToegang() {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const v = document.getElementById('view-rapport-toegang');
+  if (v) v.classList.add('active');
+  const inp = document.getElementById('login-code-rapport');
+  if (inp) inp.focus();
+}
+
+function rapportLogin() {
+  const code = (document.getElementById('login-code-rapport')?.value || '').trim();
+  const err = document.getElementById('rapport-login-error');
+  if (err) err.style.display = 'none';
+  if (!code) return;
+  // Sync code naar het echte login veld en roep Auth.login() aan
+  const lc = document.getElementById('login-code');
+  if (lc) lc.value = code;
+  Auth.login();
+}
 </script>
 
-<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1.4 live</div>
+<div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.2.3 live</div>
 </body>
 </html>
