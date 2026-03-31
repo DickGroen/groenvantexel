@@ -1690,14 +1690,16 @@ const KlantApp={
       const sl=sessie.naam+'-'+uploads[0].periode;
       const bsMap=await Store.getBasisscans();const heeftBs=!!bsMap[sl]?.gepubliceerd;
       const stap=heeftBs?3:2;
-      const ok='background:#1F4E79;color:#fff;';const wacht='background:#2E4F6F;color:rgba(255,255,255,0.55);';
+      const ok='background:#1F4E79;color:#fff;';
+      const wacht='background:#2E4F6F;color:rgba(255,255,255,0.55);';
+      const klaar='background:#1E8449;color:#fff;';
       const _kt2=sessie.klanttype||sessie.klantType||'lead';
       const s2=_kt2==='doorlichting'?'2. Basisscan in uitvoering':'2. Analyse in uitvoering';
       const s3=_kt2==='doorlichting'?'3. Basisscan klaar':'3. Rapport klaar';
       const html='<div style="display:flex;margin:0 0 20px;border-radius:8px;overflow:hidden;border:1px solid #e2e8e4;">'
-        +'<div style="flex:1;padding:12px;text-align:center;'+ok+'border-right:1px solid #e2e8e4;font-size:11px;font-weight:700;">1. Aanvraag ontvangen</div>'
-        +'<div style="flex:1;padding:12px;text-align:center;'+(stap>=2?ok:wacht)+'border-right:1px solid #e2e8e4;font-size:11px;font-weight:700;">'+s2+'</div>'
-        +'<div style="flex:1;padding:12px;text-align:center;'+(stap>=3?ok:wacht)+'font-size:11px;font-weight:700;">'+s3+'</div>'
+        +'<div style="flex:1;padding:12px;text-align:center;'+ok+'border-right:1px solid rgba(255,255,255,.15);font-size:11px;font-weight:500;">1. Aanvraag ontvangen</div>'
+        +'<div style="flex:1;padding:12px;text-align:center;'+(stap>=2?ok:wacht)+'border-right:1px solid rgba(255,255,255,.15);font-size:11px;font-weight:500;">'+s2+'</div>'
+        +'<div style="flex:1;padding:12px;text-align:center;'+(stap>=3?klaar:wacht)+'font-size:11px;font-weight:500;">'+s3+'</div>'
         +'</div>';
       const card=document.querySelector('#view-aanleveren .card');
       if(card)card.insertAdjacentHTML('afterbegin',html);
