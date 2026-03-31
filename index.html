@@ -345,10 +345,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
             <input id="mc-kosten" class="form-input" type="number" min="0" placeholder="bijv. 420000" oninput="MargeCalc.bereken()">
           </div>
         </div>
-        <div class="form-row" style="max-width:300px;">
+        <div class="form-row cols2" style="max-width:620px;">
           <div class="form-group">
             <label class="form-label">Uren per jaar (optioneel)</label>
             <input id="mc-uren" class="form-input" type="number" min="0" placeholder="bijv. 2000" oninput="MargeCalc.bereken()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sector (voor vergelijking)</label>
+            <select id="mc-sector" class="form-select" onchange="MargeCalc.bereken()">
+              <option value="">— Kies sector —</option>
+              <option>Installatietechniek</option>
+              <option>Bouw &amp; Aannemerij</option>
+              <option>Groothandel</option>
+              <option>Detailhandel</option>
+              <option>Zakelijke dienstverlening</option>
+              <option>Horeca</option>
+              <option>Transport &amp; Logistiek</option>
+              <option>Zorg</option>
+              <option>ICT</option>
+              <option>ZZP / Freelance</option>
+              <option>Overig</option>
+            </select>
           </div>
         </div>
         <div id="mc-resultaat" style="display:none;margin-top:8px;">
@@ -366,6 +383,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
             <span style="font-size:12px;color:var(--mid);">Omzet per uur: </span>
             <strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong>
           </div>
+          <div id="mc-signaal-box" style="display:none;border-radius:10px;padding:14px 18px;margin-bottom:12px;border:2px solid;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div id="mc-signaal-icon" style="font-size:20px;"></div><div id="mc-signaal-titel" style="font-size:14px;font-weight:800;"></div></div><div id="mc-signaal-vergelijk" style="font-size:13px;line-height:1.7;"></div></div>
           <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
           <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
             <div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div>
@@ -496,6 +514,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
             <div style="background:var(--green-pale);border-radius:10px;padding:16px 20px;"><div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Marge %</div><div id="mc-marge" style="font-size:26px;font-weight:800;color:var(--green);">—</div></div>
           </div>
           <div id="mc-uurloon-box" style="display:none;background:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:12px;"><span style="font-size:12px;color:var(--mid);">Omzet per uur: </span><strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong></div>
+          <div id="mc-signaal-box" style="display:none;border-radius:10px;padding:14px 18px;margin-bottom:12px;border:2px solid;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div id="mc-signaal-icon" style="font-size:20px;"></div><div id="mc-signaal-titel" style="font-size:14px;font-weight:800;"></div></div><div id="mc-signaal-vergelijk" style="font-size:13px;line-height:1.7;"></div></div>
           <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
           <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div><div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div></div>
           <div id="mc-pijn-box" style="display:none;margin-bottom:20px;">
@@ -3616,6 +3635,53 @@ const MargeCalc = {
     } else {
       int.textContent = '✓ Goede marge — maar optimalisatie kan nog winst opleveren via tarieven, kosten en werkkapitaal.';
       int.style.background = 'var(--green-pale)'; int.style.color = 'var(--green)';
+    }
+
+    // Sectorvergelijking + waarschuwingsblok
+    const _sectorNormen = {
+      'Installatietechniek':      [42,52], 'Bouw & Aannemerij':[18,28],
+      'Transport & Logistiek':    [20,32], 'Groothandel':[18,28],
+      'Detailhandel':             [32,48], 'Zakelijke dienstverlening':[55,75],
+      'Horeca':                   [60,75], 'Zorg':[55,70],
+      'ICT':                      [45,65], 'ZZP / Freelance':[40,60], 'Overig':[30,45],
+    };
+    const sectorEl  = document.getElementById('mc-sector');
+    const signaalBox = document.getElementById('mc-signaal-box');
+    if (signaalBox && sectorEl && sectorEl.value) {
+      const norm = _sectorNormen[sectorEl.value];
+      if (norm) {
+        const normMin = norm[0], normMax = norm[1];
+        const normMid = Math.round((normMin + normMax) / 2);
+        const verschil = marge - normMid;
+        let icon, titel, vergelijk, bg, borderColor, textColor;
+        if (marge < normMin - 5) {
+          icon = '🔴'; bg = 'var(--red-pale)'; borderColor = 'var(--red)'; textColor = 'var(--red)';
+          titel = 'Waarschuwing: uw marge ligt ver onder het sectorniveau';
+          vergelijk = `Uw marge: <strong>${marge.toFixed(1)}%</strong> &nbsp;•&nbsp; Sectorgemiddelde ${sectorEl.value}: <strong>${normMid}%</strong> &nbsp;•&nbsp; U zit <strong>${Math.abs(verschil).toFixed(1)}% onder</strong> het gemiddelde. Dat is een serieus signaal.`;
+        } else if (marge < normMin) {
+          icon = '🟡'; bg = 'var(--orange-pale)'; borderColor = 'var(--orange)'; textColor = 'var(--orange)';
+          titel = 'Uw marge ligt onder het gebruikelijke niveau in uw sector';
+          vergelijk = `Uw marge: <strong>${marge.toFixed(1)}%</strong> &nbsp;•&nbsp; Gezond voor ${sectorEl.value}: <strong>${normMin}%–${normMax}%</strong> &nbsp;•&nbsp; Er is <strong>ruimte voor verbetering</strong>.`;
+        } else if (marge <= normMax) {
+          icon = '🟢'; bg = 'var(--green-pale)'; borderColor = 'var(--green)'; textColor = 'var(--green)';
+          titel = 'Uw marge past binnen het gezonde sectorgemiddelde';
+          vergelijk = `Uw marge: <strong>${marge.toFixed(1)}%</strong> &nbsp;•&nbsp; Sectorbandbreedte ${sectorEl.value}: <strong>${normMin}%–${normMax}%</strong> &nbsp;•&nbsp; Goed — maar er zijn <strong>altijd verborgen lekken</strong>.`;
+        } else {
+          icon = '✅'; bg = '#f0fdf4'; borderColor = '#16a34a'; textColor = '#15803d';
+          titel = 'Uitstekend — uw marge ligt boven het sectorgemiddelde';
+          vergelijk = `Uw marge: <strong>${marge.toFixed(1)}%</strong> &nbsp;•&nbsp; Sectortop ${sectorEl.value}: <strong>${normMax}%</strong> &nbsp;•&nbsp; U doet het beter dan de meeste concurrenten.`;
+        }
+        signaalBox.style.background     = bg;
+        signaalBox.style.borderColor    = borderColor;
+        document.getElementById('mc-signaal-icon').textContent  = icon;
+        document.getElementById('mc-signaal-titel').textContent = titel;
+        document.getElementById('mc-signaal-titel').style.color = textColor;
+        document.getElementById('mc-signaal-vergelijk').innerHTML = vergelijk;
+        document.getElementById('mc-signaal-vergelijk').style.color = textColor;
+        signaalBox.style.display = 'block';
+      }
+    } else if (signaalBox) {
+      signaalBox.style.display = 'none';
     }
 
     // Gemiste winst vs 30% norm + pijnblok €/jaar €/maand €/dag
