@@ -333,6 +333,53 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Marge Calculator</h2>
       <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Bereken direct uw marge en verbeterpotentieel</p>
       <div id="tools-marge-calculator" class="card">
+        <div id="tools-offerte-generator" class="card">
+  <div class="card-title">Offerte generator</div>
+
+  <div class="form-row cols2">
+    <div class="form-group">
+      <label class="form-label">Type project <span class="req">*</span></label>
+      <input id="og-project" class="form-input" placeholder="bijv. website, schilderwerk">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Sector <span class="req">*</span></label>
+      <select id="og-sector" class="form-select">
+        <option value="">— Kies sector —</option>
+        <option>Installatietechniek</option>
+        <option>Bouw & Aannemerij</option>
+        <option>Zakelijke dienstverlening</option>
+        <option>Horeca</option>
+        <option>ICT</option>
+        <option>ZZP / Freelance</option>
+        <option>Overig</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row cols2">
+    <div class="form-group">
+      <label class="form-label">Prijs (€) <span class="req">*</span></label>
+      <input id="og-prijs" class="form-input" type="number" placeholder="bijv. 2500">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Extra info</label>
+      <input id="og-extra" class="form-input" placeholder="bijv. oplevering 2 weken">
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:12px;">
+    <button class="btn btn-primary" onclick="Offerte.genereer()">📝 Genereer offerte</button>
+    <button class="btn btn-ghost" onclick="Offerte.kopieer()">📋 Kopieer</button>
+  </div>
+
+  <div id="og-status" style="font-size:13px;color:var(--green);margin-bottom:10px;"></div>
+
+  <div id="og-result" style="display:none;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;">
+    <div id="og-tekst" style="white-space:pre-wrap;font-size:14px;line-height:1.7;"></div>
+  </div>
+</div>
         <div class="card-title">Bereken uw marge</div>
         <div class="form-row cols2">
           <div class="form-group">
@@ -3580,6 +3627,73 @@ const MargeCalc = {
     }
   });
 })();
+  const Offerte = {
+
+  async genereer() {
+    const project = $('og-project')?.value?.trim();
+    const sector  = $('og-sector')?.value?.trim();
+    const prijs   = $('og-prijs')?.value?.trim();
+    const extra   = $('og-extra')?.value?.trim();
+
+    if (!project || !sector || !prijs) {
+      UI.warn('Vul alle verplichte velden in');
+      return;
+    }
+
+    const status = $('og-status');
+    const box    = $('og-result');
+    const tekst  = $('og-tekst');
+
+    status.textContent = 'Offerte wordt gegenereerd...';
+    box.style.display = 'none';
+
+    try {
+      const prompt = `
+Schrijf een professionele offerte in het Nederlands.
+
+Gegevens:
+Project: ${project}
+Sector: ${sector}
+Prijs: €${prijs}
+Extra: ${extra || 'geen'}
+
+Vereisten:
+- Zakelijk en overtuigend
+- Kort maar professioneel
+- Duidelijke prijsvermelding
+- Eindigen met call-to-action
+`;
+
+      const res = await API.call({
+        actie: 'analyseerTekst',
+        prompt
+      });
+
+      const output = res?.tekst || 'Geen resultaat ontvangen';
+
+      tekst.textContent = output;
+      box.style.display = 'block';
+      status.textContent = 'Offerte klaar';
+
+    } catch (e) {
+      status.textContent = '';
+      UI.error('Fout: ' + e.message);
+    }
+  },
+
+  kopieer() {
+    const txt = $('og-tekst')?.textContent;
+
+    if (!txt) {
+      UI.warn('Geen tekst om te kopiëren');
+      return;
+    }
+
+    navigator.clipboard.writeText(txt)
+      .then(() => UI.toast('Gekopieerd'))
+      .catch(() => UI.error('Kopiëren mislukt'));
+  }
+};
 </script>
 
 <div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1.1 live</div>
