@@ -250,8 +250,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-aanleveren" class="view">
     <div class="card" style="max-width:660px;margin:0 auto;">
       <div style="background:var(--blue);margin:-24px -24px 24px;padding:24px 24px 20px;border-radius:11px 11px 0 0;">
-        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:6px;">Zie binnen 2 minuten waar uw bedrijf winst laat liggen — en hoeveel dat kost</h2>
-        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Upload uw cijfers en ontvang direct inzicht in marge, kosten en verbeterkansen.</p>
+        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:6px;">De meeste installatiebedrijven laten €20.000–€80.000 per jaar liggen</h2>
+        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Ontdek waar dat in uw bedrijf gebeurt — binnen 2 minuten inzicht</p>
         <p id="form-intro" style="color:var(--blue-pale);font-size:13px;"></p>
       </div>
       <div style="background:#F0F7FF;border:1px solid #BFDBFE;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
@@ -270,7 +270,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         </div>
       </div>
       <div class="form-row cols2">
-        <div class="form-group"><label class="form-label">Type scan <span class="req">*</span></label><select id="f-scan-type" class="form-select"><option value="winst">Winstscan</option><option value="belasting">Belasting optimalisatie scan</option></select></div>
+        <div class="form-group"><label class="form-label">Type scan <span class="req">*</span></label><select id="f-scan-type" class="form-select"><option value="winst">Winstscan</option><option value="belasting">Fiscale optimalisatie analyse</option></select></div>
         <div class="form-group"><label class="form-label">Boekjaar <span class="req">*</span></label><select id="f-jaar" class="form-select"></select></div>
         <div class="form-group"><label class="form-label">E-mailadres</label><input id="f-email" type="email" class="form-input" autocomplete="off"></div>
       </div>
@@ -299,7 +299,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div style="font-weight:700;font-size:13px;color:var(--blue);margin-bottom:4px;">Wat ontvangt u?</div>
         <div id="form-wat" style="font-size:13px;color:var(--blue);line-height:1.7;"></div><div id="form-resultaat-extra" style="font-size:13px;color:var(--blue);line-height:1.8;margin-top:8px;"></div>
       </div>
-      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">Start gratis winstscan →</button>
+      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">Ontdek waar u winst verliest →</button>
     </div>
   </div>
 
@@ -1664,8 +1664,8 @@ const KlantApp={
     const fB=$('f-bedrijf');if(fB){fB.value=sessie.naam||'';fB.readOnly=true;}
     if(sessie.email)setVal('f-email',sessie.email);
     if(sessie.sector)setVal('f-sector',sessie.sector);
-    const intro={lead:'Upload uw jaarcijfers. U ontvangt binnen 3 werkdagen een persoonlijke gratis 1-pager.',doorlichting:'Upload uw jaarcijfers voor de Financiële Basisscan.',monitoring:'Lever uw maandelijkse cijfers aan voor uw begeleidingsrapport.'};
-    const wat={lead:'Een persoonlijke 1-pager met uw kerncijfers afgezet tegen de sectornorm — gratis, binnen 3 werkdagen.',doorlichting:'De Financiële Basisscan (€397 excl. BTW) — volledige oorzaakanalyse, concreet actieplan en trendanalyse. Binnen 5 werkdagen.',monitoring:'Uw begeleidingsrapport met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.'};
+    const intro={lead:'Upload uw jaarcijfers en zie binnen 3 werkdagen waar winst weglekt in uw bedrijf.',doorlichting:'Upload uw jaarcijfers voor de Financiële Basisscan.',monitoring:'Lever uw maandelijkse cijfers aan voor uw begeleidingsrapport.'};
+    const wat={lead:'Inzicht in marge per project, waar kosten uw rendement drukken en concrete verbeterkansen die direct toepasbaar zijn — gratis, binnen 3 werkdagen.',doorlichting:'De Financiële Basisscan (€397 excl. BTW) — volledige oorzaakanalyse, concreet actieplan en trendanalyse. Binnen 5 werkdagen.',monitoring:'Uw begeleidingsrapport met actuele kerncijfers en één concrete actie voor de komende periode. Binnen 3 werkdagen.'};
     const kt=sessie.klanttype||sessie.klantType||'lead';
     setTxt('form-intro',intro[kt]||'');setTxt('form-wat',wat[kt]||'');
     SectorCopy.apply(sessie.sector||$('f-sector')?.value||'algemeen');
@@ -1778,7 +1778,7 @@ const Conversie={
 
 const Formulier={
   _bezig:false,
-  reset(){['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Start gratis winstscan →';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none';Formulier._bezig=false;},
+  reset(){['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Ontdek waar u winst verliest →';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none';Formulier._bezig=false;},
   _ontvangenStaat(datum){const btn=$('f-submit');if(!btn)return;const kt=sessie?.klanttype||sessie?.klantType||'lead';const dagen=kt==='doorlichting'?'5':kt==='monitoring'?'3':'3';btn.textContent='Ontvangen op '+datum+' — uw rapport is binnen '+dagen+' werkdagen klaar';btn.classList.remove('btn-primary');btn.classList.add('btn-ghost');btn.style.cursor='default';btn.disabled=true;},
   async submit(){
     if(Formulier._bezig)return;Formulier._bezig=true;
@@ -1814,7 +1814,7 @@ const Formulier={
       const scanType = currentScanType();
       try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}\nType scan: ${scanType}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')});}catch(e){console.warn('EmailJS:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
-    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Start gratis winstscan →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
+    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Ontdek waar u winst verliest →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
   },
   async bestelBasiscan(){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
@@ -1837,8 +1837,8 @@ const Bestanden={
 // ─── SECTOR COPY & AI-CONTEXT ────────────────────────────────────────────────
 const SECTOR_CONTENT = {
   installatie: {
-    hero: "Zie binnen 2 minuten waar uw installatiebedrijf winst laat liggen — en hoeveel dat kost",
-    sub: "Ontdek waar marge verdwijnt in uw projecten, waar kosten oplopen en waar u direct kunt bijsturen.",
+    hero: "De meeste installatiebedrijven laten €20.000–€80.000 per jaar liggen",
+    sub: "Ontdek waar dat in uw bedrijf gebeurt — binnen 2 minuten inzicht",
     bullets: [
       "Waar uw marge onder druk staat",
       "Waar geld blijft hangen in uw projecten",
@@ -1847,18 +1847,18 @@ const SECTOR_CONTENT = {
     reportTitle: "Dit zijn de belangrijkste winstkansen in uw installatiebedrijf",
     upsell: "Wilt u exact weten wat deze kansen voor uw installatiebedrijf betekenen? Ontvang een volledige doorlichting met concrete verbeteracties.",
     pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Installatiebedrijven laten vaak €20.000 – €80.000 per jaar liggen zonder inzicht.",
+    impact: "Installatiebedrijven laten vaak €20.000–€80.000 per jaar liggen zonder dit te zien.",
     trustTitle: "Waarom installatiebedrijven dit gebruiken",
     trustBullets: [
       "Inzicht in marge per project",
       "Analyse van faalkosten en inefficiëntie",
       "Volledig vertrouwelijke verwerking van uw cijfers"
     ],
-    receives: "U ontvangt een persoonlijke winstscan met:",
+    receives: "Wat u ontvangt:",
     receivesBullets: [
-      "marge per project",
-      "inzicht in kosten die rendement drukken",
-      "concrete verbeterkansen per opdracht"
+      "inzicht in marge per project",
+      "waar kosten uw rendement drukken",
+      "concrete verbeterkansen die direct toepasbaar zijn"
     ]
   },
   bouw: {
@@ -1937,8 +1937,8 @@ const SECTOR_CONTENT = {
     ]
   },
   algemeen: {
-    hero: "Zie binnen 2 minuten waar uw bedrijf winst laat liggen — en hoeveel dat kost",
-    sub: "Upload uw cijfers en ontvang direct inzicht in marge, kosten en verbeterkansen.",
+    hero: "De meeste bedrijven laten jaarlijks tienduizenden euro's liggen",
+    sub: "Ontdek waar dat in uw bedrijf gebeurt — binnen 2 minuten inzicht",
     bullets: [
       "Waar uw marge onder druk staat",
       "Waar kosten onnodig oplopen",
@@ -1947,14 +1947,14 @@ const SECTOR_CONTENT = {
     reportTitle: "Dit zijn de belangrijkste winstkansen in uw bedrijf",
     upsell: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
     pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Veel bedrijven laten jaarlijks tienduizenden euro’s liggen zonder inzicht.",
+    impact: "Veel bedrijven laten jaarlijks tienduizenden euro’s liggen zonder dit te zien.",
     trustTitle: "Waarom ondernemers ons vertrouwen",
     trustBullets: [
       "Inzicht in marge, kosten en winstkansen",
       "Concreet en snel toepasbare verbeteracties",
       "Volledig vertrouwelijke verwerking van uw cijfers"
     ],
-    receives: "U ontvangt een persoonlijke winstscan met:",
+    receives: "Wat u ontvangt:",
     receivesBullets: [
       "inzicht in marge en kosten",
       "de grootste financiële verbeterkansen",
@@ -2088,9 +2088,11 @@ const SectorCopy = {
     const bullets = $('sector-bullets');
     if (bullets) bullets.innerHTML = (content.bullets || []).map(t => `<li>${UI.esc(t)}</li>`).join('');
     const wat = $('form-wat');
-    if (wat && content.receives) wat.textContent = content.receives;
+    if (wat) wat.textContent = content.receives || '';
     const extra = $('form-resultaat-extra');
-    if (extra) extra.innerHTML = (content.receivesBullets || []).map(t => `• ${UI.esc(t)}`).join('<br>');
+    if (extra) extra.innerHTML = (content.receivesBullets || [])
+      .map(t => `<div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:3px;"><span style="color:var(--green);flex-shrink:0;font-weight:700;">✓</span><span>${UI.esc(t)}</span></div>`)
+      .join('');
     const impact = $('sector-impact');
     if (impact) impact.textContent = content.impact;
     return content;
@@ -2936,10 +2938,10 @@ const Diensten = {
      levering:'Binnen 5 werkdagen',
      beschrijving:'Scan op alle subsidies en fiscale regelingen waar u recht op heeft maar nog niet van gebruik maakt. No cure no pay: u betaalt alleen een percentage van wat we vinden. Gemiddeld €8.000 per bedrijf.',
      sectoren:null},
-    {id:'fiscaal',       naam:'Fiscale Optimalisatie Scan',  prijs:'€297',   eenheid:'excl. BTW', icon:'🧾', kleur:'#1F4E79', kleurBg:'#D6E4F0',
-     sub:'DGA-salaris, investeringsaftrek — direct voordeel',
+    {id:'fiscaal',       naam:'Fiscale optimalisatie analyse',  prijs:'€297',   eenheid:'excl. BTW', icon:'🧾', kleur:'#1F4E79', kleurBg:'#D6E4F0',
+     sub:'Structureel belasting besparen — DGA-salaris, investeringsaftrek, btw-optimalisatie',
      levering:'Binnen 5 werkdagen',
-     beschrijving:'Analyse van uw fiscale structuur: DGA-salaris optimalisatie, investeringsaftrek (KIA/MIA), werkkostenregeling en btw-optimalisatie. Directe besparing in het lopende boekjaar.',
+     beschrijving:'Voor bedrijven die naast operationele winst ook fiscaal willen optimaliseren en structureel belasting willen besparen. Analyse van uw fiscale structuur: DGA-salaris optimalisatie, investeringsaftrek (KIA/MIA), werkkostenregeling en btw-optimalisatie. Directe besparing in het lopende boekjaar.',
      sectoren:null},
     {id:'inkoop',        naam:'Inkoopanalyse',               prijs:'€347',   eenheid:'excl. BTW', icon:'🛒', kleur:'#E67E22', kleurBg:'#FDEBD0',
      sub:'3 leveranciers heronderhandelen levert direct marge',
@@ -2964,7 +2966,7 @@ const Diensten = {
     'Bouw & Aannemerij':   {titel:'Bouw draait op marges — en die zijn dunner dan u denkt',   tekst:'Projectrisico\'s, stelposten en inleen vreten aan uw marge. De Offerte & Marge Stresstest en Personeelskosten Stresstest geven het meeste inzicht.', top:['offerte','personeel','cashflow']},
     'Transport & Logistiek':{titel:'Transport heeft structureel te maken met cashflow en brandstof', tekst:'Lange betaaltermijnen bij grote opdrachtgevers en stijgende brandstofkosten zijn de twee grootste risico\'s. Begin met de Cashflow Stresstest.', top:['cashflow','debiteuren','fiscaal']},
     'Groothandel':          {titel:'Groothandel laat geld liggen in inkoop en debiteuren',      tekst:'Inkoopvolumes zijn groot genoeg om te heronderhandelen. Debiteuren lopen snel op. De Inkoopanalyse en Debiteuren Stresstest leveren direct resultaat.', top:['inkoop','debiteuren','cashflow']},
-    'Zakelijke dienstverlening':{titel:'Dienstverleners missen vaak subsidie en fiscale voordelen', tekst:'WBSO, innovatiebox en werkkostenregeling bieden veel mogelijkheden. De Subsidie Scan en Fiscale Optimalisatie Scan betalen zich snel terug.', top:['subsidie','fiscaal','personeel']},
+    'Zakelijke dienstverlening':{titel:'Dienstverleners missen vaak subsidie en fiscale voordelen', tekst:'WBSO, innovatiebox en werkkostenregeling bieden veel mogelijkheden. De Subsidie Scan en Fiscale optimalisatie analyse betalen zich snel terug.', top:['subsidie','fiscaal','personeel']},
   },
 
   async laad() {
