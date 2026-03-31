@@ -3626,17 +3626,20 @@ const MargeCalc = {
       const _mv=document.getElementById('view-marge');if(_mv)_mv.classList.add('active');
     }
   });
-})();
-  const Offerte = {
+const Offerte = {
 
   async genereer() {
-    const project = $('og-project')?.value?.trim();
-    const sector  = $('og-sector')?.value?.trim();
-    const prijs   = $('og-prijs')?.value?.trim();
-    const extra   = $('og-extra')?.value?.trim();
+    const klant   = $('og-klant')?.value?.trim() || '';
+    const bedrijf = $('og-bedrijf')?.value?.trim() || '';
+    const project = $('og-project')?.value?.trim() || '';
+    const sector  = $('og-sector')?.value?.trim() || '';
+    const prijs   = $('og-prijs')?.value?.trim() || '';
+    const extra   = $('og-extra')?.value?.trim() || '';
+    const stijl   = $('og-stijl')?.value?.trim() || 'zakelijk';
+    const doel    = $('og-doel')?.value?.trim() || 'standaard';
 
     if (!project || !sector || !prijs) {
-      UI.warn('Vul alle verplichte velden in');
+      UI.warn('Vul projecttype, sector en prijs in');
       return;
     }
 
@@ -3646,22 +3649,51 @@ const MargeCalc = {
 
     status.textContent = 'Offerte wordt gegenereerd...';
     box.style.display = 'none';
+    tekst.textContent = '';
 
     try {
+      const stijlUitleg = {
+        zakelijk: 'Schrijf helder, professioneel en betrouwbaar.',
+        warm: 'Schrijf professioneel maar ook warm, menselijk en toegankelijk.',
+        sales: 'Schrijf overtuigend, resultaatgericht en commercieel sterk zonder opdringerig te zijn.'
+      };
+
+      const doelUitleg = {
+        standaard: 'Maak een normale, nette offerte.',
+        'snelle-close': 'Maak de tekst zo dat de kans op snel akkoord hoger wordt.',
+        premium: 'Positioneer de aanbieding als kwalitatief en waardevol, niet als goedkoop.'
+      };
+
       const prompt = `
-Schrijf een professionele offerte in het Nederlands.
+Schrijf een kant-en-klare offerte in het Nederlands.
 
 Gegevens:
-Project: ${project}
-Sector: ${sector}
-Prijs: €${prijs}
-Extra: ${extra || 'geen'}
+- Klantnaam: ${klant || 'niet opgegeven'}
+- Bedrijfsnaam klant: ${bedrijf || 'niet opgegeven'}
+- Type project: ${project}
+- Sector: ${sector}
+- Prijs: €${prijs}
+- Extra info: ${extra || 'geen'}
+- Gewenste stijl: ${stijl}
+- Gewenst doel: ${doel}
+
+Instructies:
+${stijlUitleg[stijl]}
+${doelUitleg[doel]}
 
 Vereisten:
-- Zakelijk en overtuigend
-- Kort maar professioneel
-- Duidelijke prijsvermelding
-- Eindigen met call-to-action
+- Gebruik duidelijke professionele taal
+- Begin met een korte persoonlijke opening
+- Beschrijf kort wat er geleverd wordt
+- Benoem de prijs duidelijk en zelfverzekerd
+- Sluit af met een logische call-to-action
+- Maak het direct bruikbaar om te versturen
+- Geen markdown
+- Geen opsommingstekens
+- Geen uitleg vooraf of achteraf
+- Alleen de offerte zelf
+
+Als klantnaam of bedrijfsnaam ontbreekt, schrijf dan alsnog natuurlijk.
 `;
 
       const res = await API.call({
@@ -3669,12 +3701,11 @@ Vereisten:
         prompt
       });
 
-      const output = res?.tekst || 'Geen resultaat ontvangen';
-
+      const output = res?.tekst || res?.resultaat || 'Geen resultaat ontvangen.';
       tekst.textContent = output;
       box.style.display = 'block';
       status.textContent = 'Offerte klaar';
-
+      UI.toast('Offerte gegenereerd');
     } catch (e) {
       status.textContent = '';
       UI.error('Fout: ' + e.message);
@@ -3682,7 +3713,7 @@ Vereisten:
   },
 
   kopieer() {
-    const txt = $('og-tekst')?.textContent;
+    const txt = $('og-tekst')?.textContent?.trim();
 
     if (!txt) {
       UI.warn('Geen tekst om te kopiëren');
@@ -3690,10 +3721,11 @@ Vereisten:
     }
 
     navigator.clipboard.writeText(txt)
-      .then(() => UI.toast('Gekopieerd'))
+      .then(() => UI.toast('Offerte gekopieerd'))
       .catch(() => UI.error('Kopiëren mislukt'));
   }
-};
+};  
+})();
 </script>
 
 <div style="position:fixed;bottom:10px;left:10px;font-size:11px;color:#888;z-index:9999;background:rgba(255,255,255,.88);padding:4px 8px;border-radius:6px;border:1px solid #ddd;">v3.1.1 live</div>
