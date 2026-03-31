@@ -327,60 +327,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-diensten" class="view">
     <div id="diensten-inhoud"></div>
   </div>
-
   <div id="view-tools" class="view">
-    <div class="page" style="max-width:640px;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Marge Calculator</h2>
-      <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Bereken direct uw marge en verbeterpotentieel</p>
-      <div id="tools-marge-calculator" class="card">
-        <div id="tools-offerte-generator" class="card">
-  <div class="card-title">Offerte generator</div>
+  <div class="page" style="max-width:640px;">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:6px;">Tools</h2>
+    <p style="color:var(--mid);font-size:14px;margin-bottom:24px;">Berekeningen en slimme tools</p>
 
-  <div class="form-row cols2">
-    <div class="form-group">
-      <label class="form-label">Type project <span class="req">*</span></label>
-      <input id="og-project" class="form-input" placeholder="bijv. website, schilderwerk">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Sector <span class="req">*</span></label>
-      <select id="og-sector" class="form-select">
-        <option value="">— Kies sector —</option>
-        <option>Installatietechniek</option>
-        <option>Bouw & Aannemerij</option>
-        <option>Zakelijke dienstverlening</option>
-        <option>Horeca</option>
-        <option>ICT</option>
-        <option>ZZP / Freelance</option>
-        <option>Overig</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="form-row cols2">
-    <div class="form-group">
-      <label class="form-label">Prijs (€) <span class="req">*</span></label>
-      <input id="og-prijs" class="form-input" type="number" placeholder="bijv. 2500">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Extra info</label>
-      <input id="og-extra" class="form-input" placeholder="bijv. oplevering 2 weken">
-    </div>
-  </div>
-
-  <div style="display:flex;gap:10px;margin-bottom:12px;">
-    <button class="btn btn-primary" onclick="Offerte.genereer()">📝 Genereer offerte</button>
-    <button class="btn btn-ghost" onclick="Offerte.kopieer()">📋 Kopieer</button>
-  </div>
-
-  <div id="og-status" style="font-size:13px;color:var(--green);margin-bottom:10px;"></div>
-
-  <div id="og-result" style="display:none;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;">
-    <div id="og-tekst" style="white-space:pre-wrap;font-size:14px;line-height:1.7;"></div>
-  </div>
-</div>
-        <div class="card-title">Bereken uw marge</div>
+    <!-- MARGE CALCULATOR -->
+    <div id="tools-marge-calculator" class="card">
+      <div class="card-title">Bereken uw marge</div>
         <div class="form-row cols2">
           <div class="form-group">
             <label class="form-label">Omzet (€) <span class="req">*</span></label>
@@ -426,7 +380,88 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
     </div>
   </div>
+<div id="tools-offerte-generator" class="card">
+  <div class="card-title">Offerte generator</div>
 
+  <div class="form-row cols2">
+    <div class="form-group">
+      <label class="form-label">Klantnaam</label>
+      <input id="og-klant" class="form-input" placeholder="bijv. Jan de Vries">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Bedrijfsnaam klant</label>
+      <input id="og-bedrijf" class="form-input" placeholder="bijv. De Vries Bouw">
+    </div>
+  </div>
+
+  <div class="form-row cols2">
+    <div class="form-group">
+      <label class="form-label">Type project <span class="req">*</span></label>
+      <input id="og-project" class="form-input" placeholder="bijv. website, schilderwerk, onderhoud">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Sector <span class="req">*</span></label>
+      <select id="og-sector" class="form-select">
+        <option value="">— Kies sector —</option>
+        <option>Installatietechniek</option>
+        <option>Bouw & Aannemerij</option>
+        <option>Zakelijke dienstverlening</option>
+        <option>Horeca</option>
+        <option>ICT</option>
+        <option>ZZP / Freelance</option>
+        <option>Overig</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row cols2">
+    <div class="form-group">
+      <label class="form-label">Prijs (€) <span class="req">*</span></label>
+      <input id="og-prijs" class="form-input" type="number" min="0" placeholder="bijv. 2500">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Extra info</label>
+      <input id="og-extra" class="form-input" placeholder="bijv. oplevering 2 weken, incl. support">
+    </div>
+  </div>
+
+  <div class="form-row cols2">
+    <div class="form-group">
+      <label class="form-label">Stijl</label>
+      <select id="og-stijl" class="form-select">
+        <option value="zakelijk">Zakelijk</option>
+        <option value="warm">Warm & persoonlijk</option>
+        <option value="sales">Commercieel sterk</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Doel</label>
+      <select id="og-doel" class="form-select">
+        <option value="standaard">Standaard offerte</option>
+        <option value="snelle-close">Sneller akkoord krijgen</option>
+        <option value="premium">Premium positionering</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <button class="btn btn-primary" onclick="Offerte.genereer()">📝 Genereer offerte</button>
+    <button class="btn btn-ghost" onclick="Offerte.kopieer()">📋 Kopieer</button>
+  </div>
+
+  <div id="og-status" style="font-size:13px;color:var(--green);margin-bottom:10px;"></div>
+
+  <div id="og-result" style="display:none;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;">
+    <div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">
+      Gegenereerde offerte
+    </div>
+    <div id="og-tekst" style="white-space:pre-wrap;font-size:14px;line-height:1.75;color:#1F2937;"></div>
+  </div>
+</div>
   <!-- ── PUBLIEKE SEO PAGINA: /tools/marge ──────────────────────────────── -->
   <div id="view-marge" class="view">
     <div style="max-width:640px;margin:0 auto;padding:32px 24px;">
