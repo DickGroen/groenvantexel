@@ -457,6 +457,8 @@ const API = {
 // ─── DOSSIER STATUS HELPER ────────────────────────────────────────────────────
 const DossierStatus = {
   async lijst() {
+    // Geen JWT = niet ingelogd, vermijd 401 door geen call te doen
+    if (!sessionStorage.getItem('gvt_jwt')) return [];
     try {
       const d = await API.call({actie: 'getDossiers'});
       return Array.isArray(d) ? d : [];
@@ -467,6 +469,7 @@ const DossierStatus = {
   },
 
   async get(bedrijf) {
+    if (!sessionStorage.getItem('gvt_jwt')) return null;
     try {
       const d = await API.call({actie: 'getDossier', bedrijf});
       return d?.bedrijf ? d : null;
