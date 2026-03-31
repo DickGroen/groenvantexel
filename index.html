@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Groen van Texel v3.1.1 — Financieel Platform</title>
+<title>Marge berekenen (gratis tool) — bereken uw winst in 10 seconden | Groen van Texel</title>
+<meta name="description" content="Bereken direct uw marge en winst in euro's. Gratis marge calculator voor ondernemers — ontdek of uw marge gezond is en waar winst blijft liggen.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://groenvan texel.nl/tools/marge">
+<meta property="og:title" content="Marge berekenen (gratis tool) — bereken uw winst in 10 seconden">
+<meta property="og:description" content="Bereken direct uw marge en winst in euro's. Gratis tool voor ondernemers.">
+<meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -374,6 +380,47 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
     </div>
   </div>
+
+  <!-- ── PUBLIEKE SEO PAGINA: /tools/marge ──────────────────────────────── -->
+  <div id="view-marge" class="view">
+    <div style="max-width:640px;margin:0 auto;padding:32px 24px;">
+      <h1 style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--blue);margin-bottom:10px;line-height:1.3;">Marge berekenen (gratis tool) — bereken uw winst in 10 seconden</h1>
+      <p style="color:var(--mid);font-size:15px;line-height:1.75;margin-bottom:12px;">Veel bedrijven denken dat ze winst maken, maar laten ongemerkt geld liggen in hun marge. Met deze tool berekent u direct:</p>
+      <ul style="color:var(--mid);font-size:15px;line-height:2.1;margin-bottom:12px;padding-left:20px;"><li>uw winst in euro's</li><li>uw marge percentage</li><li>en of deze gezond is</li></ul>
+      <p style="color:var(--mid);font-size:14px;margin-bottom:28px;">In veel gevallen ligt de werkelijke marge 5–15% lager dan gedacht.</p>
+      <div class="card">
+        <div class="card-title">Bereken uw marge</div>
+        <div class="form-row cols2">
+          <div class="form-group"><label class="form-label">Omzet (€) <span class="req">*</span></label><input id="mc-omzet" class="form-input" type="number" min="0" placeholder="bijv. 500000" oninput="MargeCalc.bereken()"></div>
+          <div class="form-group"><label class="form-label">Kosten (€) <span class="req">*</span></label><input id="mc-kosten" class="form-input" type="number" min="0" placeholder="bijv. 420000" oninput="MargeCalc.bereken()"></div>
+        </div>
+        <div class="form-row" style="max-width:300px;">
+          <div class="form-group"><label class="form-label">Uren per jaar (optioneel)</label><input id="mc-uren" class="form-input" type="number" min="0" placeholder="bijv. 2000" oninput="MargeCalc.bereken()"></div>
+        </div>
+        <div id="mc-resultaat" style="display:none;margin-top:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:var(--blue-pale);border-radius:10px;padding:16px 20px;"><div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Winst</div><div id="mc-winst" style="font-size:26px;font-weight:800;color:var(--blue);">—</div></div>
+            <div style="background:var(--green-pale);border-radius:10px;padding:16px 20px;"><div style="font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Marge %</div><div id="mc-marge" style="font-size:26px;font-weight:800;color:var(--green);">—</div></div>
+          </div>
+          <div id="mc-uurloon-box" style="display:none;background:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:12px;"><span style="font-size:12px;color:var(--mid);">Omzet per uur: </span><strong id="mc-uurloon" style="color:var(--blue);font-size:13px;">—</strong></div>
+          <div id="mc-interpretatie" style="border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;font-weight:600;line-height:1.6;"></div>
+          <div id="mc-gemist-box" style="display:none;background:var(--orange-pale);border:1px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:20px;"><div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Verbeterpotentieel</div><div id="mc-gemist" style="font-size:15px;font-weight:700;color:var(--orange);"></div></div>
+          <div style="background:linear-gradient(135deg,#1F4E79,#2E75B6);border-radius:12px;padding:22px 24px;text-align:center;">
+            <div style="color:rgba(255,255,255,.9);font-size:14px;font-weight:700;margin-bottom:6px;">Uw marge is een indicatie — in uw cijfers zit vaak meer verborgen</div>
+            <div style="color:var(--blue-pale);font-size:13px;margin-bottom:16px;line-height:1.6;">Deze berekening geeft een eerste inzicht. In de praktijk zien we dat bedrijven vaak meerdere winstlekken hebben die hier niet zichtbaar zijn.</div>
+            <button onclick="MargeCalc.naarScan()" style="background:#fff;color:#1F4E79;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:800;cursor:pointer;width:100%;margin-bottom:8px;">Bekijk waar u écht winst laat liggen →</button>
+            <div style="color:rgba(255,255,255,.6);font-size:12px;">Gratis scan • direct inzicht in € impact</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--blue);margin-bottom:12px;">Wat is een goede marge?</h2>
+        <p style="color:var(--mid);font-size:14px;line-height:1.85;">Een gezonde marge ligt in veel sectoren tussen de 20% en 40%. Onder de 20% ontstaat vaak druk op winst, terwijl hogere marges ruimte geven voor groei en tegenvallers.</p>
+        <p style="color:var(--mid);font-size:14px;line-height:1.85;margin-top:10px;">Belangrijk is niet alleen de marge op papier, maar wat er daadwerkelijk overblijft na kosten, inefficiëntie en werkkapitaal.</p>
+      </div>
+    </div>
+  </div>
+  <!-- ── EINDE PUBLIEKE PAGINA ─────────────────────────────────────────────── -->
 
   <div id="view-monitoring" class="view">
     <div id="mon-admin" style="display:none;">
@@ -3514,7 +3561,23 @@ const MargeCalc = {
     laad.id='init-laad';laad.style.cssText='color:#9dc3e6;font-size:13px;margin-top:8px;';
     laad.textContent='Verbinden...';loginBox.appendChild(laad);
   }
-  Auth.herstelSessie().finally(()=>{const l=document.getElementById('init-laad');if(l)l.remove();});
+  // Publieke route: /tools/marge (geen login vereist)
+  const _pad=window.location.pathname.replace(/\/+$/,'');
+  if(_pad==='/tools/marge'||window.location.hash==='#tools/marge'){
+    const _ov=document.getElementById('login-overlay');if(_ov)_ov.style.display='none';
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    const _mv=document.getElementById('view-marge');if(_mv)_mv.classList.add('active');
+    const l=document.getElementById('init-laad');if(l)l.remove();
+  } else {
+    Auth.herstelSessie().finally(()=>{const l=document.getElementById('init-laad');if(l)l.remove();});
+  }
+  window.addEventListener('hashchange',function(){
+    if(window.location.hash==='#tools/marge'){
+      const _ov=document.getElementById('login-overlay');if(_ov)_ov.style.display='none';
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      const _mv=document.getElementById('view-marge');if(_mv)_mv.classList.add('active');
+    }
+  });
 })();
 </script>
 
