@@ -3650,8 +3650,15 @@ const Monitoring = {
     laad.id='init-laad';laad.style.cssText='color:#9dc3e6;font-size:13px;margin-top:8px;';
     laad.textContent='Verbinden...';loginBox.appendChild(laad);
   }
-  Auth.herstelSessie().finally(()=>{const l=document.getElementById('init-laad');if(l)l.remove();});
-  // Toon landing direct als niet ingelogd
+  Auth.herstelSessie().finally(()=>{
+    const l=document.getElementById('init-laad');if(l)l.remove();
+    // Als herstelSessie niets heeft opgezet (geen sessie), toon landing
+    if(!sessie){
+      hide('login-overlay');
+      Nav.ga('aanleveren');
+    }
+  });
+  // Toon landing direct als er zeker geen JWT is (voorkomt blanco scherm)
   if(!sessionStorage.getItem('gvt_jwt')){
     hide('login-overlay');
     Nav.ga('aanleveren');
