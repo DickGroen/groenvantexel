@@ -218,7 +218,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
       <div id="bs-prev-inhoud"></div>
     </div>
-    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div><div id="rapport-soft-cta" style="margin-top:16px;background:linear-gradient(135deg,#1E8449,#27AE60);border-radius:12px;padding:20px 22px;color:#fff;display:none;"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:.75;font-weight:700;margin-bottom:8px;">Vervolgstap</div><div style="font-size:18px;font-weight:800;line-height:1.3;margin-bottom:10px;">Blijf niet achteraf corrigeren — stuur maandelijks bij</div><div id="rapport-soft-cta-text" style="font-size:13px;line-height:1.7;opacity:.95;margin-bottom:14px;">Met doorlopende begeleiding ziet u eerder waar marge wegvalt, waar kosten oplopen en waar u direct moet ingrijpen.</div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,.14);padding:12px 16px;border-radius:8px;margin-bottom:14px;"><div style="font-size:13px;font-weight:700;">Doorlopende begeleiding</div><div style="font-size:22px;font-weight:800;color:#FFD700;">€249<span style="font-size:12px;font-weight:500;color:rgba(255,255,255,.8)"> per maand</span></div></div><button id="rapport-soft-cta-btn" onclick="Conversie.aanvraagMonitoring()" style="width:100%;border:none;border-radius:10px;padding:14px 16px;background:#fff;color:#1E8449;font-size:15px;font-weight:800;cursor:pointer;">Start begeleiding →</button><div style="text-align:center;margin-top:8px;font-size:11px;opacity:.8;">Maandelijks opzegbaar — geen verplichtingen</div></div></div>
+    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div><div id="rapport-soft-cta" style="margin-top:16px;background:linear-gradient(150deg,#162F4A 0%,#1A5C38 60%,#21963F 100%);border-radius:12px;padding:22px 24px;color:#fff;display:none;"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:10px;">Vervolgstap — Doorlopende begeleiding</div><div style="font-size:18px;font-weight:900;line-height:1.3;margin-bottom:10px;">Zonder maandelijkse sturing verdwijnt deze winst weer</div><div id="rapport-soft-cta-text" style="font-size:13px;line-height:1.7;color:rgba(255,255,255,.9);margin-bottom:12px;">U ziet nu waar uw winst weglekt. Maar zonder structurele opvolging sluipt dit er gewoon weer in. Marges dalen langzaam. Kosten lopen op. U merkt het pas als het al maanden fout gaat.</div><div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;font-size:12px;"><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Maandelijks signaal: problemen vóórdat ze groot worden</span></div><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Directe bijsturing op marge, kosten en cashflow</span></div><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Concrete actie per maand — geen rapporten die in een la belanden</span></div></div><div style="background:rgba(0,0,0,.2);border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;"><div style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;">Klein t.o.v. de winst die u beschermt.<br><span style="color:#FFD700;font-weight:700;">Gemiddeld €10k–€50k/jaar gevonden.</span></div><div style="text-align:right;"><div style="font-size:11px;color:rgba(255,255,255,.55);">per maand</div><div style="font-size:24px;font-weight:900;color:#FFD700;">€249</div><div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:3px;">Vaak al terugverdiend met 1 verbetering</div></div></div><button id="rapport-soft-cta-btn" onclick="Conversie.aanvraagMonitoring()" style="width:100%;border:none;border-radius:10px;padding:14px 16px;background:#fff;color:#1A5C38;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);">Houd grip op mijn winst →</button><div style="text-align:center;margin-top:8px;font-size:11px;color:rgba(255,255,255,.5);">Maandelijks opzegbaar · geen verplichtingen · direct inzicht</div></div></div>
     <div id="klant-basisscan" style="display:none;">
       <div id="klant-basisscan-inhoud"></div>
       <div style="text-align:center;margin-top:20px;padding-bottom:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
@@ -274,32 +274,53 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
         <div class="form-group"><label class="form-label">Boekjaar <span class="req">*</span></label><select id="f-jaar" class="form-select"></select></div>
         <div class="form-group"><label class="form-label">E-mailadres</label><input id="f-email" type="email" class="form-input" autocomplete="off"></div>
       </div>
-      <div style="margin-bottom:14px;">
-        <div class="form-label" style="margin-bottom:7px;">V&amp;W — laatste jaar <span class="req">*</span></div>
-        <label class="file-zone"><input type="file" id="f-vw1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen (.pdf of .xlsx)</label>
-        <div id="f-vw1-naam" class="file-ok"></div>
-        <div style="font-size:11px;color:var(--light);margin-top:3px;">Exporteer uit uw boekhoudprogramma als PDF of Excel.</div>
-      </div>
-      <div style="margin-bottom:14px;">
-        <div class="form-label" style="margin-bottom:7px;">Balans — laatste jaar <span class="req">*</span></div>
-        <label class="file-zone"><input type="file" id="f-balans1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
-        <div id="f-balans1-naam" class="file-ok"></div>
-      </div>
-      <div style="margin-bottom:14px;">
-        <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans — jaar daarvoor <span style="color:var(--light);font-weight:400;">(aanbevolen voor trendanalyse)</span></div>
-        <label class="file-zone"><input type="file" id="f-jaar2" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
-        <div id="f-jaar2-naam" class="file-ok"></div>
-      </div>
-      <div style="margin-bottom:20px;">
-        <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans — twee jaar geleden <span style="color:var(--light);font-weight:400;">(optioneel)</span></div>
-        <label class="file-zone"><input type="file" id="f-jaar3" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
-        <div id="f-jaar3-naam" class="file-ok"></div>
+      <div id="f-uploads-sectie" style="display:none;">
+        <div style="display:flex;gap:0;margin-bottom:18px;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+          <div style="flex:1;padding:11px 10px;background:#f9fbfa;text-align:center;border-right:1px solid var(--border);">
+            <div style="font-size:18px;margin-bottom:3px;">📤</div>
+            <div style="font-size:11px;font-weight:700;color:var(--blue);">1. Upload cijfers</div>
+            <div style="font-size:10px;color:var(--light);margin-top:2px;">V&amp;W + balans</div>
+          </div>
+          <div style="flex:1;padding:11px 10px;background:#f9fbfa;text-align:center;border-right:1px solid var(--border);">
+            <div style="font-size:18px;margin-bottom:3px;">🔍</div>
+            <div style="font-size:11px;font-weight:700;color:var(--blue);">2. Wij analyseren</div>
+            <div style="font-size:10px;color:var(--light);margin-top:2px;">binnen 3 werkdagen</div>
+          </div>
+          <div style="flex:1;padding:11px 10px;background:#f9fbfa;text-align:center;">
+            <div style="font-size:18px;margin-bottom:3px;">💶</div>
+            <div style="font-size:11px;font-weight:700;color:var(--blue);">3. U ziet uw winst</div>
+            <div style="font-size:10px;color:var(--light);margin-top:2px;">persoonlijk rapport</div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div class="form-label" style="margin-bottom:7px;">V&amp;W — laatste jaar <span style="font-size:10px;font-weight:400;color:var(--light);">(optioneel — later aanleveren kan ook)</span></div>
+          <label class="file-zone"><input type="file" id="f-vw1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen (.pdf of .xlsx)</label>
+          <div id="f-vw1-naam" class="file-ok"></div>
+          <div style="font-size:11px;color:var(--light);margin-top:3px;">Exporteer uit uw boekhoudprogramma als PDF of Excel.</div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div class="form-label" style="margin-bottom:7px;">Balans — laatste jaar <span style="font-size:10px;font-weight:400;color:var(--light);">(optioneel)</span></div>
+          <label class="file-zone"><input type="file" id="f-balans1" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
+          <div id="f-balans1-naam" class="file-ok"></div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans — jaar daarvoor <span style="color:var(--light);font-weight:400;">(aanbevolen voor trendanalyse)</span></div>
+          <label class="file-zone"><input type="file" id="f-jaar2" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
+          <div id="f-jaar2-naam" class="file-ok"></div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div class="form-label" style="margin-bottom:7px;">V&amp;W + Balans — twee jaar geleden <span style="color:var(--light);font-weight:400;">(optioneel)</span></div>
+          <label class="file-zone"><input type="file" id="f-jaar3" accept=".pdf,.xlsx,.xls">📎 Bestand kiezen</label>
+          <div id="f-jaar3-naam" class="file-ok"></div>
+        </div>
+        <div style="font-size:11px;color:var(--mid);text-align:center;margin-bottom:16px;line-height:1.6;">✔ Alleen voor analyse &nbsp;•&nbsp; niet gedeeld met derden &nbsp;•&nbsp; volledig vertrouwelijk</div>
       </div>
       <div style="background:linear-gradient(135deg,#E8F5EC,#EBF4FF);border-radius:8px;padding:14px 16px;margin-bottom:20px;border:1px solid #A3CCB5;">
         <div style="font-weight:700;font-size:13px;color:var(--blue);margin-bottom:4px;">Wat ontvangt u?</div>
         <div id="form-wat" style="font-size:13px;color:var(--blue);line-height:1.7;"></div><div id="form-resultaat-extra" style="font-size:13px;color:var(--blue);line-height:1.8;margin-top:8px;"></div>
       </div>
-      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">Ontdek waar u winst verliest →</button>
+      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">Ja, ik wil mijn verborgen winst zien →</button>
+      <div style="text-align:center;margin-top:6px;font-size:11px;color:var(--light);">Duurt ±2 minuten</div>
       <div id="f-micro-belofte" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:var(--green);font-weight:600;">✓ Ontvangen — u krijgt uw 1-pager uiterlijk over 3 werkdagen</div>
     </div>
   </div>
@@ -371,27 +392,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   </div>
 </div>
 <!-- CONVERSIE MODAL -->
-<div id="conv-modal" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.7);z-index:9500;align-items:center;justify-content:center;padding:20px;">
-  <div id="conv-modal-box" style="background:#fff;border-radius:16px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3);">
-    <div style="background:linear-gradient(135deg,#1A3F6F,#2563EB);padding:24px 28px;">
-      <div style="color:rgba(255,255,255,.55);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Financiëele Basisscan &mdash; &euro;397 excl. BTW</div>
-      <div style="color:#fff;font-size:20px;font-weight:800;line-height:1.3;" id="conv-modal-titel">U laat aantoonbaar geld liggen &mdash; haal het terug</div>
+<div id="conv-modal" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.75);z-index:9500;align-items:center;justify-content:center;padding:20px;">
+  <div id="conv-modal-box" style="background:#fff;border-radius:16px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);">
+    <div style="background:linear-gradient(135deg,#162F4A,#1A5C38);padding:22px 28px;">
+      <div style="color:rgba(255,255,255,.5);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Financiële Basisscan — €397 excl. BTW</div>
+      <div style="color:#fff;font-size:21px;font-weight:900;line-height:1.25;" id="conv-modal-titel">U laat aantoonbaar geld liggen — haal het terug</div>
+      <div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:8px;line-height:1.5;">De 1-pager geeft signalen. De Basisscan geeft antwoorden — en een actieplan.</div>
     </div>
-    <div style="padding:22px 28px;">
-      <div style="font-size:14px;color:#333;line-height:1.7;margin-bottom:16px;" id="conv-modal-tekst" style="font-size:14px;line-height:1.6;margin-bottom:16px;">
-U ziet zo direct waar uw webshop winst laat liggen.<br><br>
-Maar zonder verdieping mist u:
-</div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-1" style="font-size:13px;font-weight:600;">• welke producten structureel verlies maken</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-2" style="font-size:13px;font-weight:600;">• waar advertentiebudget niet rendeert (ROAS)</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="color:#1E8449;font-size:15px;flex-shrink:0;">&#10003;</span><span id="conv-modal-bullet-3" style="font-size:13px;font-weight:600;">• waar retouren uw marge uithollen</span></div>
+    <div style="padding:20px 28px;">
+      <div style="font-size:13px;color:#444;line-height:1.7;margin-bottom:14px;border-left:3px solid #E67E22;padding-left:12px;background:#FFFBF5;padding:10px 12px;border-radius:0 6px 6px 0;" id="conv-modal-tekst">U heeft zojuist gezien <em>dat</em> er winst weglekt. De Basisscan laat zien <strong>waar precies</strong>, <strong>waarom</strong> en <strong>wat u morgen kunt doen</strong>.</div>
+      <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Wat de Basisscan toevoegt:</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-1" style="font-size:13px;color:#222;line-height:1.5;">welke projecten of kostenposten structureel verlies draaien</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-2" style="font-size:13px;color:#222;line-height:1.5;">waar marge weglekt zonder dat u het ziet</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-3" style="font-size:13px;color:#222;line-height:1.5;">concrete acties met verwacht eurobedrag per actie</span></div>
       </div>
-      <button id="conv-modal-cta" onclick="Conversie.bevestigBasiscan()" style="background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:900;cursor:pointer;width:100%;margin-bottom:10px;box-shadow:0 6px 18px rgba(22,163,74,.28);">
-        Ontvang uw winstscan &mdash; €397
+      <div style="background:#F0FDF4;border:1px solid #A3CCB5;border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div style="font-size:12px;color:#1A5C38;line-height:1.5;"><strong>Gemiddeld gevonden verbeterpotentieel:</strong><br>€10.000–€50.000 per jaar</div>
+        <div style="text-align:right;white-space:nowrap;"><div style="font-size:11px;color:#888;margin-bottom:1px;">investering</div><div style="font-size:18px;font-weight:800;color:#1A7A42;">€397</div></div>
+      </div>
+      <button id="conv-modal-cta" onclick="Conversie.bevestigBasiscan()" style="background:linear-gradient(135deg,#1A7A42,#21963F);color:#fff;border:none;border-radius:10px;padding:15px 16px;font-size:15px;font-weight:900;cursor:pointer;width:100%;margin-bottom:8px;box-shadow:0 4px 14px rgba(26,122,66,.35);letter-spacing:.2px;">
+        Haal mijn gemiste winst terug →
       </button>
-      <div id="conv-modal-impact" style="font-size:11px;color:#888;text-align:center;margin-bottom:8px;">eenmalig • geen abonnement • direct toepasbaar</div>
-      <button onclick="UI.sluitModal()" style="background:none;border:none;color:#aaa;font-size:12px;cursor:pointer;width:100%;padding:4px;">Nee, ik laat dit geld liggen</button>
+      <div id="conv-modal-impact" style="font-size:11px;color:#888;text-align:center;margin-bottom:10px;">eenmalig &nbsp;·&nbsp; geen verplichtingen &nbsp;·&nbsp; direct toepasbaar &nbsp;·&nbsp; binnen 5 werkdagen</div>
+      <button onclick="UI.sluitModal()" style="background:none;border:none;color:#bbb;font-size:11px;cursor:pointer;width:100%;padding:4px;">Nee, ik laat dit geld liggen</button>
     </div>
   </div>
 </div>
@@ -1624,18 +1648,21 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
     const prev=$('bs-prev-inhoud');if(!prev)return;
     const upsell=document.createElement('div');
     upsell.id='bs-upsell-box';
-    upsell.innerHTML='<div style="background:linear-gradient(135deg,#1E8449,#27AE60);border-radius:10px;padding:22px 24px;margin-top:16px;">'
-      +'<div style="color:rgba(255,255,255,.7);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:6px;">Volgende stap</div>'
-      +'<div style="color:#fff;font-size:17px;font-weight:800;margin-bottom:8px;">Bewaken wat we gevonden hebben — maandelijks</div>'
-      +'<p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.7;margin:0 0 16px;">Met doorlopende begeleiding op uw cijfers voorkomt u dat winst weglekt en houdt u grip op uw resultaat.</p>'
-      +'<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:rgba(255,255,255,.75);margin-bottom:18px;">'
-      +'<span>✓ Inzicht waar u moet bijsturen</span><span>·</span><span>✓ Concrete acties per periode</span><span>·</span><span>✓ Geen verrassingen achteraf</span>'
+    upsell.innerHTML='<div style="background:linear-gradient(150deg,#162F4A 0%,#1A5C38 60%,#21963F 100%);border-radius:10px;padding:22px 24px;margin-top:16px;">'
+      +'<div style="color:rgba(255,255,255,.55);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:10px;">Vervolgstap \u2014 Doorlopende begeleiding</div>'
+      +'<div style="color:#fff;font-size:17px;font-weight:900;margin-bottom:8px;">Zonder maandelijkse sturing verdwijnt deze winst weer</div>'
+      +'<p style="color:rgba(255,255,255,.88);font-size:13px;line-height:1.7;margin:0 0 12px;">U ziet nu waar uw winst weglekt. Maar zonder structurele opvolging sluipt dit er gewoon weer in. Marges dalen langzaam. Kosten lopen op.</p>'
+      +'<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;margin-bottom:16px;">'
+      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Maandelijks signaal: problemen v\u00f3\u00f3rdat ze groot worden</span></div>'
+      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Directe bijsturing op marge, kosten en cashflow</span></div>'
+      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Concrete actie per maand \u2014 geen rapporten die in een la belanden</span></div>'
       +'</div>'
-      +'<div style="background:rgba(255,255,255,.15);border-radius:8px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
-      +'<div style="color:#fff;font-size:13px;font-weight:600;">Doorlopende begeleiding op uw cijfers</div>'
-      +'<div style="color:#FFD700;font-size:20px;font-weight:800;">€249<span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.7)"> per maand excl. BTW</span></div>'
+      +'<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;">Klein t.o.v. de winst die u beschermt.<br><span style="color:#FFD700;font-weight:700;">Gemiddeld \u20ac10k\u2013\u20ac50k/jaar gevonden.</span></div>'
+      +'<div style="text-align:right;"><div style="font-size:11px;color:rgba(255,255,255,.55);">per maand</div><div style="font-size:22px;font-weight:900;color:#FFD700;">\u20ac249</div></div>'
       +'</div>'
-      +'<button id="bs-upsell-btn" style="background:#fff;color:#1E8449;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;width:100%;">Start begeleiding →</button>'
+      +'<button id="bs-upsell-btn" style="background:#fff;color:#1A5C38;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:900;cursor:pointer;width:100%;box-shadow:0 2px 8px rgba(0,0,0,.2);">Houd grip op mijn winst \u2192</button>'
+      +'<div style="text-align:center;margin-top:8px;font-size:11px;color:rgba(255,255,255,.5);">Maandelijks opzegbaar \u00b7 geen verplichtingen \u00b7 direct inzicht</div>'
       +'</div>';
     prev.parentNode.insertBefore(upsell, prev.nextSibling);
     const btn=document.getElementById('bs-upsell-btn');
@@ -1720,21 +1747,37 @@ const Conversie={
     let bedrag = '';
     if(eenpager){
       const txt = eenpager.textContent || '';
-      const m = txt.match(/€[ \s]?[\d.,]+/);
-      if(m) bedrag = m[0].trim();
+      const matches = [...txt.matchAll(/€[ \s]?[\d.,]+/g)].map(m => {
+        const n = parseFloat(m[0].replace(/[€ \s.]/g,'').replace(',','.'));
+        return {raw:m[0].trim(), val:isNaN(n)?0:n};
+      });
+      const grootste = matches.sort((a,b)=>b.val-a.val)[0];
+      if(grootste && grootste.val > 1000) bedrag = grootste.raw;
     }
     const titel = $('conv-modal-titel');
-    if(titel){
-      titel.textContent = bedrag
-        ? 'U laat ' + bedrag + ' per jaar liggen — haal het terug'
-        : 'U laat aantoonbaar geld liggen — haal het terug';
+    if(titel) titel.textContent = bedrag
+      ? 'U laat ' + bedrag + ' per jaar liggen — haal het terug'
+      : 'U laat aantoonbaar geld liggen — haal het terug';
+    const tekst = $('conv-modal-tekst');
+    if(tekst){
+      const bedragZin = bedrag ? '<strong>' + bedrag + '</strong> aan gemiste winst' : 'gemiste winst';
+      tekst.innerHTML = 'U heeft zojuist gezien <em>dat</em> er ' + bedragZin + ' weglekt. De Basisscan laat zien <strong>waar precies</strong>, <strong>waarom</strong> en <strong>wat u morgen kunt doen</strong>.';
     }
-    SectorCopy.applyModal(sessie?.sector||$('f-sector')?.value||'algemeen');
+    const sector = sessie?.sector||$('f-sector')?.value||'algemeen';
+    const sectorBullets = {
+      'Installatietechniek': ['welke projecten verlies draaien door slechte nacalculatie','waar uren en materiaal marge wegvreten zonder dat u het ziet','hoe u tarief- en inkoopstructuur direct verbetert'],
+      'Bouw & Aannemerij':   ['welke projecten over budget lopen — en waarom','waar faalkosten en meerwerk structureel winst kosten','hoe u marges per project scherper bewaakt'],
+      'Transport & Logistiek':['welke ritten of klanten verlies opleveren','waar brandstof- en personeelskosten buiten norm lopen','hoe u bezetting en tariefstructuur optimaliseert'],
+      'Groothandel':          ['welke productgroepen marge vernietigen','waar inkoop- en debiteurenkosten geld vast zetten','hoe u klantmix en inkoopstrategie scherper maakt'],
+      'E-commerce / Webshop': ['welke producten of kanalen structureel verlies draaien','waar retouren en advertentiekosten marge uithollen','hoe u ROAS en productmix direct verbetert'],
+    };
+    const b = sectorBullets[sector] || ['welke kostenposten buiten de sectornorm lopen','waar marge structureel weglekt zonder dat u het ziet','concrete acties met verwacht eurobedrag per actie'];
+    ['conv-modal-bullet-1','conv-modal-bullet-2','conv-modal-bullet-3'].forEach((id,i)=>setTxt(id, b[i]||''));
     UI.openModal();
     const modal = $('conv-modal');
     if(modal) modal.onclick = e => { if(e.target === modal) UI.sluitModal(); };
   },
-  async bevestigBasiscan(){
+    async bevestigBasiscan(){
     UI.sluitModal();
     await Formulier.bestelBasiscan();
   },
@@ -1746,19 +1789,21 @@ const Conversie={
     const div=document.createElement('div');
     div.id='mon-upsell-klant';
     div.style.cssText='margin-top:24px;padding:0 0 32px;';
-    div.innerHTML='<div style="background:linear-gradient(135deg,#1E8449,#27AE60);border-radius:12px;padding:24px 28px;">'
-      +'<div style="color:rgba(255,255,255,.65);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:6px;">Volgende stap</div>'
-      +'<div style="color:#fff;font-size:18px;font-weight:800;line-height:1.3;margin-bottom:8px;">Blijf niet achteraf corrigeren — stuur maandelijks bij</div>'
-      +'<p style="color:rgba(255,255,255,.8);font-size:13px;line-height:1.7;margin:0 0 14px;">Met doorlopende begeleiding op uw cijfers voorkomt u dat winst weglekt en houdt u grip op uw resultaat.</p>'
-      +'<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:rgba(255,255,255,.75);margin-bottom:16px;">'
-      +'<span>✓ Inzicht waar u moet bijsturen</span><span>·</span><span>✓ Concrete acties per periode</span><span>·</span><span>✓ Geen verrassingen achteraf</span>'
+    div.innerHTML='<div style="background:linear-gradient(150deg,#162F4A 0%,#1A5C38 60%,#21963F 100%);border-radius:12px;padding:24px 28px;">'
+      +'<div style="color:rgba(255,255,255,.55);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:10px;">Vervolgstap \u2014 Doorlopende begeleiding</div>'
+      +'<div style="color:#fff;font-size:18px;font-weight:900;line-height:1.3;margin-bottom:10px;">Zonder maandelijkse sturing verdwijnt deze winst weer</div>'
+      +'<p style="color:rgba(255,255,255,.88);font-size:13px;line-height:1.7;margin:0 0 12px;">U ziet nu waar uw winst weglekt. Maar zonder structurele opvolging sluipt dit er gewoon weer in. Marges dalen langzaam. Kosten lopen op. U merkt het pas als het al maanden fout gaat.</p>'
+      +'<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;margin-bottom:16px;">'
+      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Maandelijks signaal: problemen v\u00f3\u00f3rdat ze groot worden</span></div>'
+      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Directe bijsturing op marge, kosten en cashflow</span></div>'
+      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Concrete actie per maand \u2014 geen rapporten die in een la belanden</span></div>'
       +'</div>'
-      +'<div style="background:rgba(255,255,255,.15);border-radius:8px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">'
-      +'<div style="color:#fff;font-size:13px;font-weight:600;">Doorlopende begeleiding op uw cijfers</div>'
-      +'<div style="color:#FFD700;font-size:22px;font-weight:800;">€249<span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.7)"> per maand excl. BTW</span></div>'
+      +'<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;">Klein t.o.v. de winst die u beschermt.<br><span style="color:#FFD700;font-weight:700;">Gemiddeld \u20ac10k\u2013\u20ac50k/jaar gevonden.</span></div>'
+      +'<div style="text-align:right;"><div style="font-size:11px;color:rgba(255,255,255,.55);">per maand</div><div style="font-size:24px;font-weight:900;color:#FFD700;">\u20ac249</div></div>'
       +'</div>'
-      +'<button id="mon-upsell-btn" style="background:#fff;color:#1E8449;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;width:100%;">Start begeleiding →</button>'
-      +'<div style="text-align:center;margin-top:8px;font-size:11px;color:rgba(255,255,255,.6);">Maandelijks opzegbaar — geen verplichtingen</div>'
+      +'<button id="mon-upsell-btn" style="background:#fff;color:#1A5C38;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:900;cursor:pointer;width:100%;box-shadow:0 2px 10px rgba(0,0,0,.2);">Houd grip op mijn winst \u2192</button>'
+      +'<div style="text-align:center;margin-top:8px;font-size:11px;color:rgba(255,255,255,.5);">Maandelijks opzegbaar \u00b7 geen verplichtingen \u00b7 direct inzicht</div>'
       +'</div>';
     container.appendChild(div);
     const btn=document.getElementById('mon-upsell-btn');
@@ -1787,7 +1832,7 @@ const Conversie={
 
 const Formulier={
   _bezig:false,
-  reset(){['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Ontdek waar u winst verliest →';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none';Formulier._bezig=false;},
+  reset(){['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Ja, ik wil mijn verborgen winst zien →';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none';const upl=$('f-uploads-sectie');if(upl)upl.style.display='none';Formulier._bezig=false;},
   _ontvangenStaat(datum){
     const btn=$('f-submit');if(!btn)return;
     const kt=sessie?.klanttype||sessie?.klantType||'lead';
@@ -1813,15 +1858,18 @@ const Formulier={
     if(!bedrijf){Formulier._bezig=false;UI.warn('Vul bedrijfsnaam in');return;}
     if(!sector){Formulier._bezig=false;UI.warn('Kies uw sector');return;}
     const vw1=$('f-vw1')?.files?.[0];const balans=$('f-balans1')?.files?.[0];
-    if(!vw1||!balans){Formulier._bezig=false;UI.warn('Upload minimaal V&W en balans');return;}
+    // Uploads zijn optioneel — submit altijd mogelijk
+    const geenUploads = !vw1 && !balans;
     if(btn){btn.textContent='Bezig met verwerken...';btn.disabled=true;} const micro=$('f-micro-belofte'); if(micro) micro.style.display='block';
     try{
-      const lijst=[{file:vw1,lbl:'VW_jaar1'},{file:balans,lbl:'Balans_jaar1'},{file:$('f-jaar2')?.files?.[0]||null,lbl:'VW_Balans_jaar2'},{file:$('f-jaar3')?.files?.[0]||null,lbl:'VW_Balans_jaar3'}];
       let pdfTekst='';
-      for(const item of lijst){if(!item.file)continue;if(btn)btn.textContent=item.lbl+' uitlezen...';pdfTekst+='\n=== '+item.lbl+' ===\n'+await Bestanden.lees(item.file)+'\n';}
-      const prob=['[PDF leesfout','[Geen tekst','[formaat niet ondersteund','[Ongeldig','[Excel leesfout','[PDF is leeg','[Excel: bestand is leeg'];
-      const leeg=!pdfTekst.trim()||prob.some(p=>pdfTekst.includes(p));
-      if(leeg)UI.warn('Bestanden konden niet worden uitgelezen — upload gaat door, handmatige controle nodig.');
+      if(!geenUploads){
+        const lijst=[{file:vw1,lbl:'VW_jaar1'},{file:balans,lbl:'Balans_jaar1'},{file:$('f-jaar2')?.files?.[0]||null,lbl:'VW_Balans_jaar2'},{file:$('f-jaar3')?.files?.[0]||null,lbl:'VW_Balans_jaar3'}];
+        for(const item of lijst){if(!item.file)continue;if(btn)btn.textContent=item.lbl+' uitlezen...';pdfTekst+='\n=== '+item.lbl+' ===\n'+await Bestanden.lees(item.file)+'\n';}
+        const prob=['[PDF leesfout','[Geen tekst','[formaat niet ondersteund','[Ongeldig','[Excel leesfout','[PDF is leeg','[Excel: bestand is leeg'];
+        const leeg=!pdfTekst.trim()||prob.some(p=>pdfTekst.includes(p));
+        if(leeg)UI.warn('Bestanden konden niet worden uitgelezen — upload gaat door, handmatige controle nodig.');
+      }
       const klantType=sessie?.klanttype||sessie?.klantType||'lead';
       const periode=klantType+'-'+jaar;const datum=UI.datumNL();
       await Store.upsertUpload({bedrijf,periode,datum,sector,pdfTekst:pdfTekst.substring(0,80000)});
@@ -1837,9 +1885,15 @@ const Formulier={
         });
       } catch(e){ console.warn('Dossier aanmaken mislukt:', e); }
       const scanType = currentScanType();
-      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe upload van ${bedrijf} (${periode})\nSector: ${sector}\nType scan: ${scanType}`+(email?`\nE-mail: ${email}`:'')+(leeg?'\nPDF tekst leeg':'')});}catch(e){console.warn('EmailJS:',e.message||e);}
-      Formulier._bezig=false;Formulier._ontvangenStaat(datum);UI.toast('Jaarcijfers ontvangen op '+datum);
-    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Ontdek waar u winst verliest →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
+      const geenUploadNote = geenUploads ? '\nGeen bestanden geüpload — later aanleveren' : '';
+      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe aanvraag van ${bedrijf} (${periode})\nSector: ${sector}\nType scan: ${scanType}`+(email?`\nE-mail: ${email}`:'')+geenUploadNote});}catch(e){console.warn('EmailJS:',e.message||e);}
+      Formulier._bezig=false;Formulier._ontvangenStaat(datum);
+      if(geenUploads){
+        UI.toast('U kunt uw cijfers later aanleveren — wij nemen contact op');
+      } else {
+        UI.toast('Jaarcijfers ontvangen op '+datum);
+      }
+    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Ja, ik wil mijn verborgen winst zien →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
   },
   async bestelBasiscan(){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
@@ -2404,7 +2458,7 @@ function renderAnalyse(sector) {
   const ctaBtn = document.getElementById('rapport-soft-cta-btn');
   if (cta) cta.style.display = 'block';
   if (ctaText) ctaText.textContent = cfg.softCta || '';
-  if (ctaBtn) ctaBtn.textContent = currentScanType() === 'belasting' ? 'Start fiscale begeleiding →' : 'Start begeleiding →';
+  if (ctaBtn) ctaBtn.textContent = currentScanType() === 'belasting' ? 'Houd grip op mijn fiscale positie →' : 'Houd grip op mijn winst →';
 }
 
 const Analyse={
@@ -3549,6 +3603,21 @@ const Monitoring = {
 (function init(){
   try{emailjs.init(Config.pubkey());}catch{}
   Bestanden.koppelListeners();
+  // Progressieve upload sectie: toon pas als bedrijf + sector + jaar zijn ingevuld
+  (function(){
+    const toon=()=>{
+      const b=($('f-bedrijf')?.value||'').trim();
+      const s=$('f-sector')?.value||'';
+      const j=$('f-jaar')?.value||'';
+      const sec=$('f-uploads-sectie');
+      if(sec) sec.style.display=(b&&s&&j)?'':'none';
+    };
+    ['f-bedrijf','f-sector','f-jaar'].forEach(id=>{
+      const el=$(id);
+      if(el) el.addEventListener(el.tagName==='SELECT'?'change':'input',toon);
+    });
+    toon();
+  })();
   // Monitoring bestand listener
   const monVw=$('mon-vw');
   if(monVw) monVw.addEventListener('change',()=>setTxt('mon-vw-naam',monVw.files?.[0]?'✔ '+monVw.files[0].name:''));
