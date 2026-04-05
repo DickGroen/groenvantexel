@@ -2376,7 +2376,7 @@ const Fin = {
       const s = sig('brutomarge', d.brutomarge);
       if (s.s !== '✓') {
         const normMid = (sn.brutomarge[0] + sn.brutomarge[1]) / 2;
-        const bedrag = d.omzet ? Math.round(d.omzet * (normMid - d.brutomarge) / 100) : null;
+        const bedrag = d.omzet ? Math.round(d.omzet * (normMid - d.brutomarge) / 100 * 0.6) : null;
         result.push({
           t: 'Brutomarge onder sectornorm',
           tx: `Uw brutomarge van ${d.brutomarge}% ligt onder de sectornorm van ${sn.brutomarge[0]}–${sn.brutomarge[1]}%. Dit wijst op druk op inkoopprijzen, tarieven of projectmix.`,
@@ -2390,7 +2390,7 @@ const Fin = {
       const s = sig('debiteurendagen', d.debiteurendagen);
       if (s.s !== '✓') {
         const normMax = sn.debiteur[1];
-        const bedrag = d.omzet ? Math.round(d.omzet * (d.debiteurendagen - normMax) / 365) : null;
+        const bedrag = d.omzet ? Math.round(d.omzet * (d.debiteurendagen - normMax) / 365 * 0.6) : null;
         result.push({
           t: 'Debiteurendagen te hoog',
           tx: `Uw debiteurendagen van ${d.debiteurendagen} liggen boven de sectornorm van ${sn.debiteur[0]}–${sn.debiteur[1]} dagen. Hier zit direct geld vast dat u niet gebruikt — en dat uw groei remt.`,
@@ -2416,7 +2416,7 @@ const Fin = {
       const s = sig('ebitda', d.ebitda);
       if (s.s !== '✓') {
         const normMid = (sn.netto[0] + sn.netto[1]) / 2;
-        const bedrag = d.omzet ? Math.round(d.omzet * (normMid - d.ebitda) / 100) : null;
+        const bedrag = d.omzet ? Math.round(d.omzet * (normMid - d.ebitda) / 100 * 0.6) : null;
         result.push({
           t: 'Nettoresultaat onder norm',
           tx: `Uw nettoresultaat van ${d.ebitda}% ligt onder de sectornorm van ${sn.netto[0]}–${sn.netto[1]}%. Kostenstructuur of prijsstelling verdient aandacht.`,
