@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -118,7 +119,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <div class="logo-text"><strong>Groen van Texel</strong><span>Financiële Doorlichting &amp; Monitoring</span></div>
   </div>
   <div class="topbar-nav" id="topnav">
-    <button id="nb-klant-login" class="nav-btn" onclick="openKlantOmgeving()" style="border:1px solid rgba(255,255,255,.25);">Klant login</button>
+    <button id="nb-klant-login" class="nav-btn" onclick="openKlantOmgeving()" style="border:1px solid rgba(255,255,255,.25);">Inloggen</button>
   </div>
 </div>
 
@@ -252,17 +253,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-aanleveren" class="view">
     <div class="card" style="max-width:660px;margin:0 auto;">
       <div style="background:linear-gradient(150deg,#162F4A 0%,#1A5C38 60%,#21963F 100%);margin:-24px -24px 24px;padding:28px 24px 22px;border-radius:11px 11px 0 0;text-align:center;">
-        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:8px;">Wij vinden verborgen winst in installatiebedrijven</h2>
-        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Gemiddeld €20.000–€80.000 per jaar, zonder extra klanten of harder werken</p>
-        <p style="color:rgba(255,255,255,.7);font-size:13px;line-height:1.6;margin-bottom:4px;">Ontvang binnen 3 werkdagen een heldere 1-pager met exact waar uw winst weglekt en wat u kunt doen</p>
+        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:8px;">De meeste installatiebedrijven laten €20.000–€80.000 per jaar liggen</h2>
+        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Ontdek waar dat in uw bedrijf gebeurt — binnen 2 minuten inzicht</p>
         <p id="form-intro" style="color:rgba(255,255,255,.65);font-size:13px;"></p>
       </div>
       <div style="background:linear-gradient(135deg,#F2FBF5,#EEF6FF);border:1px solid #A8D5B8;border-radius:10px;padding:16px 20px;margin-bottom:20px;text-align:center;">
         <div id="sector-trust-title" style="font-weight:700;font-size:13px;color:#1E3A5F;margin-bottom:10px;">Waarom ondernemers ons vertrouwen</div>
         <div style="display:inline-flex;flex-direction:column;gap:7px;text-align:left;">
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-1">Gemiddeld €10.000–€50.000 verborgen winst zichtbaar gemaakt</span></div>
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-2">Direct inzicht waar marge weglekt — en hoe u dit stopt</span></div>
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-3">Binnen 3 werkdagen een concreet en toepasbaar actieplan</span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-1">Inzicht in marge, kosten en winstkansen</span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-2">Concreet en snel toepasbare verbeteracties</span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-3">Volledig vertrouwelijke verwerking van uw cijfers</span></div>
         </div>
       </div>
       <div id="sector-impact" style="background:linear-gradient(135deg,#FFF3E0,#FFF7ED);border:1px solid #F5A623;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#7C3300;line-height:1.6;text-align:center;font-weight:600;">Installatiebedrijven laten vaak €20.000–€80.000 per jaar liggen zonder dit te zien.</div>
@@ -320,18 +320,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
       <div style="background:linear-gradient(135deg,#E8F5EC,#EBF4FF);border-radius:8px;padding:14px 16px;margin-bottom:20px;border:1px solid #A3CCB5;">
         <div style="font-weight:700;font-size:13px;color:var(--blue);margin-bottom:4px;">Wat ontvangt u?</div>
-        <div id="form-wat" style="font-size:13px;color:var(--blue);line-height:1.8;">
-  <strong>U ziet exact waar uw winst weglekt</strong><br>
-  → welke kosten onnodig hoog zijn<br>
-  → waar marge verdwijnt zonder dat u het merkt<br>
-  → welke acties direct geld opleveren
-</div><div id="form-resultaat-extra" style="margin-top:10px;font-size:13px;color:#1A7A42;font-weight:600;line-height:1.7;">
-  Gemiddeld €10.000–€50.000 per jaar aan verbeterpotentieel zichtbaar gemaakt
-</div>
+        <div id="form-wat" style="font-size:13px;color:var(--blue);line-height:1.7;"></div><div id="form-resultaat-extra" style="font-size:13px;color:var(--blue);line-height:1.8;margin-top:8px;"></div>
       </div>
-      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">Ontvang mijn winstscan binnen 3 werkdagen →</button>
-      <div style="text-align:center;margin-top:6px;font-size:11px;color:#6b7280;">✓ Gemiddeld €10k–€50k inzicht gevonden</div>
-      <div style="text-align:center;margin-top:6px;font-size:11px;color:var(--light);">Duurt ±2 minuten · binnen 3 werkdagen resultaat</div>
+      <button id="f-submit" class="btn btn-primary btn-full" onclick="Formulier.submit()">Ja, ik wil mijn verborgen winst zien →</button>
+      <div style="text-align:center;margin-top:6px;font-size:11px;color:#6b7280;">✓ 100+ ondernemers gingen u voor</div>
+      <div style="text-align:center;margin-top:6px;font-size:11px;color:var(--light);">Duurt ±2 minuten</div>
       <div id="f-micro-belofte" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:var(--green);font-weight:600;">✓ Ontvangen — u krijgt uw 1-pager uiterlijk over 3 werkdagen</div>
       <div id="fake-result" style="display:none;margin-top:16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;font-size:13px;color:#1F2937;line-height:1.8;">🔍 We zien al eerste signalen in uw cijfers…<br>→ marge-afwijkingen<br>→ kostenstructuur niet optimaal</div>
     </div>
@@ -1763,8 +1756,8 @@ const Conversie={
     let bedrag = '';
     if(eenpager){
       const txt = eenpager.textContent || '';
-      const matches = [...txt.matchAll(/€[ \s]?[\d.,]+/g)].map(m => {
-        const n = parseFloat(m[0].replace(/[€ \s.]/g,'').replace(',','.'));
+      const matches = [...txt.matchAll(/€[ \s]?[\d.,]+/g)].map(m => {
+        const n = parseFloat(m[0].replace(/[€ \s.]/g,'').replace(',','.'));
         return {raw:m[0].trim(), val:isNaN(n)?0:n};
       });
       const grootste = matches.sort((a,b)=>b.val-a.val)[0];
@@ -1848,7 +1841,7 @@ const Conversie={
 
 const Formulier={
   _bezig:false,
-  reset(){['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Ontvang mijn winstscan binnen 3 werkdagen →';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none';const upl=$('f-uploads-sectie');if(upl)upl.style.display='none';const fr2=$('fake-result');if(fr2)fr2.style.display='none';Formulier._bezig=false;},
+  reset(){['f-vw1-naam','f-balans1-naam','f-jaar2-naam','f-jaar3-naam','form-intro','form-wat'].forEach(id=>setTxt(id,''));['f-bedrijf','f-email'].forEach(id=>{const e=$(id);if(e){e.value='';e.readOnly=false;}});['f-vw1','f-balans1','f-jaar2','f-jaar3'].forEach(id=>{const e=$(id);if(e)e.value='';});setVal('f-sector','');const fj=$('f-jaar');if(fj)fj.selectedIndex=0;const btn=$('f-submit');if(btn){btn.textContent='Ja, ik wil mijn verborgen winst zien →';btn.disabled=false;btn.classList.remove('btn-ghost');btn.classList.add('btn-primary');btn.style.cursor='';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none';const upl=$('f-uploads-sectie');if(upl)upl.style.display='none';const fr2=$('fake-result');if(fr2)fr2.style.display='none';Formulier._bezig=false;},
   _ontvangenStaat(datum){
     const btn=$('f-submit');if(!btn)return;
     const kt=sessie?.klanttype||sessie?.klantType||'lead';
@@ -1911,7 +1904,7 @@ const Formulier={
       } else {
         UI.toast('Jaarcijfers ontvangen op '+datum);
       }
-    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Ontvang mijn winstscan binnen 3 werkdagen →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
+    }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Ja, ik wil mijn verborgen winst zien →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
   },
   async bestelBasiscan(){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
@@ -1934,8 +1927,8 @@ const Bestanden={
 // ─── SECTOR COPY & AI-CONTEXT ────────────────────────────────────────────────
 const SECTOR_CONTENT = {
   installatie: {
-    hero: "Wij vinden verborgen winst in installatiebedrijven",
-    sub: "Gemiddeld €20.000–€80.000 per jaar, zonder extra klanten of harder werken",
+    hero: "De meeste installatiebedrijven laten €20.000–€80.000 per jaar liggen",
+    sub: "Ontdek waar dat in uw bedrijf gebeurt — binnen 2 minuten inzicht",
     bullets: [
       "Waar uw marge onder druk staat",
       "Waar geld blijft hangen in uw projecten",
@@ -1947,9 +1940,9 @@ const SECTOR_CONTENT = {
     impact: "Installatiebedrijven laten vaak €20.000–€80.000 per jaar liggen zonder dit te zien.",
     trustTitle: "Waarom installatiebedrijven dit gebruiken",
     trustBullets: [
-      "Gemiddeld €10.000–€50.000 verborgen winst zichtbaar gemaakt",
-      "Direct inzicht waar marge weglekt — en hoe u dit stopt",
-      "Binnen 3 werkdagen een concreet en toepasbaar actieplan"
+      "Inzicht in marge per project",
+      "Analyse van faalkosten en inefficiëntie",
+      "Volledig vertrouwelijke verwerking van uw cijfers"
     ],
     receives: "Wat u ontvangt:",
     receivesBullets: [
@@ -3654,16 +3647,16 @@ const Monitoring = {
   }
   Auth.herstelSessie().finally(()=>{
     const l=document.getElementById('init-laad');if(l)l.remove();
-    // Als herstelSessie niets heeft opgezet (geen sessie), toon landing
+    // Geen sessie = basispagina blanco houden; inlogcode bepaalt admin of klant
     if(!sessie){
       hide('login-overlay');
-      Nav.ga('aanleveren');
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     }
   });
-  // Toon landing direct als er zeker geen JWT is (voorkomt blanco scherm)
+  // Geen JWT = niets tonen totdat iemand inlogt
   if(!sessionStorage.getItem('gvt_jwt')){
     hide('login-overlay');
-    Nav.ga('aanleveren');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   }
 })();
 
