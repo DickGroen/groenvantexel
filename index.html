@@ -193,7 +193,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <div id="ai-status" class="ai-status"></div>
       <div id="ai-tekst" class="ai-tekst"></div>
       <div id="ai-acties" class="ai-acties">
-        <button class="btn btn-primary" onclick="Rapport.genereer1Pager()">📄 Genereer 1-pager</button>
+        <button id="btn-genereer-pager" class="btn btn-primary" onclick="Rapport.genereer1Pager()" disabled title="Draai eerst de AI-analyse" style="opacity:.45;cursor:not-allowed;">📄 Genereer 1-pager</button>
         <button id="btn-basisscan" class="btn btn-primary" style="background:var(--purple);display:none;" onclick="Basisscan.genereer()">🔍 Genereer Basisscan</button>
         <button id="btn-cashflow" class="btn btn-primary" style="background:#1F4E79;display:none;" onclick="StressTest.genereer('cashflow')">💧 Cashflow Stresstest</button>
         <button id="btn-debiteuren" class="btn btn-primary" style="background:#C0392B;display:none;" onclick="StressTest.genereer('debiteuren')">📋 Debiteuren Stresstest</button>
@@ -1245,7 +1245,10 @@ const Rapport={
       show('ai-box');
       const aiSec=$('ai-sector');if(klant?.sector&&aiSec)aiSec.value=klant.sector;
       const bestaand=await Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
-      if(bestaand){setTxt('ai-status','Analyse beschikbaar');setTxt('ai-tekst',bestaand);show('ai-tekst');showFlex('ai-acties');}
+      if(bestaand){
+        setTxt('ai-status','Analyse beschikbaar');setTxt('ai-tekst',bestaand);show('ai-tekst');showFlex('ai-acties');
+        const pagerBtn=$('btn-genereer-pager');if(pagerBtn){pagerBtn.disabled=false;pagerBtn.style.opacity='';pagerBtn.style.cursor='';pagerBtn.title='';}
+      }
       const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display=klant?.klantType==='doorlichting'?'inline-flex':'none';
       ['btn-cashflow','btn-debiteuren','btn-offerte'].forEach(id=>{const b=$(id);if(b)b.style.display='inline-flex';});
     }
@@ -2625,7 +2628,8 @@ ${uploads[0].pdfTekst||''}`;
      const data = await API.call({actie:'analyse', prompt});
       const tekst=data.content?.find(b=>b.type==='text')?.text||'Geen resultaat';
       await Store.setAnalyse(_adminKlant+'-'+_adminPeriode,tekst);
-      output.textContent=tekst;output.style.display='';acties.style.display='flex';status.textContent='Analyse gereed';
+      output.textContent=tekst;output.style.display='';acties.style.display='flex';status.textContent='✅ Analyse gereed — u kunt nu de 1-pager genereren';
+      const pagerBtn=$('btn-genereer-pager');if(pagerBtn){pagerBtn.disabled=false;pagerBtn.style.opacity='';pagerBtn.style.cursor='';pagerBtn.title='';}
       const rapport = document.getElementById('rapport-analyse'); if(rapport) rapport.textContent = tekst;
       const cta = document.getElementById('rapport-soft-cta'); if(cta) cta.style.display='block';
       const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : 'algemeen';
