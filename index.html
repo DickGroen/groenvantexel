@@ -1179,7 +1179,7 @@ const Klanten={
       Dashboard.laad();UI.toast('Type gewijzigd naar '+type);
       const kl=await Store.getKlanten();const k=kl.find(k=>k.code===code);
       if(k&&type==='doorlichting'&&k.email){
-        Email.stuur({bedrijf:k.naam,periode:'Basisscan',name:k.naam,time:UI.datumNL(),message:'Beste '+k.naam+',\n\nUw Financiële Basisscan is gestart. U ontvangt het rapport binnen 5 werkdagen.\n\nMet vriendelijke groet,\nDick Groen\nGroen van Texel\n06 4215 2499'}).then(()=>UI.toast('Bevestigingsmail verstuurd naar '+k.email)).catch(e=>console.warn(e));
+        Email.stuur({bedrijf:k.naam,periode:'Basisscan',name:k.naam,time:UI.datumNL(),message:'Beste '+k.naam+',\n\nUw Financiële Basisscan is gestart. U ontvangt het rapport binnen 5 werkdagen.\n\nMet vriendelijke groet,\nGroen van Texel\n06 4215 2499'}).then(()=>UI.toast('Bevestigingsmail verstuurd naar '+k.email)).catch(e=>console.warn(e));
       }
     }catch(e){UI.error('Fout: '+e.message);}
   },
@@ -1424,7 +1424,7 @@ const Rapport={
     const nettoCopy = nettoWaarde < sn.netto[0]
       ? `<div style="background:#FEF2F2;border-left:3px solid #C0392B;padding:8px 12px;margin-top:8px;font-size:12px;color:#7B1F1F;line-height:1.6;">Uw nettowinst ligt onder de norm. Dit betekent dat u structureel winst laat liggen.</div>`
       : `<div style="background:#F0FDF4;border-left:3px solid #1E8449;padding:8px 12px;margin-top:8px;font-size:12px;color:#14532D;line-height:1.6;">Uw nettowinst ligt binnen de norm, maar er is nog ruimte voor verbetering.</div>`;
-    return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Aangeleverd op ${datum} &nbsp;·&nbsp; u ontvangt uw 1-pager uiterlijk ${(()=>{const d=new Date();d.setHours(12,0,0,0);let t=0;while(t<3){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)t++;}return d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});})()}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',nettoWaarde).k};">${nettoWaarde.toFixed(1)}%${nettoAfgeleid}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}–${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',nettoWaarde).s}</td></tr></table>${nettoCopy}</div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Hier verliest u direct geld</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;">${ctaBlok}</div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;text-align:center;">Dick Groen &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
+    return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Aangeleverd op ${datum} &nbsp;·&nbsp; u ontvangt uw 1-pager uiterlijk ${(()=>{const d=new Date();d.setHours(12,0,0,0);let t=0;while(t<3){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)t++;}return d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});})()}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',nettoWaarde).k};">${nettoWaarde.toFixed(1)}%${nettoAfgeleid}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}–${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',nettoWaarde).s}</td></tr></table>${nettoCopy}</div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Hier verliest u direct geld</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;">${ctaBlok}</div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;text-align:center;">Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
   },
 };
 
@@ -1635,7 +1635,7 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
     <div style="margin-top:16px;text-align:center;"><div style="display:inline-block;background:#1F4E79;color:#fff;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:700;">📅 Maandelijkse monitoring — €249/mnd excl. BTW</div></div>
   </div>
   <div style="background:#f4f6f8;padding:14px 28px;border:1px solid #e2e8e4;border-top:none;border-radius:0 0 10px 10px;">
-    <div style="font-size:11px;color:#888;line-height:1.7;"><strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Financiële Basisscan — Vertrouwelijk — Uitsluitend bestemd voor ${UI.esc(bedrijf)}</div>
+    <div style="font-size:11px;color:#888;line-height:1.7;">Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Financiële Basisscan — Vertrouwelijk — Uitsluitend bestemd voor ${UI.esc(bedrijf)}</div>
   </div>
 </div>`;
   },
@@ -1869,7 +1869,6 @@ const Formulier={
     const dagen=kt==='doorlichting'?5:kt==='monitoring'?3:3;
     // Bereken deadline: vandaag + dagen werkdagen
     const deadline=(()=>{
-      // Gebruik lokale datum zonder tijdzone-verschuiving
       const d=new Date();
       d.setHours(12,0,0,0);
       let tel=0;
@@ -1879,6 +1878,8 @@ const Formulier={
     const label=kt==='doorlichting'?'uw Basisscan':kt==='monitoring'?'uw rapport':'uw 1-pager';
     btn.textContent='✓ Ontvangen — u krijgt '+label+' uiterlijk '+deadline;
     btn.classList.remove('btn-primary');btn.classList.add('btn-ghost');btn.style.cursor='default';btn.disabled=true;
+    // Verberg de micro-belofte — de knop toont al de correcte datum
+    const micro=$('f-micro-belofte');if(micro)micro.style.display='none';
   },
   async submit(){
     if(Formulier._bezig)return;Formulier._bezig=true;
@@ -1890,7 +1891,7 @@ const Formulier={
     const vw1=$('f-vw1')?.files?.[0];const balans=$('f-balans1')?.files?.[0];
     // Uploads zijn optioneel — submit altijd mogelijk
     const geenUploads = !vw1 && !balans;
-    if(btn){btn.textContent='Bezig met verwerken...';btn.disabled=true;} const micro=$('f-micro-belofte'); if(micro) micro.style.display='block';
+    if(btn){btn.textContent='Bezig met verwerken...';btn.disabled=true;}
     try{
       let pdfTekst='';
       if(!geenUploads){
@@ -2292,7 +2293,24 @@ const Fin = {
       brutomarge,
       ebitda,
       personeel:       pct(/Personeelskosten\s*%[:\s]*([0-9.,]+)/i),
-      debiteurendagen: pct(/Debiteurendagen[:\s=]*([0-9.,]+)/i),
+      // Debiteurendagen: eerst direct als getal, dan berekend uit saldo/omzet
+      debiteurendagen: (()=>{
+        // 1. Direct vermeld als dagen (AI-analyse of gestructureerde export)
+        const direct = pct(/(?:Debiteurendagen|Debiteuren(?:\s*in)?\s*dagen|DSO|Gemiddelde\s+debiteurentermijn)[:\s=]*([0-9.,]+)/i);
+        if (direct !== null) return direct;
+        // 2. Berekenen: debiteurensaldo / omzet * 365
+        if (omzet && omzet > 0) {
+          const saldoMatch = t.match(/(?:^|[\n\r])[^\n\r]*?(?:Debiteuren(?:saldo|(?:\s*\(netto\))?)?|Handelsdebiteuren|Vorderingen\s+(?:op\s+)?(?:handelsdebiteuren|debiteuren))[^\n\r\d]*([0-9][0-9\s.,]*[0-9]|[0-9]{4,})/im);
+          if (saldoMatch) {
+            const saldoStr = saldoMatch[1].replace(/[€\s]/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.');
+            const saldo = parseFloat(saldoStr);
+            if (!isNaN(saldo) && saldo > 0 && saldo < omzet) {
+              return Math.round(saldo / omzet * 365);
+            }
+          }
+        }
+        return null;
+      })(),
       solvabiliteit:   pct(/Solvabiliteit\s*%[:\s]*([0-9.,]+)/i),
       current:         pct(/Current ratio[:\s]*([0-9.,]+)/i),
       _ebitdaAfgeleid: pct(/Nettoresultaat\s*%[:\s]*([0-9.,]+)/i) === null,
@@ -3583,7 +3601,7 @@ const Monitoring = {
     <div style="font-size:13px;color:#333;line-height:1.7;">${UI.esc(p.vergelijking)}</div>
   </div>
   <div style="background:#f4f6f8;padding:12px 24px;border:1px solid #e2e8e4;border-top:none;border-radius:0 0 10px 10px;">
-    <div style="font-size:11px;color:#888;"><strong style="color:#555;">Dick Groen</strong> &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499</div>
+    <div style="font-size:11px;color:#888;">Groen van Texel &nbsp;|&nbsp; 06 4215 2499</div>
   </div>
 </div>`;
   },
