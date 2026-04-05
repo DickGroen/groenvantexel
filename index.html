@@ -3703,11 +3703,9 @@ const Monitoring = {
   // Testklant wordt aangemaakt via SQL setup
   const lc=$('login-code');if(lc)lc.addEventListener('keydown',e=>{if(e.key==='Enter')Auth.login();});
   // Terugkeer van Stripe betaling
-  if(new URLSearchParams(window.location.search).get('betaald')==='1'){
+  const _betaaldTerugkeer = new URLSearchParams(window.location.search).get('betaald')==='1';
+  if(_betaaldTerugkeer){
     const banner=$('betaald-banner');if(banner)banner.style.display='block';
-    showFlex('login-overlay');
-    const lc2=$('login-code');if(lc2)lc2.focus();
-    // Verwijder parameter uit URL zonder pagina te herladen
     history.replaceState(null,'',window.location.pathname);
   }
   // Laad sessie - toon laadmelding
@@ -3723,6 +3721,11 @@ const Monitoring = {
     if(!sessie){
       hide('login-overlay');
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      // Terugkeer van Stripe: toon loginscherm met betalingsbevestiging
+      if(_betaaldTerugkeer){
+        showFlex('login-overlay');
+        const lc2=$('login-code');if(lc2)lc2.focus();
+      }
     }
   });
   // Geen JWT = niets tonen totdat iemand inlogt
