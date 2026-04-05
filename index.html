@@ -3614,6 +3614,8 @@ const Monitoring = {
 (function init(){
   try{emailjs.init(Config.pubkey());}catch{}
   Bestanden.koppelListeners();
+  // Jaarselectie EERST vullen, dan pas toon() aanroepen
+  const jaarSel=$('f-jaar');if(jaarSel){const nu=new Date().getFullYear();jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join('');}
   // Progressieve upload sectie: toon pas als bedrijf + sector + jaar zijn ingevuld
   (function(){
     const toon=()=>{
@@ -3632,7 +3634,6 @@ const Monitoring = {
   // Monitoring bestand listener
   const monVw=$('mon-vw');
   if(monVw) monVw.addEventListener('change',()=>setTxt('mon-vw-naam',monVw.files?.[0]?'✔ '+monVw.files[0].name:''));
-  const jaarSel=$('f-jaar');if(jaarSel){const nu=new Date().getFullYear();jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join('');}
   Config.herstelUI();
   try{const fs=$('f-sector'); if(fs){ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); renderAnalyse(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
   // Deduplicatie wordt server-side afgehandeld via UNIQUE constraint
