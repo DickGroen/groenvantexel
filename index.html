@@ -1424,7 +1424,7 @@ const Rapport={
     const nettoCopy = nettoWaarde < sn.netto[0]
       ? `<div style="background:#FEF2F2;border-left:3px solid #C0392B;padding:8px 12px;margin-top:8px;font-size:12px;color:#7B1F1F;line-height:1.6;">Uw nettowinst ligt onder de norm. Dit betekent dat u structureel winst laat liggen.</div>`
       : `<div style="background:#F0FDF4;border-left:3px solid #1E8449;padding:8px 12px;margin-top:8px;font-size:12px;color:#14532D;line-height:1.6;">Uw nettowinst ligt binnen de norm, maar er is nog ruimte voor verbetering.</div>`;
-    return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Verstuurd op ${datum}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',nettoWaarde).k};">${nettoWaarde.toFixed(1)}%${nettoAfgeleid}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}–${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',nettoWaarde).s}</td></tr></table>${nettoCopy}</div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Hier verliest u direct geld</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;">${ctaBlok}</div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;text-align:center;">Dick Groen &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
+    return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Aangeleverd op ${datum} &nbsp;·&nbsp; u ontvangt uw 1-pager uiterlijk ${(()=>{const d=new Date();d.setHours(12,0,0,0);let t=0;while(t<3){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)t++;}return d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});})()}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',nettoWaarde).k};">${nettoWaarde.toFixed(1)}%${nettoAfgeleid}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}–${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',nettoWaarde).s}</td></tr></table>${nettoCopy}</div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Hier verliest u direct geld</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;">${ctaBlok}</div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;text-align:center;">Dick Groen &nbsp;|&nbsp; Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
   },
 };
 
@@ -1923,7 +1923,7 @@ const Formulier={
       if(geenUploads){
         UI.toast('U kunt uw cijfers later aanleveren — wij nemen contact op');
       } else {
-        UI.toast('Jaarcijfers ontvangen op '+datum);
+        UI.toast('Ontvangen ✓ — u krijgt uw 1-pager uiterlijk over 3 werkdagen');
       }
     }catch(e){Formulier._bezig=false;if(btn){btn.disabled=false;btn.textContent='Ja, ik wil mijn verborgen winst zien →';} const micro=$('f-micro-belofte'); if(micro) micro.style.display='none'; UI.error(e.message||'Er ging iets mis');}
   },
@@ -2256,10 +2256,12 @@ const Sectornormen = {
 const Fin = {
   parseData(tekst) {
     const t = String(tekst || '');
+    // Parseert getallen met punt, komma of spatie als duizendscheider
     const num = (re) => {
       const m = t.match(re);
       if (!m) return null;
-      const s = m[1].replace(/[€\s.]/g,'').replace(',','.');
+      // Verwijder valuta, spaties en punten als duizendscheider, vervang komma door punt
+      const s = m[1].replace(/[€\s]/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.');
       const n = parseFloat(s);
       return isNaN(n) ? null : n;
     };
@@ -2270,7 +2272,9 @@ const Fin = {
       const n = parseFloat(s);
       return isNaN(n) ? null : n;
     };
-    const omzet  = num(/(?:Totaal netto-omzet|Omzet)[:\s€]*([0-9.,]+)/i);
+    // Omzet: match alle gangbare labels én formaten (punt/komma/spatie als separator)
+    const omzetRe = /(?:Totaal\s+netto-?omzet|Netto-?omzet|Totale?\s+omzet|Omzet)[:\s€]*([0-9][0-9\s.,]*[0-9]|[0-9]+)/i;
+    const omzet = num(omzetRe);
     const brutomarge = pct(/Brutomarge\s*%[:\s]*([0-9.,]+)/i);
     // Probeer nettoresultaat direct te lezen; fallback: bereken uit brutomarge - kosten%
     let ebitda = pct(/Nettoresultaat\s*%[:\s]*([0-9.,]+)/i);
@@ -2331,29 +2335,29 @@ const Fin = {
     const result = [];
     const sig = (veld, v) => Fin.signaal(veld, v, sector);
 
-    if (d.brutomarge !== null && d.brutomarge !== undefined && d.omzet) {
+    if (d.brutomarge !== null && d.brutomarge !== undefined) {
       const s = sig('brutomarge', d.brutomarge);
       if (s.s !== '✓') {
         const normMid = (sn.brutomarge[0] + sn.brutomarge[1]) / 2;
-        const bedrag = d.omzet * (normMid - d.brutomarge) / 100;
+        const bedrag = d.omzet ? Math.round(d.omzet * (normMid - d.brutomarge) / 100) : null;
         result.push({
           t: 'Brutomarge onder sectornorm',
           tx: `Uw brutomarge van ${d.brutomarge}% ligt onder de sectornorm van ${sn.brutomarge[0]}–${sn.brutomarge[1]}%. Dit wijst op druk op inkoopprijzen, tarieven of projectmix.`,
-          bedrag: bedrag > 0 ? Math.round(bedrag) : null,
+          bedrag: bedrag != null && bedrag > 0 ? bedrag : null,
           k: s.k,
         });
       }
     }
 
-    if (d.debiteurendagen !== null && d.debiteurendagen !== undefined && d.omzet) {
+    if (d.debiteurendagen !== null && d.debiteurendagen !== undefined) {
       const s = sig('debiteurendagen', d.debiteurendagen);
       if (s.s !== '✓') {
         const normMax = sn.debiteur[1];
-        const bedrag = d.omzet * (d.debiteurendagen - normMax) / 365;
+        const bedrag = d.omzet ? Math.round(d.omzet * (d.debiteurendagen - normMax) / 365) : null;
         result.push({
           t: 'Debiteurendagen te hoog',
           tx: `Uw debiteurendagen van ${d.debiteurendagen} liggen boven de sectornorm van ${sn.debiteur[0]}–${sn.debiteur[1]} dagen. Hier zit direct geld vast dat u niet gebruikt — en dat uw groei remt.`,
-          bedrag: bedrag > 0 ? Math.round(bedrag) : null,
+          bedrag: bedrag != null && bedrag > 0 ? bedrag : null,
           k: s.k,
         });
       }
@@ -2371,15 +2375,15 @@ const Fin = {
       }
     }
 
-    if (d.ebitda !== null && d.ebitda !== undefined && d.omzet) {
+    if (d.ebitda !== null && d.ebitda !== undefined) {
       const s = sig('ebitda', d.ebitda);
       if (s.s !== '✓') {
         const normMid = (sn.netto[0] + sn.netto[1]) / 2;
-        const bedrag = d.omzet * (normMid - d.ebitda) / 100;
+        const bedrag = d.omzet ? Math.round(d.omzet * (normMid - d.ebitda) / 100) : null;
         result.push({
           t: 'Nettoresultaat onder norm',
           tx: `Uw nettoresultaat van ${d.ebitda}% ligt onder de sectornorm van ${sn.netto[0]}–${sn.netto[1]}%. Kostenstructuur of prijsstelling verdient aandacht.`,
-          bedrag: bedrag > 0 ? Math.round(bedrag) : null,
+          bedrag: bedrag != null && bedrag > 0 ? bedrag : null,
           k: s.k,
         });
       }
