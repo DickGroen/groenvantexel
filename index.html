@@ -1776,13 +1776,25 @@ const Conversie={
     const eenpager = $('eenpager-content') || $('klant-eenpager-inhoud');
     let bedrag = '';
     if(eenpager){
-      const txt = eenpager.textContent || '';
-      const matches = [...txt.matchAll(/€[ \s]?[\d.,]+/g)].map(m => {
-        const n = parseFloat(m[0].replace(/[€ \s.]/g,'').replace(',','.'));
-        return {raw:m[0].trim(), val:isNaN(n)?0:n};
-      });
-      const grootste = matches.sort((a,b)=>b.val-a.val)[0];
-      if(grootste && grootste.val > 1000) bedrag = grootste.raw;
+      const html = eenpager.innerHTML || '';
+      // Zoek eerst het bedrag in de impactbox (DIT BEDRAG LAAT U NU LIGGEN)
+      const impactMatch = html.match(/DIT BEDRAG LAAT U NU LIGGEN[\s\S]{0,200}?(€\s?[\d.,]+)/i);
+      if(impactMatch){
+        const n = parseFloat(impactMatch[1].replace(/[€\s.]/g,'').replace(',','.'));
+        if(!isNaN(n) && n > 1000) bedrag = impactMatch[1].replace(/\s/g,'');
+      }
+      // Fallback: zoek expliciet naar Impact-bedrag, sla omzet over
+      if(!bedrag){
+        const txt = eenpager.textContent || '';
+        const omzetMatch = txt.match(/Omzet[^\d]*([\d.,]+)/i);
+        const omzetVal = omzetMatch ? parseFloat(omzetMatch[1].replace(/[.\s]/g,'').replace(',','.')) : Infinity;
+        const matches = [...txt.matchAll(/€[ \s]?[\d.,]+/g)].map(m => {
+          const n = parseFloat(m[0].replace(/[€ \s.]/g,'').replace(',','.'));
+          return {raw:m[0].trim(), val:isNaN(n)?0:n};
+        }).filter(m => m.val > 1000 && m.val < omzetVal * 0.9); // sluit omzet en hogere bedragen uit
+        const grootste = matches.sort((a,b)=>b.val-a.val)[0];
+        if(grootste) bedrag = grootste.raw;
+      }
     }
     const titel = $('conv-modal-titel');
     if(titel) titel.textContent = bedrag
