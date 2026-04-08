@@ -1072,8 +1072,8 @@ const Auth={
     sessie=null;
     sessionStorage.removeItem('gvt_sessie');
     sessionStorage.removeItem('gvt-user');
-    // Cookie kan alleen door de backend worden gewist — doe best-effort aanroep
-    API.call({actie:'uitloggen'}).catch(()=>{});
+    // Gebruik raw fetch zodat de 401-interceptor in API.call niet opnieuw triggert
+    fetch('/api/analyse',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({actie:'uitloggen'})}).catch(()=>{});
     const overlay=$('login-overlay');if(overlay)overlay.style.display='flex';
     const err=$('login-error');if(err){err.textContent=msg||'Uw sessie is verlopen. Log opnieuw in.';err.style.display='block';}
   },
