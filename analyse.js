@@ -111,7 +111,7 @@ const KLANT_ACTIES = new Set([
   'stuurEmail',
 ]);
 
-const PUBLIEK_ACTIES = new Set(['checkLogin', 'analyse', 'validateToken']);
+const PUBLIEK_ACTIES = new Set(['checkLogin', 'analyse', 'validateToken', 'uitloggen']);
 
 // ── Supabase helper ───────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://yhctamsjmbkkqhndaiov.supabase.co';
