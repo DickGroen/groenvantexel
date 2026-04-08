@@ -8,7 +8,7 @@
 <title>Groen van Texel v3.2.1 — Financieel Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- CHANGED: Content Security Policy — beperkt script-bronnen, voorkomt framing en data-injectie -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.anthropic.com https://api.emailjs.com https://*.supabase.co https://api.stripe.com; base-uri 'self'; form-action 'self';">
 <!-- REMOVED: EmailJS browser library — e-mail loopt nu server-side via de backend -->
 <style>
 :root{--green:#1A7A42;--green-light:#21963F;--green-pale:#D1F2E1;--blue:#1F4E79;--blue-mid:#2E75B6;--blue-pale:#D6E4F0;--red:#C0392B;--red-pale:#FDECEA;--orange:#E67E22;--orange-pale:#FDEBD0;--purple:#5B21B6;--purple-pale:#EDE9FE;--dark:#1A1A1A;--mid:#555;--light:#888;--bg:#F5F7F5;--white:#fff;--border:#DDE8E0;}
