@@ -7,7 +7,8 @@
 // GEBRUIKT DOOR:
 //   backend  → getSectorNormenTekst() → injectie in AI-prompt
 //   frontend → visuele vergelijking met ingevoerde cijfers
-//// NIET VOOR: copy, CTA's, promptfocus-instructies — die zitten elders
+//
+// NIET VOOR: copy, CTA's, promptfocus-instructies — die zitten elders
 //
 // NORMEN AANPASSEN:
 //   Wijzig hier — backend én frontend pikken het automatisch op.
