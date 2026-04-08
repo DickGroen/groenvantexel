@@ -1,6 +1,12 @@
-// ── JWT helpers (Web Crypto API — beschikbaar in CF Workers) ─────────────────
+// ── Sector config import ──────────────────────────────────────────────────────
+// sectorProfiles.js staat in /config/sectorProfiles.js (twee niveaus omhoog vanuit functions/api/).
+import { buildSectorPrompt } from '../../config/sectorProfiles.js';
+
+// ── JWT helpers (Web Crypto API — beschikbaar in CF Workers) ──────────────────
 const jwtSecret = async (env) => {
-  const secret = (env && env.JWT_SECRET) || 'gvt-dev-secret-change-in-production';
+  const secret = env && env.JWT_SECRET;
+  // FIX: geen hardcoded fallback — ontbrekende secret is een configuratiefout
+  if (!secret) throw new Error('JWT_SECRET environment variable is niet ingesteld');
   return crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(secret),
@@ -44,7 +50,39 @@ const jwtVerify = async (token, env) => {
   }
 };
 
-// Rollen per actie
+// ── Stripe webhook handtekening verificatie ───────────────────────────────────
+const verifyStripeSignature = async (payload, sigHeader, secret) => {
+  const parts = sigHeader.split(',').reduce((acc, part) => {
+    const [k, v] = part.split('=');
+    acc[k] = v;
+    return acc;
+  }, {});
+
+  const timestamp = parts['t'];
+  const signature = parts['v1'];
+  if (!timestamp || !signature) return false;
+
+  // Bescherm tegen replay attacks: max 5 minuten oud
+  const diff = Math.abs(Date.now() / 1000 - parseInt(timestamp));
+  if (diff > 300) return false;
+
+  const signedPayload = `${timestamp}.${payload}`;
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedPayload));
+  const computed = Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  return computed === signature;
+};
+
+// ── Rollen per actie ──────────────────────────────────────────────────────────
 const ADMIN_ACTIES = new Set([
   'getKlanten',
   'setKlant',
@@ -75,14 +113,13 @@ const KLANT_ACTIES = new Set([
 
 const PUBLIEK_ACTIES = new Set(['checkLogin', 'analyse', 'validateToken']);
 
-// functions/api/analyse.js — Groen van Texel
-// Cloudflare Pages Function — alle API calls
-
+// ── Supabase helper ───────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://yhctamsjmbkkqhndaiov.supabase.co';
 
 const sb = async (env, path, method = 'GET', body = null) => {
-  const SUPABASE_KEY =
-    (env && env.SUPABASE_KEY) || 'sb_publishable_0vdwwnPaC30Y-XcAoBZVjQ_ZJq7tvNs';
+  const SUPABASE_KEY = env && env.SUPABASE_KEY;
+  // FIX: geen hardcoded fallback — ontbrekende sleutel is een configuratiefout
+  if (!SUPABASE_KEY) throw new Error('SUPABASE_KEY environment variable is niet ingesteld');
 
   const opts = {
     method,
@@ -106,13 +143,87 @@ const sb = async (env, path, method = 'GET', body = null) => {
   return txt ? JSON.parse(txt) : [];
 };
 
-export async function onRequestPost({ request, env }) {
-  const cors = {
-    'Access-Control-Allow-Origin': (env && env.ALLOWED_ORIGIN) || '*',
+// ── CORS helper ───────────────────────────────────────────────────────────────
+// FIX: ALLOWED_ORIGIN is verplicht — geen wildcard fallback
+const getCors = (env) => {
+  const origin = env && env.ALLOWED_ORIGIN;
+  if (!origin) throw new Error('ALLOWED_ORIGIN environment variable is niet ingesteld');
+  return {
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Content-Type': 'application/json',
   };
+};
+
+// ── Stripe Webhook handler ────────────────────────────────────────────────────
+export async function onRequestPost_stripeWebhook({ request, env }) {
+  const cors = { 'Content-Type': 'application/json' };
+  const webhookSecret = env && env.STRIPE_WEBHOOK_SECRET;
+
+  if (!webhookSecret) {
+    console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET niet ingesteld');
+    return new Response(JSON.stringify({ error: 'Webhook secret ontbreekt' }), { status: 500, headers: cors });
+  }
+
+  const rawBody = await request.text();
+  const sigHeader = request.headers.get('stripe-signature') || '';
+
+  const geldig = await verifyStripeSignature(rawBody, sigHeader, webhookSecret);
+  if (!geldig) {
+    console.error('[stripe-webhook] Ongeldige handtekening');
+    return new Response(JSON.stringify({ error: 'Ongeldige handtekening' }), { status: 400, headers: cors });
+  }
+
+  let event;
+  try {
+    event = JSON.parse(rawBody);
+  } catch {
+    return new Response(JSON.stringify({ error: 'Ongeldig JSON' }), { status: 400, headers: cors });
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const email = session.customer_details?.email || session.customer_email || '';
+
+    if (email) {
+      try {
+        const klanten = await sb(env, `klanten?email=eq.${encodeURIComponent(email)}`);
+
+        if (klanten.length > 0) {
+          const klant = klanten[0];
+          await sb(env, `klanten?code=eq.${encodeURIComponent(klant.code)}`, 'PATCH', {
+            klanttype: 'doorlichting',
+          });
+          console.log(`[stripe-webhook] ${klant.naam} (${email}) omgezet naar doorlichting`);
+        } else {
+          console.warn(`[stripe-webhook] Geen klant gevonden voor e-mail: ${email}`);
+        }
+      } catch (e) {
+        console.error('[stripe-webhook] Supabase fout:', e.message);
+        // Toch 200 teruggeven zodat Stripe niet blijft retrying
+      }
+    }
+  }
+
+  return new Response(JSON.stringify({ ontvangen: true }), { headers: cors });
+}
+
+// ── Hoofd POST handler ────────────────────────────────────────────────────────
+export async function onRequestPost({ request, env }) {
+  // Route naar stripe-webhook handler als het pad /api/stripe-webhook is
+  const url = new URL(request.url);
+  if (url.pathname === '/api/stripe-webhook') {
+    return onRequestPost_stripeWebhook({ request, env });
+  }
+
+  let cors;
+  try {
+    cors = getCors(env);
+  } catch (e) {
+    console.error('[analyse.js] CORS configuratiefout:', e.message);
+    return new Response(JSON.stringify({ error: { message: e.message } }), { status: 500 });
+  }
 
   try {
     const body = await request.json();
@@ -138,17 +249,30 @@ export async function onRequestPost({ request, env }) {
           { status: 403, headers: cors }
         );
       }
+
+      // Klantcode uit jwtPayload wordt per route gebruikt als filter — zie de individuele actie-blokken.
     }
 
-    // ── AI ANALYSE ────────────────────────────────────────────────────────
+    // ── AI ANALYSE ────────────────────────────────────────────────────────────
     if (actie === 'analyse' || !actie) {
-      const { prompt, max_tokens = 1500 } = body;
+      const { prompt, promptData, sector, scanType = 'winst', max_tokens = 1500 } = body;
       const apiKey = env.ANTHROPIC_API_KEY;
 
       if (!apiKey) {
         return new Response(JSON.stringify({ error: { message: 'API key ontbreekt' } }), {
           headers: cors,
         });
+      }
+
+      const volledigePrompt = promptData
+        ? buildSectorPrompt(String(promptData), sector || 'Overig', scanType)
+        : (prompt || '');
+
+      if (!volledigePrompt) {
+        return new Response(
+          JSON.stringify({ error: { message: 'Geen prompt of promptData meegegeven' } }),
+          { headers: cors }
+        );
       }
 
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -161,7 +285,7 @@ export async function onRequestPost({ request, env }) {
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens,
-          messages: [{ role: 'user', content: prompt }],
+          messages: [{ role: 'user', content: volledigePrompt }],
         }),
       });
 
@@ -169,7 +293,7 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify(data), { headers: cors });
     }
 
-    // ── SESSIE VALIDATIE ─────────────────────────────────────────────────
+    // ── SESSIE VALIDATIE ──────────────────────────────────────────────────────
     if (actie === 'validateToken') {
       const authHeader = request.headers.get('Authorization') || '';
       const jwtToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -198,10 +322,10 @@ export async function onRequestPost({ request, env }) {
       );
     }
 
-    // ── LOGIN CHECK ──────────────────────────────────────────────────────
+    // ── LOGIN CHECK ───────────────────────────────────────────────────────────
     if (actie === 'checkLogin') {
       const { code } = body;
-      const adminCode = (env && env.ADMIN_CODE) || '';
+      const adminCode = env && env.ADMIN_CODE;
 
       if (!adminCode) {
         return new Response(
@@ -212,14 +336,12 @@ export async function onRequestPost({ request, env }) {
         );
       }
 
-      // Admin check
       if (code === adminCode) {
         const exp = Math.floor(Date.now() / 1000) + 8 * 3600;
         const token = await jwtSign({ type: 'admin', exp }, env);
         return new Response(JSON.stringify({ type: 'admin', token }), { headers: cors });
       }
 
-      // Klant check
       const klanten = await sb(env, 'klanten');
       const klant = Array.isArray(klanten) ? klanten.find((k) => k.code === code) : null;
 
@@ -249,7 +371,7 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ type: 'onbekend' }), { headers: cors });
     }
 
-    // ── KLANTEN ───────────────────────────────────────────────────────────
+    // ── KLANTEN (admin only) ──────────────────────────────────────────────────
     if (actie === 'getKlanten') {
       const data = await sb(env, 'klanten?order=aangemaakt.asc');
       return new Response(JSON.stringify(data), { headers: cors });
@@ -279,26 +401,27 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
-    // ── UPLOADS ───────────────────────────────────────────────────────────
+    // ── UPLOADS ───────────────────────────────────────────────────────────────
     if (actie === 'getUploads') {
-      const data = await sb(env, 'uploads?order=aangemaakt.desc');
+      // FIX: klant ziet alleen eigen uploads; admin ziet alles
+      const filter = jwtPayload?.type === 'klant'
+        ? `bedrijf=eq.${encodeURIComponent(jwtPayload.code)}&`
+        : '';
+      const data = await sb(env, `uploads?${filter}order=aangemaakt.desc`);
       return new Response(JSON.stringify(data), { headers: cors });
-    }
-
-    if (actie === 'setUpload') {
-      const { bedrijf, periode, datum, sector, pdftekst } = body;
-      await sb(env, 'uploads', 'POST', {
-        bedrijf,
-        periode,
-        datum,
-        sector: sector || '',
-        pdftekst: (pdftekst || '').substring(0, 80000),
-      });
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
     if (actie === 'upsertUpload') {
       const { bedrijf, periode, datum, sector, pdftekst } = body;
+
+      // FIX: klant mag alleen eigen bedrijf uploaden
+      if (jwtPayload?.type === 'klant' && bedrijf !== jwtPayload.code) {
+        return new Response(
+          JSON.stringify({ error: { message: 'Geen toegang tot dit bedrijf' } }),
+          { status: 403, headers: cors }
+        );
+      }
+
       const bestaand = await sb(
         env,
         `uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`
@@ -328,9 +451,43 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
-    // ── ANALYSES ──────────────────────────────────────────────────────────
+    if (actie === 'setUpload') {
+      // Enkelvoudige INSERT — gebruik upsertUpload voor update-of-insert gedrag
+      const { bedrijf, periode, datum, sector, pdftekst } = body;
+      await sb(env, 'uploads', 'POST', {
+        bedrijf,
+        periode,
+        datum,
+        sector: sector || '',
+        pdftekst: (pdftekst || '').substring(0, 80000),
+      });
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    if (actie === 'delUpload') {
+      const { bedrijf, periode } = body;
+      await sb(
+        env,
+        `uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`,
+        'DELETE'
+      );
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
+    // ── ANALYSES ──────────────────────────────────────────────────────────────
     if (actie === 'getAnalyse') {
       const { sleutel } = body;
+
+      // FIX: klant mag alleen analyse opvragen die bij zijn eigen code hoort
+      // TODO: vervang sleutel-prefix check door expliciet `bedrijf`-veld in de analyses-tabel,
+      //       of gebruik database-level RLS in Supabase — prefix-matching is fragiel bij hernoemen.
+      if (jwtPayload?.type === 'klant' && !sleutel.startsWith(jwtPayload.code + '-')) {
+        return new Response(
+          JSON.stringify({ error: { message: 'Geen toegang tot deze analyse' } }),
+          { status: 403, headers: cors }
+        );
+      }
+
       const data = await sb(env, `analyses?sleutel=eq.${encodeURIComponent(sleutel)}`);
       return new Response(JSON.stringify({ tekst: data[0]?.tekst || '' }), { headers: cors });
     }
@@ -351,7 +508,7 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
-    // ── E-MAIL VIA SERVER ─────────────────────────────────────────────────
+    // ── E-MAIL VIA SERVER ─────────────────────────────────────────────────────
     if (actie === 'stuurEmail') {
       const { data: emailData } = body;
       const serviceId = (env && env.EMAILJS_SERVICE_ID) || '';
@@ -380,9 +537,15 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
-    // ── RAPPORTEN 1-PAGER ────────────────────────────────────────────────
+    // ── RAPPORTEN ─────────────────────────────────────────────────────────────
     if (actie === 'getRapporten') {
-      const data = await sb(env, 'rapporten');
+      // FIX: klant ziet alleen eigen rapporten op basis van code-prefix in sleutel
+      // TODO: vervang sleutel-prefix filter door expliciet `bedrijf`-veld in rapporten-tabel,
+      //       of gebruik database-level RLS in Supabase — prefix-matching is fragiel bij hernoemen.
+      const filter = jwtPayload?.type === 'klant'
+        ? `sleutel=like.${encodeURIComponent(jwtPayload.code + '-')}*&`
+        : '';
+      const data = await sb(env, `rapporten?${filter}`);
       return new Response(JSON.stringify(data), { headers: cors });
     }
 
@@ -423,20 +586,15 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
-    // ── UPLOAD VERWIJDEREN ───────────────────────────────────────────────
-    if (actie === 'delUpload') {
-      const { bedrijf, periode } = body;
-      await sb(
-        env,
-        `uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`,
-        'DELETE'
-      );
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── BASISSCANS ───────────────────────────────────────────────────────
+    // ── BASISSCANS ────────────────────────────────────────────────────────────
     if (actie === 'getBasisscans') {
-      const data = await sb(env, 'basisscans');
+      // FIX: klant ziet alleen eigen basisscans
+      // TODO: vervang sleutel-prefix filter door expliciet `bedrijf`-veld in basisscans-tabel,
+      //       of gebruik database-level RLS in Supabase — prefix-matching is fragiel bij hernoemen.
+      const filter = jwtPayload?.type === 'klant'
+        ? `sleutel=like.${encodeURIComponent(jwtPayload.code + '-')}*&`
+        : '';
+      const data = await sb(env, `basisscans?${filter}`);
       return new Response(JSON.stringify(data), { headers: cors });
     }
 
@@ -470,10 +628,16 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
-    // ── STRESSTESTEN ─────────────────────────────────────────────────────
+    // ── STRESSTESTEN ──────────────────────────────────────────────────────────
     if (actie === 'getStresstesten') {
-      const all = await sb(env, 'basisscans');
       const stresstypes = ['cashflow', 'debiteuren', 'offerte'];
+      // FIX: klant ziet alleen eigen stresstesten
+      // TODO: vervang sleutel-prefix filter door expliciet `bedrijf`-veld in basisscans-tabel,
+      //       of gebruik database-level RLS in Supabase — prefix-matching is fragiel bij hernoemen.
+      const filter = jwtPayload?.type === 'klant'
+        ? `sleutel=like.${encodeURIComponent(jwtPayload.code + '-')}*&`
+        : '';
+      const all = await sb(env, `basisscans?${filter}`);
       const filtered = Array.isArray(all)
         ? all.filter((r) => stresstypes.some((t) => r.sleutel && r.sleutel.endsWith('-' + t)))
         : [];
@@ -505,27 +669,28 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
-    // ── MAANDOVERZICHTEN ─────────────────────────────────────────────────
+    // ── MAANDOVERZICHTEN ──────────────────────────────────────────────────────
     if (actie === 'getMaandoverzichten') {
       const { bedrijf } = body;
-      const filter = bedrijf ? `bedrijf=eq.${encodeURIComponent(bedrijf)}&` : '';
+
+      // FIX: klant mag alleen eigen maandoverzichten opvragen
+      const effectiefBedrijf = jwtPayload?.type === 'klant' ? jwtPayload.code : bedrijf;
+      const filter = effectiefBedrijf ? `bedrijf=eq.${encodeURIComponent(effectiefBedrijf)}&` : '';
       const data = await sb(env, `maandoverzichten?${filter}order=periode.desc`);
       return new Response(JSON.stringify(data), { headers: cors });
     }
 
     if (actie === 'setMaandoverzicht') {
-      const {
-        bedrijf,
-        periode,
-        html,
-        gepubliceerd,
-        datum,
-        omzet,
-        brutomarge,
-        debiteurendagen,
-        solvabiliteit,
-        nettoresultaat,
-      } = body;
+      const { bedrijf, periode, html, gepubliceerd, datum, omzet, brutomarge, debiteurendagen, solvabiliteit, nettoresultaat } = body;
+
+      // Defensieve check: als deze actie ooit voor klanten wordt opengesteld,
+      // mag een klant nooit een ander bedrijf overschrijven.
+      if (jwtPayload?.type === 'klant' && bedrijf !== jwtPayload.code) {
+        return new Response(
+          JSON.stringify({ error: { message: 'Geen toegang tot dit bedrijf' } }),
+          { status: 403, headers: cors }
+        );
+      }
 
       const bestaand = await sb(
         env,
@@ -533,9 +698,7 @@ export async function onRequestPost({ request, env }) {
       );
 
       const record = {
-        bedrijf,
-        periode,
-        html,
+        bedrijf, periode, html,
         gepubliceerd: gepubliceerd || false,
         datum: datum || '',
         omzet: omzet || null,
@@ -547,12 +710,7 @@ export async function onRequestPost({ request, env }) {
       };
 
       if (bestaand.length > 0) {
-        await sb(
-          env,
-          `maandoverzichten?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`,
-          'PATCH',
-          record
-        );
+        await sb(env, `maandoverzichten?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`, 'PATCH', record);
       } else {
         await sb(env, 'maandoverzichten', 'POST', record);
       }
@@ -562,11 +720,7 @@ export async function onRequestPost({ request, env }) {
 
     if (actie === 'delMaandoverzicht') {
       const { bedrijf, periode } = body;
-      await sb(
-        env,
-        `maandoverzichten?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`,
-        'DELETE'
-      );
+      await sb(env, `maandoverzichten?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`, 'DELETE');
       return new Response(JSON.stringify({ ok: true }), { headers: cors });
     }
 
@@ -584,9 +738,14 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestOptions({ env }) {
+  // FIX: ALLOWED_ORIGIN verplicht — geen wildcard fallback
+  const origin = env && env.ALLOWED_ORIGIN;
+  if (!origin) {
+    return new Response(null, { status: 500 });
+  }
   return new Response(null, {
     headers: {
-      'Access-Control-Allow-Origin': (env && env.ALLOWED_ORIGIN) || '*',
+      'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
