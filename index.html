@@ -7,7 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Groen van Texel v3.2.1 — Financieel Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- CHANGED: Content Security Policy — beperkt script-bronnen, voorkomt framing en data-injectie -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+<!-- REMOVED: EmailJS browser library — e-mail loopt nu server-side via de backend -->
 <style>
 :root{--green:#1A7A42;--green-light:#21963F;--green-pale:#D1F2E1;--blue:#1F4E79;--blue-mid:#2E75B6;--blue-pale:#D6E4F0;--red:#C0392B;--red-pale:#FDECEA;--orange:#E67E22;--orange-pale:#FDEBD0;--purple:#5B21B6;--purple-pale:#EDE9FE;--dark:#1A1A1A;--mid:#555;--light:#888;--bg:#F5F7F5;--white:#fff;--border:#DDE8E0;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -103,17 +105,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
 
 <div id="login-overlay" class="login-overlay">
   <div class="login-box">
-    <div id="betaald-banner" style="display:none;background:#D4EDDA;border:1px solid #A3CCB5;border-radius:10px;padding:14px 16px;margin-bottom:20px;text-align:left;">
-      <div style="font-weight:700;font-size:14px;color:#1E5C38;margin-bottom:4px;">✅ Betaling ontvangen — bedankt!</div>
-      <div style="font-size:13px;color:#2D6A4F;line-height:1.6;">Uw Financiële Basisscan wordt op basis van uw aangeleverde cijfers opgemaakt. U ontvangt hem binnen 5 werkdagen.</div>
-    </div>
+    <!-- CHANGED: betaald-banner vervangen door server-side payment-status-banner -->
+    <div id="payment-status-banner" style="display:none;border-radius:10px;padding:14px 16px;margin-bottom:20px;text-align:left;"></div>
     <div style="font-size:36px;margin-bottom:12px;">📊</div>
     <h1>Groen van Texel</h1>
     <p>Financiële Doorlichting &amp; Monitoring</p>
-    <input id="login-code" type="password" class="login-input" placeholder="Inlogcode" autocomplete="off">
-    <button class="login-btn" onclick="Auth.login()">Inloggen →</button>
-<div id="login-gratis-zin" style="text-align:center;margin-top:10px;font-size:12px;color:#6b7280;font-weight:600;">✔ Gratis • geen verplichtingen • binnen 3 werkdagen</div>
-    <div id="login-error" class="login-error">Inlogcode niet herkend.</div>
+    <!-- CHANGED: code-input → magic link flow -->
+    <div id="login-stap-email" style="width:100%;">
+      <input id="login-email" type="email" class="login-input" placeholder="uw@emailadres.nl" autocomplete="email">
+      <button class="login-btn" onclick="Auth.vraagMagicLink()">Stuur loginlink →</button>
+      <div id="login-gratis-zin" style="text-align:center;margin-top:10px;font-size:12px;color:#6b7280;font-weight:600;">✔ Gratis • geen verplichtingen • doorgaans binnen 3 werkdagen</div>
+      <div style="text-align:center;margin-top:8px;font-size:12px;color:#9ca3af;">U ontvangt een loginlink op uw e-mailadres.</div>
+    </div>
+    <div id="login-stap-verstuurd" style="display:none;width:100%;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">📬</div>
+      <div style="font-size:15px;font-weight:700;color:#1F4E79;margin-bottom:8px;">Loginlink verstuurd</div>
+      <div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:16px;">Controleer uw inbox en klik op de link om in te loggen.<br>De link is 15 minuten geldig.</div>
+      <button onclick="Auth.resetLoginStap()" style="background:none;border:none;color:#9ca3af;font-size:12px;cursor:pointer;">Ander e-mailadres proberen</button>
+    </div>
+    <div style="margin-top:16px;border-top:1px solid #e5e7eb;padding-top:14px;">
+      <details style="cursor:pointer;">
+        <summary style="font-size:11px;color:#9ca3af;text-align:center;list-style:none;user-select:none;">Beheerder? Log hier in</summary>
+        <div style="margin-top:10px;">
+          <input id="login-admin-code" type="password" class="login-input" placeholder="Beheerderscode" autocomplete="off" style="margin-bottom:8px;">
+          <button class="login-btn" onclick="Auth.loginAdmin()" style="background:var(--blue);">Admin inloggen →</button>
+        </div>
+      </details>
+    </div>
+    <div id="login-error" class="login-error" style="margin-top:8px;"></div>
   </div>
 </div>
 
@@ -149,10 +168,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--blue);margin-bottom:24px;">Klantbeheer</h2>
     <div class="card">
       <div class="card-title">Nieuwe klant toevoegen</div>
-      <div class="form-row cols4">
+      <!-- CHANGED: Inlogcode veld verwijderd. E-mail is nu verplicht (magic link). -->
+        <div class="form-row cols4" style="display:contents;">
         <div class="form-group"><label class="form-label">Bedrijfsnaam <span class="req">*</span></label><input id="nk-naam" class="form-input" placeholder="Van Dorp BV" autocomplete="off"></div>
-        <div class="form-group"><label class="form-label">Inlogcode <span class="req">*</span></label><input id="nk-code" class="form-input" placeholder="vandorp2026" autocomplete="off"></div>
-        <div class="form-group"><label class="form-label">E-mail</label><input id="nk-email" type="email" class="form-input" placeholder="klant@bedrijf.nl" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">E-mail <span class="req">*</span></label><input id="nk-email" type="email" class="form-input" placeholder="klant@bedrijf.nl" autocomplete="off"></div>
         <div class="form-group"><label class="form-label">Type</label>
           <select id="nk-type" class="form-select">
             <option value="lead">🎯 Lead (gratis 1-pager)</option>
@@ -170,7 +189,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
     </div>
     <div class="card">
       <div class="card-title">Alle klanten</div>
-      <table class="tbl"><thead><tr><th>Bedrijf</th><th>Inlogcode</th><th>Type</th><th>Sector</th><th>E-mail</th><th></th></tr></thead>
+      <!-- CHANGED: Inlogcode kolom verwijderd -->
+      <table class="tbl"><thead><tr><th>Bedrijf</th><th>E-mail</th><th>Type</th><th>Sector</th><th></th></tr></thead>
       <tbody id="kb-tbody"></tbody></table>
     </div>
   </div>
@@ -225,7 +245,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       </div>
       <div id="bs-prev-inhoud"></div>
     </div>
-    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="display:none;margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div><div id="rapport-soft-cta" style="margin-top:16px;background:linear-gradient(150deg,#162F4A 0%,#1A5C38 60%,#21963F 100%);border-radius:12px;padding:22px 24px;color:#fff;display:none;"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:10px;">Vervolgstap — Doorlopende begeleiding</div><div style="font-size:18px;font-weight:900;line-height:1.3;margin-bottom:10px;">Zonder maandelijkse sturing verdwijnt deze winst weer</div><div id="rapport-soft-cta-text" style="font-size:13px;line-height:1.7;color:rgba(255,255,255,.9);margin-bottom:12px;">U ziet nu waar uw winst weglekt. Maar zonder structurele opvolging sluipt dit er gewoon weer in. Marges dalen langzaam. Kosten lopen op. U merkt het pas als het al maanden fout gaat.<div style="margin-top:6px;font-size:12px;color:rgba(255,255,255,.85);">Dit zien we bij vrijwel elke ondernemer na een eerste analyse</div></div><div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;font-size:12px;"><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Maandelijks signaal: problemen vóórdat ze groot worden</span></div><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Directe bijsturing op marge, kosten en cashflow</span></div><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Concrete actie per maand — geen rapporten die in een la belanden</span></div></div><div style="background:rgba(0,0,0,.2);border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;"><div style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;">Klein t.o.v. de winst die u beschermt.<br><span style="color:#FFD700;font-weight:700;">Gemiddeld €10k–€50k/jaar gevonden.</span></div><div style="text-align:right;"><div style="font-size:11px;color:rgba(255,255,255,.55);">per maand</div><div style="font-size:24px;font-weight:900;color:#FFD700;">€249</div><div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:3px;">Vaak al terugverdiend met 1 verbetering</div></div></div><button id="rapport-soft-cta-btn" onclick="Conversie.aanvraagMonitoring()" style="width:100%;border:none;border-radius:10px;padding:14px 16px;background:#fff;color:#1A5C38;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);">Houd grip op mijn winst →</button><div style="text-align:center;margin-top:8px;"><span style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline;" onclick="UI.sluitModal&&UI.sluitModal();Nav.ga&&Nav.ga('diensten')">Eerst alleen inzichten verdiepen</span></div><div style="text-align:center;margin-top:6px;font-size:11px;color:rgba(255,255,255,.5);">Maandelijks opzegbaar · geen verplichtingen · direct inzicht</div></div></div>
+    <div id="klant-eenpager" style="display:none;"><div id="klant-eenpager-inhoud"></div><div id="rapport-analyse" style="display:none;margin-top:18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;font-size:13px;line-height:1.8;color:#1F2937;white-space:pre-wrap;"></div><div id="rapport-soft-cta" style="margin-top:16px;background:linear-gradient(150deg,#162F4A 0%,#1A5C38 60%,#21963F 100%);border-radius:12px;padding:22px 24px;color:#fff;display:none;"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:10px;">Vervolgstap — Doorlopende begeleiding</div><div style="font-size:18px;font-weight:900;line-height:1.3;margin-bottom:10px;">Zonder maandelijkse sturing verdwijnt deze winst weer</div><div id="rapport-soft-cta-text" style="font-size:13px;line-height:1.7;color:rgba(255,255,255,.9);margin-bottom:12px;"></div><div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;font-size:12px;"><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Maandelijks signaal: problemen vóórdat ze groot worden</span></div><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Directe bijsturing op marge, kosten en cashflow</span></div><div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">✓</span><span style="color:rgba(255,255,255,.9);">Concrete actie per maand — geen rapporten die in een la belanden</span></div></div><div style="background:rgba(0,0,0,.2);border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;"><div style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;">Klein t.o.v. de winst die u beschermt.<br><span style="color:#FFD700;font-weight:700;">Gemiddeld €10k–€50k/jaar gevonden.</span></div><div style="text-align:right;"><div style="font-size:11px;color:rgba(255,255,255,.55);">per maand</div><div style="font-size:24px;font-weight:900;color:#FFD700;">€249</div><div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:3px;">Vaak al terugverdiend met 1 verbetering</div></div></div><button id="rapport-soft-cta-btn" onclick="Conversie.aanvraagMonitoring()" style="width:100%;border:none;border-radius:10px;padding:14px 16px;background:#fff;color:#1A5C38;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);"></button><div style="text-align:center;margin-top:8px;"><span style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;text-decoration:underline;" onclick="UI.sluitModal&&UI.sluitModal();Nav.ga&&Nav.ga('diensten')">Eerst alleen inzichten verdiepen</span></div><div style="text-align:center;margin-top:6px;font-size:11px;color:rgba(255,255,255,.5);">Maandelijks opzegbaar · geen verplichtingen · direct inzicht</div></div></div>
     <div id="klant-basisscan" style="display:none;">
       <div id="klant-basisscan-inhoud"></div>
       <div style="text-align:center;margin-top:20px;padding-bottom:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
@@ -257,19 +277,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="view-aanleveren" class="view">
     <div class="card" style="max-width:660px;margin:0 auto;">
       <div style="background:linear-gradient(150deg,#162F4A 0%,#1A5C38 60%,#21963F 100%);margin:-24px -24px 24px;padding:28px 24px 22px;border-radius:11px 11px 0 0;text-align:center;">
-        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:8px;">De meeste installatiebedrijven laten €20.000–€80.000 per jaar liggen</h2>
-        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;">Ontdek waar dat in uw bedrijf gebeurt — binnen 2 minuten inzicht</p>
+        <h2 id="sector-hero" style="color:#fff;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.3;margin-bottom:8px;"></h2>
+        <p id="sector-sub" style="color:rgba(255,255,255,.86);font-size:13px;line-height:1.7;margin-bottom:4px;"></p>
         <p id="form-intro" style="color:rgba(255,255,255,.65);font-size:13px;"></p>
       </div>
       <div style="background:linear-gradient(135deg,#F2FBF5,#EEF6FF);border:1px solid #A8D5B8;border-radius:10px;padding:16px 20px;margin-bottom:20px;text-align:center;">
-        <div id="sector-trust-title" style="font-weight:700;font-size:13px;color:#1E3A5F;margin-bottom:10px;">Waarom ondernemers ons vertrouwen</div>
+        <div id="sector-trust-title" style="font-weight:700;font-size:13px;color:#1E3A5F;margin-bottom:10px;"></div>
         <div style="display:inline-flex;flex-direction:column;gap:7px;text-align:left;">
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-1">Inzicht in marge, kosten en winstkansen</span></div>
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-2">Concreet en snel toepasbare verbeteracties</span></div>
-          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-3">Volledig vertrouwelijke verwerking van uw cijfers</span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-1"></span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-2"></span></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#1F4E79;"><span style="color:#1E8449;flex-shrink:0;margin-top:1px;font-weight:700;">✓</span><span id="sector-trust-3"></span></div>
         </div>
       </div>
-      <div id="sector-impact" style="background:linear-gradient(135deg,#FFF3E0,#FFF7ED);border:1px solid #F5A623;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#7C3300;line-height:1.6;text-align:center;font-weight:600;">Installatiebedrijven laten vaak €20.000–€80.000 per jaar liggen zonder dit te zien.</div>
+      <div id="sector-impact" style="background:linear-gradient(135deg,#FFF3E0,#FFF7ED);border:1px solid #F5A623;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#7C3300;line-height:1.6;text-align:center;font-weight:600;"></div>
+            <div id="sector-impact-disclaimer" style="font-size:10px;color:#999;margin-top:4px;text-align:center;">Indicatieve bandbreedte op basis van sectorervaringen · Individuele situaties verschillen</div>
       <div class="form-row cols2">
         <div class="form-group"><label class="form-label">Bedrijfsnaam <span class="req">*</span></label><input id="f-bedrijf" class="form-input" autocomplete="off"></div>
         <div class="form-group"><label class="form-label">Sector <span class="req">*</span></label>
@@ -341,13 +362,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
       <p style="font-size:13px;color:var(--mid);margin-bottom:16px;">Verwijder dubbele uploads uit de opslag.</p>
       <button class="btn btn-danger" onclick="Config.opruimenUploads()">🧹 Dubbele uploads opruimen</button>
     </div>
-    <div class="card" style="max-width:520px;">
-      <div class="card-title">EmailJS instellingen</div>
-      <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Service ID</label><input id="cfg-service" class="form-input" value="service_oqgsajg"></div>
-      <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Template ID</label><input id="cfg-template" class="form-input" value="template_q3aea4c"></div>
-      <div class="form-group" style="margin-bottom:20px;"><label class="form-label">Public Key</label><input id="cfg-pubkey" class="form-input" value="ubJuLGAX11M-mSoIZ"></div>
-      <button class="btn btn-primary" onclick="Config.opslaan()">Opslaan</button>
-    </div>
+    <!-- REMOVED: EmailJS instellingen-kaart — mailconfiguratie is server-side via env vars -->
   </div>
 
   <div id="view-diensten" class="view">
@@ -405,27 +420,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min
   <div id="conv-modal-box" style="background:#fff;border-radius:16px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);">
     <div style="background:linear-gradient(135deg,#162F4A,#1A5C38);padding:22px 28px;">
       <div style="color:rgba(255,255,255,.5);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Financiële Basisscan — €397 excl. BTW</div>
-      <div style="color:#fff;font-size:21px;font-weight:900;line-height:1.25;" id="conv-modal-titel">U laat aantoonbaar geld liggen — haal het terug</div>
+      <div style="color:#fff;font-size:21px;font-weight:900;line-height:1.25;" id="conv-modal-titel">Mogelijk laat u geld liggen — laat het uitzoeken</div>
       <div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:8px;line-height:1.5;">De 1-pager geeft signalen. De Basisscan geeft antwoorden — en een actieplan.</div>
     </div>
     <div style="padding:20px 28px;">
-      <div style="font-size:13px;color:#444;line-height:1.7;margin-bottom:14px;border-left:3px solid #E67E22;padding-left:12px;background:#FFFBF5;padding:10px 12px;border-radius:0 6px 6px 0;" id="conv-modal-tekst">U heeft zojuist gezien <em>dat</em> er winst weglekt. De Basisscan laat zien <strong>waar precies</strong>, <strong>waarom</strong> en <strong>wat u morgen kunt doen</strong>.</div>
+      <div style="font-size:13px;color:#444;line-height:1.7;margin-bottom:14px;border-left:3px solid #E67E22;padding-left:12px;background:#FFFBF5;padding:10px 12px;border-radius:0 6px 6px 0;" id="conv-modal-tekst"></div>
       <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Wat de Basisscan toevoegt:</div>
       <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">
-        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-1" style="font-size:13px;color:#222;line-height:1.5;">welke projecten of kostenposten structureel verlies draaien</span></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-2" style="font-size:13px;color:#222;line-height:1.5;">waar marge weglekt zonder dat u het ziet</span></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-3" style="font-size:13px;color:#222;line-height:1.5;">concrete acties met verwacht eurobedrag per actie</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-1" style="font-size:13px;color:#222;line-height:1.5;"></span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-2" style="font-size:13px;color:#222;line-height:1.5;"></span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#C0392B;font-size:14px;flex-shrink:0;margin-top:1px;">→</span><span id="conv-modal-bullet-3" style="font-size:13px;color:#222;line-height:1.5;"></span></div>
       </div>
       <div style="background:#F0FDF4;border:1px solid #A3CCB5;border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-        <div style="font-size:12px;color:#1A5C38;line-height:1.5;"><strong>Gemiddeld gevonden verbeterpotentieel:</strong><br>€10.000–€50.000 per jaar</div>
+        <div style="font-size:12px;color:#1A5C38;line-height:1.5;"><strong>Indicatief verbeterpotentieel:</strong><br>vaak €10.000–€50.000 per jaar<br><span style="font-size:10px;color:#888;font-weight:400;">Afhankelijk van bedrijf en situatie</span></div>
         <div style="text-align:right;white-space:nowrap;"><div style="font-size:11px;color:#888;margin-bottom:1px;">investering</div><div style="font-size:18px;font-weight:800;color:#1A7A42;">€397</div></div>
       </div>
-      <a id="conv-modal-cta" href="https://buy.stripe.com/test_fZu9ASeKVcp31gb6JfcEw03" target="_blank" style="display:block;background:linear-gradient(135deg,#1A7A42,#21963F);color:#fff;text-decoration:none;border-radius:10px;padding:15px 16px;font-size:15px;font-weight:900;cursor:pointer;width:100%;margin-bottom:8px;box-shadow:0 4px 14px rgba(26,122,66,.35);letter-spacing:.2px;text-align:center;">
+      <button id="conv-modal-cta" onclick="Conversie.startBetaling()" style="display:block;background:linear-gradient(135deg,#1A7A42,#21963F);color:#fff;border:none;border-radius:10px;padding:15px 16px;font-size:15px;font-weight:900;cursor:pointer;width:100%;margin-bottom:8px;box-shadow:0 4px 14px rgba(26,122,66,.35);letter-spacing:.2px;text-align:center;">
         Haal mijn gemiste winst terug →
-      </a>
+      </button>
       <div style="font-size:11px;color:#C0392B;font-weight:600;margin-bottom:6px;text-align:center;">Hoe langer u wacht, hoe meer winst blijft liggen</div>
       <div id="conv-modal-impact" style="font-size:11px;color:#888;text-align:center;margin-bottom:10px;">eenmalig &nbsp;·&nbsp; geen verplichtingen &nbsp;·&nbsp; direct toepasbaar &nbsp;·&nbsp; binnen 5 werkdagen</div>
-      <button onclick="UI.sluitModal()" style="background:none;border:none;color:#bbb;font-size:11px;cursor:pointer;width:100%;padding:4px;">Nee, ik laat dit geld liggen</button>
+      <button onclick="UI.sluitModal()" style="background:none;border:none;color:#bbb;font-size:11px;cursor:pointer;width:100%;padding:4px;">Nee, ik doe dit later</button>
+      <div style="font-size:10px;color:#ccc;text-align:center;margin-top:8px;line-height:1.5;">Genoemde bedragen zijn indicatief en gebaseerd op ervaringen met vergelijkbare bedrijven. Resultaten verschillen per situatie.</div>
     </div>
   </div>
 </div>
@@ -456,16 +472,16 @@ const UI={
 };
 
 // ─── API ──────────────────────────────────────────────────────────────────────
+// CHANGED: geen JWT in sessionStorage of Authorization header.
+// Het JWT zit in een httpOnly cookie — de browser stuurt het automatisch mee
+// via credentials:'include'. JavaScript kan de cookie niet lezen of stelen.
 const API = {
   async call(body) {
-    const jwt = sessionStorage.getItem('gvt_jwt') || '';
-    const headers = {'Content-Type': 'application/json'};
-    if (jwt) headers['Authorization'] = 'Bearer ' + jwt;
-
     const r = await fetch('/api/analyse', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
+      method:      'POST',
+      credentials: 'include',          // CHANGED: cookies meesturen
+      headers:     { 'Content-Type': 'application/json' },
+      body:        JSON.stringify(body),
     });
 
     if (r.status === 401 && body?.actie !== 'checkLogin' && body?.actie !== 'validateToken') {
@@ -483,17 +499,17 @@ const API = {
     }
 
     const d = await r.json();
-    if (d.token && d.token !== jwt) sessionStorage.setItem('gvt_jwt', d.token);
+    // CHANGED: d.token bestaat niet meer — server beheert de cookie
     if (d.error) throw new Error(d.error.message);
-   return d;
+    return d;
   },
 };
 
 // ─── DOSSIER STATUS HELPER ────────────────────────────────────────────────────
 const DossierStatus = {
   async lijst() {
-    // Geen JWT = niet ingelogd, vermijd 401 door geen call te doen
-    if (!sessionStorage.getItem('gvt_jwt')) return [];
+    // CHANGED: geen sessionStorage-check meer — cookie-aanwezigheid wordt server-side bepaald
+    if (!sessie) return [];
     try {
       const d = await API.call({actie: 'getDossiers'});
       return Array.isArray(d) ? d : [];
@@ -504,7 +520,7 @@ const DossierStatus = {
   },
 
   async get(bedrijf) {
-    if (!sessionStorage.getItem('gvt_jwt')) return null;
+    if (!sessie) return null;
     try {
       const d = await API.call({actie: 'getDossier', bedrijf});
       return d?.bedrijf ? d : null;
@@ -802,15 +818,18 @@ const Store = {
     return this._klanten;
   },
   async addKlant(k) {
-    await API.call({actie:'setKlant', naam:k.naam, code:k.code, klanttype:k.klantType||'lead', email:k.email||'', sector:k.sector||''});
+    // CHANGED: code verwijderd
+      await API.call({actie:'setKlant', naam:k.naam, klanttype:k.klantType||'lead', email:k.email||'', sector:k.sector||''});
     this._klanten = null;
   },
-  async updateKlantType(code, klanttype) {
-    await API.call({actie:'updateKlantType', code, klanttype});
+  // CHANGED: code→email
+  async updateKlantType(email, klanttype) {
+    await API.call({actie:'updateKlantType', email, klanttype});
     this._klanten = null;
   },
-  async delKlant(code) {
-    await API.call({actie:'delKlant', code});
+  // CHANGED: code→email
+  async delKlant(email) {
+    await API.call({actie:'delKlant', email});
     this._klanten = null;
   },
 
@@ -936,115 +955,151 @@ const Store = {
     this._dossiers = null;
   },
 
-  // Cfg blijft in localStorage (instellingen)
-  getCfg(k,d=''){try{return localStorage.getItem('cfg-'+k)||d;}catch{return d;}},
-  setCfg(k,v){try{localStorage.setItem('cfg-'+k,v);}catch{}},
+  // REMOVED: getCfg/setCfg — e-mailconfiguratie is niet meer client-side opgeslagen
 };
 
+// CHANGED: Config heeft geen emailjs-velden meer — alleen nog niet-mailgerelateerde helpers
+// CHANGED: EmailJS client-configuratie is verwijderd — mailconfig is server-side via env vars.
+// Config bevat alleen nog niet-mail-gerelateerde helpers.
 const Config={
-  service(){return Store.getCfg('service','service_oqgsajg');},
-  template(){return Store.getCfg('template','template_q3aea4c');},
-  pubkey(){return Store.getCfg('pubkey','ubJuLGAX11M-mSoIZ');},
-  opslaan(){['service','template','pubkey'].forEach(k=>{const el=$('cfg-'+k);if(el&&el.value.trim())Store.setCfg(k,el.value.trim());});try{emailjs.init(Config.pubkey());}catch{}UI.toast('Instellingen opgeslagen');},
-  herstelUI(){['service','template','pubkey'].forEach(k=>{const v=Store.getCfg(k);if(v)setVal('cfg-'+k,v);});},
+  herstelUI(){},  // stub — was EmailJS config, nu no-op om cached aanroepen op te vangen
   async opruimenUploads(){const alle=await Store.getUploads();const map=new Map();[...alle].sort((a,b)=>new Date(b.datum||0)-new Date(a.datum||0)).forEach(u=>{const k=u.bedrijf+'|'+u.periode;if(!map.has(k))map.set(k,u);});const n=alle.length-map.size;if(n===0){UI.toast('Geen duplicaten gevonden');return;}UI.toast(n+' duplicaten gevonden — worden server-side bijgehouden');},
 };
 
-const Email={async stuur(p){if(typeof emailjs==='undefined')throw new Error('EmailJS niet geladen');await emailjs.send(Config.service(),Config.template(),p);}};
+// CHANGED: Email.stuur delegeert naar de backend — geen EmailJS in de browser.
+// De backend kiest de juiste template op basis van 'type'. De frontend kent
+// geen service-ID, template-ID of public key meer.
+const Email={
+  async stuur(type, params){
+    await API.call({actie:'stuurEmail', type, params});
+  },
+  // Backward-compat shim: old call was Email.stuur({bedrijf, ...})
+  // Detecteer legacy aanroep (object zonder 'type' als eerste arg) en
+  // stuur door als type='notificatie'.
+  async stuurLegacy(paramsOfType, paramsObj){
+    if(typeof paramsOfType === 'string'){
+      await Email.stuur(paramsOfType, paramsObj||{});
+    } else {
+      await Email.stuur('notificatie', paramsOfType||{});
+    }
+  },
+};
 
 let sessie=null;
+// CHANGED: sessie-data is uitsluitend de publieke klantinfo (naam, type, sector).
+// Het JWT zit in een httpOnly cookie — nooit in sessionStorage of een JS-variabele.
 const Auth={
-  login(){
-    const code=($('login-code')?.value||'').trim();
+  async vraagMagicLink(){
+    const email=($('login-email')?.value||'').trim().toLowerCase();
+    hide('login-error');
+    if(!email||!email.includes('@')){
+      const err=$('login-error');if(err){err.textContent='Voer een geldig e-mailadres in.';err.style.display='block';}
+      return;
+    }
+    const btn=document.querySelector('#login-stap-email .login-btn');
+    if(btn){btn.disabled=true;btn.textContent='Bezig...';}
+    try{
+      await API.call({actie:'aanvraagMagicLink',email});
+      const s=$('login-stap-email');if(s)s.style.display='none';
+      const v=$('login-stap-verstuurd');if(v)v.style.display='block';
+    }catch(e){
+      if(btn){btn.disabled=false;btn.textContent='Stuur loginlink →';}
+      const err=$('login-error');
+      if(err){err.textContent=e.message||'Er is iets mis gegaan. Probeer het opnieuw.';err.style.display='block';}
+    }
+  },
+  resetLoginStap(){
+    const s=$('login-stap-email');if(s)s.style.display='block';
+    const v=$('login-stap-verstuurd');if(v)v.style.display='none';
+    const e=$('login-email');if(e){e.value='';e.focus();}
+    const btn=document.querySelector('#login-stap-email .login-btn');if(btn){btn.disabled=false;btn.textContent='Stuur loginlink →';}
+    hide('login-error');
+  },
+  async verifyMagicToken(token){
+    try{
+      const res=await API.call({actie:'verifyMagicLink',token});
+      if(res.type==='klant'&&res.klant){
+        // CHANGED: geen token in sessionStorage — cookie is al gezet door de backend
+        Auth._open({type:'klant',...res.klant});
+        Nav.bouw();checkLoginState();KlantApp.init();
+        history.replaceState(null,'',window.location.pathname);
+        return true;
+      }
+    }catch(e){
+      const err=$('login-error');
+      if(err){err.textContent=e.message||'Loginlink is ongeldig of verlopen.';err.style.display='block';}
+      showFlex('login-overlay');
+    }
+    return false;
+  },
+  loginAdmin(){
+    const code=($('login-admin-code')?.value||'').trim();
     hide('login-error');
     if(!code)return;
-
-    API.call({actie:'checkLogin', code}).then(res=>{
+    // CHANGED: na succesvolle login zet de backend een httpOnly cookie — geen token in response
+    API.call({actie:'checkLogin',code}).then(res=>{
       if(res.type==='admin'){
-        Auth._open({type:'admin'}, res.token);
-        Nav.bouw();
-        checkLoginState();
-        Nav.ga('dashboard');
-        return;
+        Auth._open({type:'admin'});
+        Nav.bouw();checkLoginState();Nav.ga('dashboard');
+      } else {
+        const err=$('login-error');if(err){err.textContent='Beheerderscode niet herkend.';err.style.display='block';}
       }
-      if(res.type==='klant'&&res.klant){
-        Auth._open({type:'klant',...res.klant, code: res.klant.code || code}, res.token);
-        Nav.bouw();
-        checkLoginState();
-        KlantApp.init();
-        return;
-      }
-      show('login-error');
     }).catch(()=>{
-      show('login-error');
+      const err=$('login-error');if(err){err.textContent='Inloggen mislukt.';err.style.display='block';}
     });
   },
-
   uitloggen(){
-    sessie=null;
-    sessionStorage.removeItem('gvt_jwt');
-    sessionStorage.removeItem('gvt_sessie');
-    sessionStorage.removeItem('gvt-user');
-    const btn=$('nb-klant-login');if(btn)btn.style.display='';
-    window.location.href=window.location.pathname;
+    // CHANGED: roep de backend aan zodat de httpOnly cookie server-side wordt gewist
+    API.call({actie:'uitloggen'}).catch(()=>{}).finally(()=>{
+      sessie=null;
+      // Wis alleen de niet-gevoelige sessie-metadata uit sessionStorage
+      sessionStorage.removeItem('gvt_sessie');
+      sessionStorage.removeItem('gvt-user');
+      const btn=$('nb-klant-login');if(btn)btn.style.display='';
+      window.location.href=window.location.pathname;
+    });
   },
-
-  _open(s,token){
+  _open(s){
+    // CHANGED: geen token-parameter meer — cookie wordt door browser automatisch beheerd
     sessie=s;
     hide('login-overlay');
     try{
-      if(token) sessionStorage.setItem('gvt_jwt',token);
+      // Sla alleen de publieke sessie-metadata op (naam, type) — géén JWT
       sessionStorage.setItem('gvt_sessie',JSON.stringify(s));
     }catch{}
   },
-
   _forceerLogout(msg){
     sessie=null;
-    sessionStorage.removeItem('gvt_jwt');
     sessionStorage.removeItem('gvt_sessie');
     sessionStorage.removeItem('gvt-user');
-    const overlay=$('login-overlay');
-    if(overlay) overlay.style.display='flex';
-    const err=$('login-error');
-    if(err){
-      err.textContent = msg || 'Uw sessie is verlopen. Log opnieuw in.';
-      err.style.display='block';
-    }
+    // Cookie kan alleen door de backend worden gewist — doe best-effort aanroep
+    API.call({actie:'uitloggen'}).catch(()=>{});
+    const overlay=$('login-overlay');if(overlay)overlay.style.display='flex';
+    const err=$('login-error');if(err){err.textContent=msg||'Uw sessie is verlopen. Log opnieuw in.';err.style.display='block';}
   },
-
   async herstelSessie(){
-    const jwt=sessionStorage.getItem('gvt_jwt');
-    if(!jwt){
-      sessionStorage.removeItem('gvt_sessie');
-      sessionStorage.removeItem('gvt-user');
-      return;
-    }
+    // CHANGED: geen sessionStorage JWT-check meer.
+    // De backend valideert de cookie en geeft sessie-metadata terug.
     try{
       const res=await API.call({actie:'validateToken'});
-      if(!res.valid){
-        Auth._forceerLogout();
-        return;
-      }
-
-      let stored = null;
-      try { stored = JSON.parse(sessionStorage.getItem('gvt_sessie') || 'null'); } catch {}
-
-      if(res.type==='admin'){
-        sessie={type:'admin'};
-      } else {
-        sessie={type:'klant', ...(stored||{}), naam: res.naam || stored?.naam || ''};
-      }
-
-      hide('login-overlay');
-      Nav.bouw();
-      if(sessie.type==='admin'){
-        Nav.ga('dashboard');
-      } else {
-        KlantApp.init();
-      }
-    }catch(e){
-      Auth._forceerLogout();
+      if(!res.valid){Auth._toonLoginscherm();return;}
+      let stored=null;try{stored=JSON.parse(sessionStorage.getItem('gvt_sessie')||'null');}catch{}
+      if(res.type==='admin'){sessie={type:'admin'};}
+      else{sessie={type:'klant',...(stored||{}),naam:res.naam||stored?.naam||''};}
+      // Sla bijgewerkte metadata op
+      sessionStorage.setItem('gvt_sessie',JSON.stringify(sessie));
+      hide('login-overlay');Nav.bouw();
+      if(sessie.type==='admin'){Nav.ga('dashboard');}else{KlantApp.init();}
+    }catch{
+      // 401 = geen geldige cookie aanwezig → toon loginscherm (geen forced logout nodig)
+      Auth._toonLoginscherm();
     }
+  },
+  _toonLoginscherm(){
+    sessie=null;
+    sessionStorage.removeItem('gvt_sessie');
+    sessionStorage.removeItem('gvt-user');
+    const overlay=$('login-overlay');if(overlay)overlay.style.display='flex';
   },
 };
 
@@ -1163,45 +1218,83 @@ const Dashboard={
 };
 
 const Klanten={
+  // CHANGED: code-kolom verwijderd, email als identifier, loginlink-knop toegevoegd
   async laadTabel(){
     const kl=await Store.getKlanten();const tb=$('kb-tbody');if(!tb)return;
-    if(!kl.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px;">Nog geen klanten.</td></tr>';return;}
+    if(!kl.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--mid);padding:24px;">Nog geen klanten.</td></tr>';return;}
     tb.innerHTML=kl.map(k=>{
-      const c=UI.esc(k.code);
-      const sel='<select data-code="'+c+'" onchange="Klanten.wijzigType(this)" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;background:#fff;">'
+      const e=UI.esc(k.email||'');
+      const sel='<select data-email="'+e+'" onchange="Klanten.wijzigType(this)" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;background:#fff;">'
         +'<option value="lead"'+(k.klantType==='lead'?' selected':'')+'>Lead</option>'
         +'<option value="doorlichting"'+(k.klantType==='doorlichting'?' selected':'')+'>Doorlichting</option>'
         +'<option value="monitoring"'+(k.klantType==='monitoring'?' selected':'')+'>Monitoring</option>'
         +'</select>';
-      return '<tr><td style="font-weight:600;">'+UI.esc(k.naam)+'</td><td style="font-family:monospace;font-size:13px;">'+c+'</td><td>'+sel+'</td><td>'+UI.esc(k.sector||'—')+'</td><td>'+UI.esc(k.email||'—')+'</td><td><button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="Klanten.verwijder(\''+c+'\')">✕</button></td></tr>';
+      const linkKnop=k.email
+        ?'<button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;" data-email="'+e+'" data-naam="'+UI.esc(k.naam||'')+'" onclick="Klanten.stuurLoginklikKnop(this)">📧 Loginlink</button>'
+        :'<span style="font-size:11px;color:#C0392B;">geen e-mail</span>';
+      return '<tr><td style="font-weight:600;">'+UI.esc(k.naam)+'</td><td style="font-size:13px;">'+UI.esc(k.email||'—')+'</td><td>'+sel+'</td><td>'+UI.esc(k.sector||'—')+'</td>'
+        +'<td style="display:flex;gap:6px;align-items:center;">'+linkKnop
+        +'<button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" data-email="'+e+'" onclick="Klanten.verwijderKlik(this)">✕</button></td></tr>';
     }).join('');
   },
+  // CHANGED: data-email i.p.v. data-code
   async wijzigType(el){
-    const code=el.dataset.code;const type=el.value;
+    const email=el.dataset.email;const type=el.value;
     try{
-      await Store.updateKlantType(code, type);
+      await Store.updateKlantType(email,type);
       Dashboard.laad();UI.toast('Type gewijzigd naar '+type);
-      const kl=await Store.getKlanten();const k=kl.find(k=>k.code===code);
+      const kl=await Store.getKlanten();const k=kl.find(x=>x.email&&x.email.toLowerCase()===email.toLowerCase());
       if(k&&type==='doorlichting'&&k.email){
-        Email.stuur({bedrijf:k.naam,periode:'Basisscan',name:k.naam,time:UI.datumNL(),message:'Beste '+k.naam+',\n\nUw Financiële Basisscan is gestart. U ontvangt het rapport binnen 5 werkdagen.\n\nMet vriendelijke groet,\nGroen van Texel\n06 4215 2499'}).then(()=>UI.toast('Bevestigingsmail verstuurd naar '+k.email)).catch(e=>console.warn(e));
+        Email.stuur('basisscan',{bedrijf:k.naam,name:k.naam,time:UI.datumNL(),message:'Beste '+k.naam+',\n\nUw Financiële Basisscan is gestart. U ontvangt het rapport binnen 5 werkdagen.\n\nMet vriendelijke groet,\nGroen van Texel\n06 4215 2499'}).then(()=>UI.toast('Bevestigingsmail verstuurd naar '+k.email)).catch(e=>console.warn(e));
       }
     }catch(e){UI.error('Fout: '+e.message);}
   },
+  // CHANGED: email verplicht, geen code meer
   async toevoegen(){
-    const naam=($('nk-naam')?.value||'').trim();const code=($('nk-code')?.value||'').trim();
-    const type=$('nk-type')?.value||'lead';const email=($('nk-email')?.value||'').trim();const sect=$('nk-sector')?.value||'';
-    if(!naam||!code){UI.warn('Vul naam en inlogcode in');return;}
-    if(!/^[a-zA-Z0-9_\-]+$/.test(code)){UI.warn('Inlogcode mag alleen letters, cijfers, - en _ bevatten');return;}
+    const naam=($('nk-naam')?.value||'').trim();
+    const email=($('nk-email')?.value||'').trim().toLowerCase();
+    const type=$('nk-type')?.value||'lead';const sect=$('nk-sector')?.value||'';
+    if(!naam){UI.warn('Vul bedrijfsnaam in');return;}
+    if(!email||!email.includes('@')){UI.warn('E-mailadres is verplicht (nodig voor loginlink)');return;}
     try{
-    const kl=await Store.getKlanten();if(kl.find(k=>k.code===code)){UI.warn('Inlogcode al in gebruik');return;}
-    await Store.addKlant({naam,code,klantType:type,email,sector:sect});
-    ['nk-naam','nk-code','nk-email'].forEach(id=>setVal(id,''));setVal('nk-sector','');
-    Klanten.laadTabel();UI.toast('Klant '+naam+' toegevoegd');
+      const kl=await Store.getKlanten();
+      if(kl.find(k=>k.email&&k.email.toLowerCase()===email)){UI.warn('Dit e-mailadres is al in gebruik');return;}
+      await Store.addKlant({naam,email,klantType:type,sector:sect});
+      ['nk-naam','nk-email'].forEach(id=>setVal(id,''));setVal('nk-sector','');
+      Klanten.laadTabel();UI.toast('Klant '+naam+' toegevoegd — stuur login-uitnodiging via e-mail');
     }catch(e){UI.error('Fout: '+e.message);}
   },
-  async verwijder(code){if(!confirm('Klant verwijderen?'))return;try{await Store.delKlant(code);Klanten.laadTabel();UI.toast('Klant verwijderd');}catch(e){UI.error('Fout: '+e.message);}},
-  async _upgradeNaarMonitoring(naam){if(!naam)return;const kl=await Store.getKlanten();const k=kl.find(x=>x.naam===naam);if(!k){UI.warn('Klant niet gevonden');return;}if(k.klantType==='monitoring'){UI.toast('Klant heeft al monitoring');return;}if(!confirm('Klant '+naam+' upgraden naar Monitoring?'))return;await Store.updateKlantType(k.code,'monitoring');UI.toast(''+naam+' is nu Monitoring klant');},
+  // CHANGED: email i.p.v. code
+  verwijderKlik(btn){Klanten.verwijder(btn.dataset.email||'');},
+  async verwijder(email){
+    if(!confirm('Klant verwijderen?'))return;
+    try{await Store.delKlant(email);Klanten.laadTabel();UI.toast('Klant verwijderd');}
+    catch(e){UI.error('Fout: '+e.message);}
+  },
+  // CHANGED: onclick gebruikt data-attributen i.p.v. string-argumenten
+  stuurLoginklikKnop(btn){
+    const email=btn.dataset.email||'';
+    const naam=btn.dataset.naam||'';
+    Klanten.stuurLoginlink(email,naam);
+  },
+  async stuurLoginlink(email,naam){
+    if(!email){UI.warn('Geen e-mailadres beschikbaar voor deze klant');return;}
+    if(!confirm('Loginlink sturen naar '+email+'?'))return;
+    try{
+      await API.call({actie:'aanvraagMagicLink',email});
+      UI.toast('Loginlink verstuurd naar '+email);
+    }catch(e){UI.error('Fout bij versturen loginlink: '+e.message);}
+  },
+  async _upgradeNaarMonitoring(naam){
+    if(!naam)return;
+    const kl=await Store.getKlanten();const k=kl.find(x=>x.naam===naam);
+    if(!k){UI.warn('Klant niet gevonden');return;}
+    if(k.klantType==='monitoring'){UI.toast('Klant heeft al monitoring');return;}
+    if(!confirm('Klant '+naam+' upgraden naar Monitoring?'))return;
+    await Store.updateKlantType(k.email,'monitoring');UI.toast(''+naam+' is nu Monitoring klant');
+  },
 };
+
 let _adminKlant=null,_adminPeriode=null;
 const Rapport={
   adminNaar(naam){_adminKlant=naam;_adminPeriode=null;Nav.ga('rapport');},
@@ -1404,19 +1497,19 @@ const Rapport={
     const heeftPotentieel=totaal>0&&bev.length>0;
     const totaalStr=heeftPotentieel?fmtEur(totaal):'—';
     const heroTitel=heeftPotentieel
-      ? `${UI.esc(bedrijf)}, u laat ${totaalStr} per jaar liggen — zonder dat u het ziet`
-      : `${UI.esc(bedrijf)}, uw bedrijf presteert — maar laat nog winst liggen`;
+      ? `${UI.esc(bedrijf)}, indicatief verbeterpotentieel: ${totaalStr} per jaar`
+      : `${UI.esc(bedrijf)}, uw bedrijf presteert — en er zijn mogelijk verdere verbeterpunten`;
     const heroSub=heeftPotentieel
       ? 'Dit bedrag zit vast in inefficiëntie, margeverlies en werkkapitaal.'
       : 'Deze analyse laat exact zien waar marge, cashflow en werkkapitaal niet optimaal worden benut — en waar directe verbetering mogelijk is.';
     const rij=(lbl,veld,eenh,norm,alt)=>`<tr${alt?' style="background:#f9fbfa;"':''}><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">${lbl}</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig(veld,d[veld]).k};border-bottom:1px solid #eef1ee;">${fmt(d[veld],eenh)}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">${norm}</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">${sig(veld,d[veld]).s}</td></tr>`;
     const bevHtml=bev.map((b,i)=>`<div style="border-left:4px solid ${b.k};background:${i%2===0?'#fdf8f3':'#fff'};margin-bottom:6px;padding:11px 14px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div style="flex:1;"><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:3px;">${UI.esc(b.t)}</div><div style="color:#444;font-size:13px;line-height:1.6;">${UI.esc(b.tx)}</div></div>${b.bedrag!=null?`<div style="text-align:right;white-space:nowrap;"><div style="font-size:10px;color:#888;margin-bottom:2px;">Impact</div><div style="font-weight:700;color:${b.k};font-size:13px;">${fmtEur(b.bedrag)}</div></div>`:''}</div>`).join('');
     const impactBox=heeftPotentieel
-      ? `<div style="background:linear-gradient(135deg,#D4EFE0,#E8F5E9);border:1.5px solid #1A7A42;box-shadow:0 2px 10px rgba(26,122,66,.15);border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Dit bedrag laat u nu liggen</div><div style="font-size:11px;color:#555;">≈ € ${Math.round(totaal/12).toLocaleString('nl-NL')} per maand dat u misloopt</div></div><div style="font-size:22px;font-weight:800;color:#1A7A42;letter-spacing:-0.5px;">${totaalStr}</div></div>`
-      : `<div style="background:#F4F8FB;border:1.5px solid #9dc3e6;border-radius:6px;padding:12px 16px;margin-top:10px;"><div style="font-size:10px;font-weight:700;color:#1F4E79;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Hier laat u geld liggen</div><div style="font-size:12px;color:#35516b;line-height:1.7;">Op basis van uw cijfers zijn er duidelijke punten waar winst weglekt. Dit gaat niet om kleine aanpassingen, maar om structureel gemiste marge en inefficiëntie. De Basisscan werkt dit concreet uit.</div></div>`;
+      ? `<div style="background:linear-gradient(135deg,#D4EFE0,#E8F5E9);border:1.5px solid #1A7A42;box-shadow:0 2px 10px rgba(26,122,66,.15);border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Indicatief verbeterpotentieel</div><div style="font-size:11px;color:#555;">Indicatief: ± € ${Math.round(totaal/12).toLocaleString('nl-NL')} per maand</div></div><div style="font-size:22px;font-weight:800;color:#1A7A42;letter-spacing:-0.5px;">${totaalStr}</div></div>`
+      : `<div style="background:#F4F8FB;border:1.5px solid #9dc3e6;border-radius:6px;padding:12px 16px;margin-top:10px;"><div style="font-size:10px;font-weight:700;color:#1F4E79;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Mogelijke verbeterpunten</div><div style="font-size:12px;color:#35516b;line-height:1.7;">Op basis van uw cijfers zijn er duidelijke punten waar winst weglekt. Dit gaat niet om kleine aanpassingen, maar om structureel gemiste marge en inefficiëntie. De Basisscan werkt dit concreet uit.</div></div>`;
     const _voorAdmin=arguments[4]===true;
     const ctaTitel=heeftPotentieel
-      ? 'U laat aantoonbaar winst liggen — en dat is direct op te lossen.'
+      ? 'Op basis van uw cijfers zijn er mogelijk verbeterpunten in uw winstgevendheid.'
       : 'Uw bedrijf presteert — maar laat nog winst liggen.';
     const ctaText=heeftPotentieel
       ? `Deze analyse toont <strong>${totaalStr}</strong> aan gemiste winst. De Financiële Basisscan (€397 excl. BTW) laat exact zien waar dit ontstaat en hoe u dit concreet terughaalt.`
@@ -1424,12 +1517,12 @@ const Rapport={
     const ctaBtn=heeftPotentieel ? `Laat zien hoe ik ${totaalStr} terughaal → €397` : 'Ontdek waar uw winst weglekt →';
     const ctaBlok=_voorAdmin
       ? `<div style="background:#F0F4F8;border:2px dashed #9dc3e6;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;"><div style="font-size:20px;">👁</div><div><div style="font-weight:700;color:#1F4E79;font-size:13px;margin-bottom:2px;">Adminpreview — klant ziet hier de Basisscan-CTA</div><div style="font-size:12px;color:#555;">Klik "Publiceer naar klant" hierboven om dit rapport zichtbaar te maken.</div></div></div>`
-      : `<div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">${ctaTitel}</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">${ctaText}</p><p style="font-size:12px;color:#2E75B6;margin:0 0 14px;">✓ Concreet onderbouwd met uw cijfers &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Direct toepasbare acties die geld opleveren</p><div style="text-align:center;"><a href="https://buy.stripe.com/test_fZu9ASeKVcp31gb6JfcEw03" target="_blank" style="display:block;background:#1E8449;color:#fff;text-decoration:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;text-align:center;">${ctaBtn}</a></div><div style="text-align:center;margin-top:8px;font-size:11px;color:#888;">🔒 Veilig betalen via Stripe &nbsp;·&nbsp; iDEAL, creditcard &amp; meer</div></div>`;
+      : `<div style="background:#EAF4FB;border:2px solid #2E75B6;border-radius:10px;padding:16px 18px;"><div style="font-weight:700;color:#1F4E79;font-size:14px;margin-bottom:8px;">${ctaTitel}</div><p style="font-size:13px;color:#1F4E79;line-height:1.7;margin:0 0 6px;">${ctaText}</p><p style="font-size:12px;color:#2E75B6;margin:0 0 14px;">✓ Concreet onderbouwd met uw cijfers &nbsp;·&nbsp; ✓ Sectorvergelijking &nbsp;·&nbsp; ✓ Direct toepasbare acties die geld opleveren</p><div style="text-align:center;"><button onclick="Conversie.startBetaling()" style="display:block;background:#1E8449;color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;width:100%;text-align:center;">${ctaBtn}</button></div><div style="text-align:center;margin-top:8px;font-size:11px;color:#888;">🔒 Veilig betalen via Stripe &nbsp;·&nbsp; iDEAL, creditcard &amp; meer</div></div>`;
     // Nettoresultaat altijd gevuld — nooit "—"
     const nettoWaarde = (d.ebitda !== null && d.ebitda !== undefined) ? d.ebitda : 0;
     const nettoAfgeleid = d._ebitdaAfgeleid ? ' <span style="font-size:9px;color:#aaa;">~</span>' : '';
     const nettoCopy = nettoWaarde < sn.netto[0]
-      ? `<div style="background:#FEF2F2;border-left:3px solid #C0392B;padding:8px 12px;margin-top:8px;font-size:12px;color:#7B1F1F;line-height:1.6;">Uw nettowinst ligt onder de norm. Dit betekent dat u structureel winst laat liggen.</div>`
+      ? `<div style="background:#FEF2F2;border-left:3px solid #C0392B;padding:8px 12px;margin-top:8px;font-size:12px;color:#7B1F1F;line-height:1.6;">Uw nettowinst ligt onder de norm. Dit kan wijzen op verbetermogelijkheden in uw kostenstructuur of prijsstelling.</div>`
       : `<div style="background:#F0FDF4;border-left:3px solid #1E8449;padding:8px 12px;margin-top:8px;font-size:12px;color:#14532D;line-height:1.6;">Uw nettowinst ligt binnen de norm, maar er is nog ruimte voor verbetering.</div>`;
     return `<div id="eenpager-content" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8e4;border-radius:10px;overflow:hidden;"><div style="background:#1F4E79;padding:22px 24px;"><div style="color:#9dc3e6;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Groen van Texel — Financiële Doorlichting</div><div style="color:#fff;font-size:22px;font-weight:700;line-height:1.25;">${heroTitel}</div><div style="color:#d9e8f5;font-size:12px;margin-top:6px;line-height:1.6;">${heroSub}</div><div style="color:#9dc3e6;font-size:12px;margin-top:6px;">Sector: ${UI.esc(sector)} &nbsp;•&nbsp; Boekjaar ${jaar}</div><div style="color:#9dc3e6;font-size:11px;margin-top:3px;">Aangeleverd op ${datum} &nbsp;·&nbsp; u ontvangt uw 1-pager uiterlijk ${(()=>{const d=new Date();d.setHours(12,0,0,0);let t=0;while(t<3){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)t++;}return d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});})()}</div></div><div style="padding:20px 24px 0;"><div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #D5F5E3;margin-bottom:12px;">1 &nbsp; Kerncijfers op een rij</div><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="background:#1F4E79;"><td style="padding:8px 10px;color:#fff;font-weight:700;">Cijfer</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Werkelijk</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:right;">Sectornorm</td><td style="padding:8px 10px;color:#fff;font-weight:700;text-align:center;">Signaal</td></tr><tr style="background:#f9fbfa;"><td style="padding:8px 10px;border-bottom:1px solid #eef1ee;">Omzet</td><td style="padding:8px 10px;text-align:right;font-weight:700;border-bottom:1px solid #eef1ee;">${omzetStr}</td><td style="padding:8px 10px;text-align:right;color:#888;border-bottom:1px solid #eef1ee;">—</td><td style="padding:8px 10px;text-align:center;border-bottom:1px solid #eef1ee;">—</td></tr>${rij('Brutomarge %','brutomarge','%',sn.brutomarge[0]+'-'+sn.brutomarge[1]+'%',false)}${rij('Debiteurendagen','debiteurendagen',' dgn',sn.debiteur[0]+'-'+sn.debiteur[1]+' dgn',true)}${rij('Solvabiliteit %','solvabiliteit','%',sn.solv[0]+'-'+sn.solv[1]+'%',false)}<tr style="background:#f9fbfa;"><td style="padding:8px 10px;">Nettoresultaat %</td><td style="padding:8px 10px;text-align:right;font-weight:700;color:${sig('ebitda',nettoWaarde).k};">${nettoWaarde.toFixed(1)}%${nettoAfgeleid}</td><td style="padding:8px 10px;text-align:right;color:#888;">${sn.netto[0]}–${sn.netto[1]}%</td><td style="padding:8px 10px;text-align:center;">${sig('ebitda',nettoWaarde).s}</td></tr></table>${nettoCopy}</div><div style="padding:16px 24px 0;"><div style="font-size:10px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:1px;padding-bottom:5px;border-bottom:2px solid #fadbd8;margin-bottom:12px;">2 &nbsp; Hier verliest u direct geld</div>${bevHtml}${impactBox}</div><div style="padding:16px 24px 20px;">${ctaBlok}</div><div style="background:#f4f6f8;padding:12px 24px;border-top:1px solid #e2e8e4;"><div style="font-size:11px;color:#888;line-height:1.7;text-align:center;">Groen van Texel &nbsp;|&nbsp; 06 4215 2499<br>MKB Stresstest Methode™ — Op basis van aangeleverde jaarcijfers — vertrouwelijk</div></div></div>`;
   },
@@ -1618,7 +1711,7 @@ Termijn: [Deze week / Deze maand / Dit kwartaal]
         <div style="font-size:10px;font-weight:700;color:#1E8449;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Managementsamenvatting</div>
         <div style="font-size:13px;color:#333;line-height:1.8;">${UI.esc(p.samenvatting)}</div>
         <div style="margin-top:14px;background:#E8F5E9;border-radius:6px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;">Totaal verbeterpotentieel</div>
+          <div style="font-size:11px;font-weight:700;color:#1E8449;text-transform:uppercase;">Indicatief verbeterpotentieel</div>
           <div style="font-size:18px;font-weight:700;color:#1E8449;">${totaalStr}</div>
         </div>
       </div>
@@ -1778,105 +1871,124 @@ const KlantApp={
   },
 };
 
+// CHANGED: Conversie beheert de volledige betaalflow server-side.
+// Geen hardcoded Stripe links meer — de backend maakt checkout sessies aan.
 const Conversie={
-    openBasisscanModal(){
+  openBasisscanModal(){
     const eenpager = $('eenpager-content') || $('klant-eenpager-inhoud');
     let bedrag = '';
     if(eenpager){
       const html = eenpager.innerHTML || '';
-      // Zoek eerst het bedrag in de impactbox (DIT BEDRAG LAAT U NU LIGGEN)
       const impactMatch = html.match(/DIT BEDRAG LAAT U NU LIGGEN[\s\S]{0,200}?(€\s?[\d.,]+)/i);
-      if(impactMatch){
-        const n = parseFloat(impactMatch[1].replace(/[€\s.]/g,'').replace(',','.'));
-        if(!isNaN(n) && n > 1000) bedrag = impactMatch[1].replace(/\s/g,'');
-      }
-      // Fallback: zoek expliciet naar Impact-bedrag, sla omzet over
-      if(!bedrag){
-        const txt = eenpager.textContent || '';
-        const omzetMatch = txt.match(/Omzet[^\d]*([\d.,]+)/i);
-        const omzetVal = omzetMatch ? parseFloat(omzetMatch[1].replace(/[.\s]/g,'').replace(',','.')) : Infinity;
-        const matches = [...txt.matchAll(/€[ \s]?[\d.,]+/g)].map(m => {
-          const n = parseFloat(m[0].replace(/[€ \s.]/g,'').replace(',','.'));
-          return {raw:m[0].trim(), val:isNaN(n)?0:n};
-        }).filter(m => m.val > 1000 && m.val < omzetVal * 0.9); // sluit omzet en hogere bedragen uit
-        const grootste = matches.sort((a,b)=>b.val-a.val)[0];
-        if(grootste) bedrag = grootste.raw;
+      if(impactMatch){ bedrag = impactMatch[1]; }
+      else {
+        const euroMatch = html.match(/€\s?([\d.,]+(?:\.\d{3})*(?:,\d{2})?)/);
+        if(euroMatch) bedrag = '€'+euroMatch[1];
       }
     }
-    const titel = $('conv-modal-titel');
-    if(titel) titel.textContent = bedrag
-      ? 'U laat ' + bedrag + ' per jaar liggen — haal het terug'
-      : 'U laat aantoonbaar geld liggen — haal het terug';
-    const tekst = $('conv-modal-tekst');
-    if(tekst){
-      const bedragZin = bedrag ? '<strong>' + bedrag + '</strong> aan gemiste winst' : 'gemiste winst';
-      tekst.innerHTML = 'U heeft zojuist gezien <em>dat</em> er ' + bedragZin + ' weglekt. De Basisscan laat zien <strong>waar precies</strong>, <strong>waarom</strong> en <strong>wat u morgen kunt doen</strong>.';
-    }
-    const sector = sessie?.sector||$('f-sector')?.value||'algemeen';
-    const sectorBullets = {
-      'Installatietechniek': ['welke projecten verlies draaien door slechte nacalculatie','waar uren en materiaal marge wegvreten zonder dat u het ziet','hoe u tarief- en inkoopstructuur direct verbetert'],
-      'Bouw & Aannemerij':   ['welke projecten over budget lopen — en waarom','waar faalkosten en meerwerk structureel winst kosten','hoe u marges per project scherper bewaakt'],
-      'Transport & Logistiek':['welke ritten of klanten verlies opleveren','waar brandstof- en personeelskosten buiten norm lopen','hoe u bezetting en tariefstructuur optimaliseert'],
-      'Groothandel':          ['welke productgroepen marge vernietigen','waar inkoop- en debiteurenkosten geld vast zetten','hoe u klantmix en inkoopstrategie scherper maakt'],
-      'E-commerce / Webshop': ['welke producten of kanalen structureel verlies draaien','waar retouren en advertentiekosten marge uithollen','hoe u ROAS en productmix direct verbetert'],
-    };
-    const b = sectorBullets[sector] || ['welke kostenposten buiten de sectornorm lopen','waar marge structureel weglekt zonder dat u het ziet','concrete acties met verwacht eurobedrag per actie'];
-    ['conv-modal-bullet-1','conv-modal-bullet-2','conv-modal-bullet-3'].forEach((id,i)=>setTxt(id, b[i]||''));
-    UI.openModal();
+    const p = getProfile($('f-sector')?.value||$('ai-sector')?.value||'algemeen');
+    const scanType = typeof currentScanType==='function'?currentScanType():'winst';
+    const c = scanType==='belasting'?p.belasting:p.winst;
+    setTxt('conv-modal-titel', bedrag
+      ? `Indicatief verbeterpotentieel op basis van uw cijfers: ${bedrag} — laat het uitzoeken`
+      : 'Mogelijk verbeterpotentieel in uw bedrijf — laat het uitzoeken');
+    setTxt('conv-modal-tekst', c.upsell||'');
+    ['conv-modal-bullet-1','conv-modal-bullet-2','conv-modal-bullet-3'].forEach((id,i)=>setTxt(id, (c.bullets||[])[i]||''));
     const modal = $('conv-modal');
-    if(modal) modal.onclick = e => { if(e.target === modal) UI.sluitModal(); };
-  },
-    async bevestigBasiscan(){
-    UI.sluitModal();
-    await Formulier.bestelBasiscan();
+    if(modal){modal.style.display='flex';}
   },
 
-  toonMonitoringUpsell(){
-    if(document.getElementById('mon-upsell-klant')) return; // al zichtbaar
-    const container=$('klant-basisscan');
-    if(!container) return;
-    const div=document.createElement('div');
-    div.id='mon-upsell-klant';
-    div.style.cssText='margin-top:24px;padding:0 0 32px;';
-    div.innerHTML='<div style="background:linear-gradient(150deg,#162F4A 0%,#1A5C38 60%,#21963F 100%);border-radius:12px;padding:24px 28px;">'
-      +'<div style="color:rgba(255,255,255,.55);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:10px;">Vervolgstap \u2014 Doorlopende begeleiding</div>'
-      +'<div style="color:#fff;font-size:18px;font-weight:900;line-height:1.3;margin-bottom:10px;">Zonder maandelijkse sturing verdwijnt deze winst weer</div>'
-      +'<p style="color:rgba(255,255,255,.88);font-size:13px;line-height:1.7;margin:0 0 12px;">U ziet nu waar uw winst weglekt. Maar zonder structurele opvolging sluipt dit er gewoon weer in. Marges dalen langzaam. Kosten lopen op. U merkt het pas als het al maanden fout gaat.</p>'
-      +'<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;margin-bottom:16px;">'
-      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Maandelijks signaal: problemen v\u00f3\u00f3rdat ze groot worden</span></div>'
-      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Directe bijsturing op marge, kosten en cashflow</span></div>'
-      +'<div style="display:flex;gap:8px;"><span style="color:#7FE0A0;font-weight:700;">\u2713</span><span style="color:rgba(255,255,255,.9);">Concrete actie per maand \u2014 geen rapporten die in een la belanden</span></div>'
-      +'</div>'
-      +'<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">'
-      +'<div style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.5;">Klein t.o.v. de winst die u beschermt.<br><span style="color:#FFD700;font-weight:700;">Gemiddeld \u20ac10k\u2013\u20ac50k/jaar gevonden.</span></div>'
-      +'<div style="text-align:right;"><div style="font-size:11px;color:rgba(255,255,255,.55);">per maand</div><div style="font-size:24px;font-weight:900;color:#FFD700;">\u20ac249</div></div>'
-      +'</div>'
-      +'<button id="mon-upsell-btn" style="background:#fff;color:#1A5C38;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:900;cursor:pointer;width:100%;box-shadow:0 2px 10px rgba(0,0,0,.2);">Houd grip op mijn winst \u2192</button>'
-      +'<div style="text-align:center;margin-top:8px;font-size:11px;color:rgba(255,255,255,.5);">Maandelijks opzegbaar \u00b7 geen verplichtingen \u00b7 direct inzicht</div>'
-      +'</div>';
-    container.appendChild(div);
-    const btn=document.getElementById('mon-upsell-btn');
-    if(btn) btn.addEventListener('click', Conversie.aanvraagMonitoring);
-  },
-
-  async aanvraagMonitoring(){
-    const naam=sessie?.naam||'onbekend';
+  // ── Betaling starten ────────────────────────────────────────────────────
+  // Backend maakt Stripe Checkout sessie aan — frontend redirect alleen.
+  async startBetaling(){
+    if(!sessie||sessie.type!=='klant'){
+      UI.warn('Log eerst in om te betalen');
+      return;
+    }
+    const knop=document.getElementById('conv-modal-cta');
+    if(knop){knop.disabled=true;knop.textContent='Even geduld...';}
     try{
-      await Email.stuur({
-        bedrijf:naam, periode:'Begeleidingsaanvraag',
-        name:naam, time:UI.datumNL(),
-        message:'Klant '+naam+' vraagt doorlopende begeleiding aan (€249 per maand)'
-      });
-    }catch(e){console.warn('Email fout:',e);}
-    // Toon bevestiging
-    const div=document.getElementById('mon-upsell-klant');
-    if(div) div.innerHTML='<div style="background:#1E8449;border-radius:12px;padding:24px;text-align:center;">'
-      +'<div style="font-size:32px;margin-bottom:12px;">✓</div>'
-      +'<div style="color:#fff;font-size:18px;font-weight:800;margin-bottom:8px;">Aanvraag ontvangen</div>'
-      +'<div style="color:rgba(255,255,255,.8);font-size:14px;line-height:1.7;">Wij nemen binnen 1 werkdag contact op om de begeleiding te starten.</div>'
-      +'<div style="color:rgba(255,255,255,.6);font-size:12px;margin-top:12px;">GroenvanTexel · 0642152499</div>'
-      +'</div>';
+      const res=await API.call({actie:'createCheckoutSession'});
+      if(res.checkout_url){
+        // Sla session_id op voor status-polling na terugkomst
+        sessionStorage.setItem('gvt_payment_session', res.session_id||'');
+        window.location.href=res.checkout_url;
+      } else {
+        UI.error('Betaallink kon niet worden aangemaakt. Probeer het opnieuw.');
+        if(knop){knop.disabled=false;knop.textContent='Haal mijn gemiste winst terug →';}
+      }
+    }catch(e){
+      UI.error(e.message||'Betaalservice tijdelijk niet beschikbaar.');
+      if(knop){knop.disabled=false;knop.textContent='Haal mijn gemiste winst terug →';}
+    }
   },
+
+  // ── Betaalstatus pollen na terugkomst van Stripe ─────────────────────────
+  async verwerkTerugkomst(resultaat){
+    const sessionId=sessionStorage.getItem('gvt_payment_session')||'';
+    sessionStorage.removeItem('gvt_payment_session');
+    history.replaceState(null,'',window.location.pathname);
+
+    const banner=$('payment-status-banner');
+    if(!banner)return;
+
+    if(resultaat==='cancelled'){
+      banner.style.display='block';
+      banner.style.background='#FFF3CD';
+      banner.style.border='1px solid #FFC107';
+      banner.innerHTML='<div style="font-weight:700;font-size:14px;color:#856404;margin-bottom:4px;">Betaling geannuleerd</div><div style="font-size:13px;color:#856404;line-height:1.6;">Uw betaling is niet voltooid. U kunt het opnieuw proberen.</div>';
+      return;
+    }
+
+    if(!sessionId){
+      banner.style.display='block';
+      banner.style.background='#D4EDDA';
+      banner.style.border='1px solid #A3CCB5';
+      banner.innerHTML='<div style="font-weight:700;font-size:14px;color:#1E5C38;margin-bottom:4px;">✅ Betaling ontvangen — bedankt!</div><div style="font-size:13px;color:#2D6A4F;line-height:1.6;">Uw Financiële Basisscan wordt zo snel mogelijk opgemaakt.</div>';
+      return;
+    }
+
+    banner.style.display='block';
+    banner.style.background='#EAF4FB';
+    banner.style.border='1px solid #2E75B6';
+    banner.innerHTML='<div style="font-weight:700;font-size:14px;color:#1F4E79;margin-bottom:4px;">⏳ Betaling wordt verwerkt…</div><div style="font-size:13px;color:#1F4E79;line-height:1.6;">Even geduld — we bevestigen uw betaling.</div>';
+
+    let pogingen=0;
+    const MAX=10;
+    const pollFn=async()=>{
+      pogingen++;
+      try{
+        const res=await API.call({actie:'getPaymentStatus',session_id:sessionId});
+        const status=res.status||'unknown';
+        if(status==='webhook_processed'||status==='report_queued'||status==='paid'){
+          banner.style.background='#D4EDDA';
+          banner.style.border='1px solid #A3CCB5';
+          banner.innerHTML='<div style="font-weight:700;font-size:14px;color:#1E5C38;margin-bottom:4px;">✅ Betaling bevestigd — bedankt!</div><div style="font-size:13px;color:#2D6A4F;line-height:1.6;">Uw Financiële Basisscan wordt binnen 5 werkdagen opgemaakt. U ontvangt een bevestiging per e-mail.</div>';
+          await Auth.herstelSessie();
+        } else if(status==='failed'){
+          banner.style.background='#FDE2E2';
+          banner.style.border='1px solid #F5A5A5';
+          banner.innerHTML='<div style="font-weight:700;font-size:14px;color:#922B21;margin-bottom:4px;">Betaling mislukt</div><div style="font-size:13px;color:#922B21;line-height:1.6;">Uw betaling kon niet worden verwerkt. Probeer het opnieuw of neem contact op.</div>';
+        } else if(status==='pending'&&pogingen<MAX){
+          setTimeout(pollFn, 2000);
+        } else {
+          banner.style.background='#D4EDDA';
+          banner.style.border='1px solid #A3CCB5';
+          banner.innerHTML='<div style="font-weight:700;font-size:14px;color:#1E5C38;margin-bottom:4px;">✅ Betaling ontvangen — bedankt!</div><div style="font-size:13px;color:#2D6A4F;line-height:1.6;">Uw betaling is ontvangen. We sturen u een bevestiging per e-mail.</div>';
+        }
+      }catch{if(pogingen<MAX){setTimeout(pollFn,2000);}}
+    };
+    setTimeout(pollFn,1500);
+  },
+
+  applyModal(raw){
+    const scanType=typeof currentScanType==='function'?currentScanType():'winst';
+    const p=getProfile(raw);const c=scanType==='belasting'?p.belasting:p.winst;
+    setTxt('conv-modal-tekst',c.upsell||'');
+    setTxt('conv-modal-bullet-1',c.bullets?.[0]||'');setTxt('conv-modal-bullet-2',c.bullets?.[1]||'');setTxt('conv-modal-bullet-3',c.bullets?.[2]||'');
+    const impact=$('conv-modal-impact-box');if(impact)impact.textContent=c.impact||'';
+    return c;
+  }
 };
 
 const Formulier={
@@ -1936,7 +2048,7 @@ const Formulier={
       } catch(e){ console.warn('Dossier aanmaken mislukt:', e); }
       const scanType = currentScanType();
       const geenUploadNote = geenUploads ? '\nGeen bestanden geüpload — later aanleveren' : '';
-      try{await Email.stuur({bedrijf,periode,name:bedrijf,time:datum,message:`Nieuwe aanvraag van ${bedrijf} (${periode})\nSector: ${sector}\nType scan: ${scanType}`+(email?`\nE-mail: ${email}`:'')+geenUploadNote});}catch(e){console.warn('EmailJS:',e.message||e);}
+      try{await Email.stuur('notificatie',{bedrijf,name:bedrijf,time:datum,message:`Nieuwe aanvraag van ${bedrijf} (${periode})\nSector: ${sector}\nType scan: ${scanType}`+(email?`\nE-mail: ${email}`:'')+geenUploadNote});}catch(e){console.warn('E-mail fout:',e.message||e);}
       Formulier._bezig=false;Formulier._ontvangenStaat(datum);
       UI.toast('Analyse gestart — eerste inzicht wordt voorbereid...', '#1A7A42');
       const fr=$('fake-result');if(fr)fr.style.display='block';
@@ -1950,7 +2062,7 @@ const Formulier={
   async bestelBasiscan(){
     if(!sessie||sessie.type!=='klant'){UI.warn('Deze knop is alleen voor ingelogde klanten');return;}
     UI.toast('Aanvraag ontvangen — wij sturen u binnen 1 werkdag een betaallink voor €397');
-    try{await Email.stuur({bedrijf:sessie.naam||'onbekend',periode:'Basisscan aanvraag',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft de Basisscan aangevraagd.'});}catch(e){console.warn(e);}
+    try{await Email.stuur('basisscan',{bedrijf:sessie.naam||'onbekend',name:sessie.naam||'Klant',time:UI.datumNL(),message:'Klant '+(sessie.naam||'onbekend')+' heeft de Basisscan aangevraagd.'});}catch(e){console.warn('E-mail fout:',e);}
   },
 };
 
@@ -1965,312 +2077,263 @@ const Bestanden={
 };
 
 
-// ─── SECTOR COPY & AI-CONTEXT ────────────────────────────────────────────────
-const SECTOR_CONTENT = {
-  installatie: {
-    hero: "De meeste installatiebedrijven laten €20.000–€80.000 per jaar liggen",
-    sub: "Ontdek waar dat in uw bedrijf gebeurt — binnen 2 minuten inzicht",
-    bullets: [
-      "Waar uw marge onder druk staat",
-      "Waar geld blijft hangen in uw projecten",
-      "Welke acties direct resultaat opleveren"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw installatiebedrijf",
-    upsell: "Wilt u exact weten wat deze kansen voor uw installatiebedrijf betekenen? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Installatiebedrijven laten vaak €20.000–€80.000 per jaar liggen zonder dit te zien.",
-    trustTitle: "Waarom installatiebedrijven dit gebruiken",
-    trustBullets: [
-      "Inzicht in marge per project",
-      "Analyse van faalkosten en inefficiëntie",
-      "Volledig vertrouwelijke verwerking van uw cijfers"
-    ],
-    receives: "Wat u ontvangt:",
-    receivesBullets: [
-      "inzicht in marge per project",
-      "waar kosten uw rendement drukken",
-      "concrete verbeterkansen die direct toepasbaar zijn"
-    ]
-  },
-  bouw: {
-    hero: "Zie binnen 2 minuten waar uw bouwbedrijf winst verliest — en hoeveel dat kost",
-    sub: "Krijg direct inzicht in faalkosten, projectrendement en waar uw marge onder druk staat.",
-    bullets: [
-      "Waar projectkosten uit de hand lopen",
-      "Waar faalkosten uw marge drukken",
-      "Welke verbeteringen direct rendement opleveren"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw bouwbedrijf",
-    upsell: "Wilt u exact weten waar uw bouwprojecten rendement verliezen? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Bouwbedrijven laten vaak €30.000 – €100.000 per jaar liggen door inefficiëntie en faalkosten.",
-    trustTitle: "Gebruikt door bouwbedrijven die grip willen op projecten",
-    trustBullets: [
-      "Inzicht in projectrendement",
-      "Analyse van faalkosten",
-      "Concrete verbeteracties per project"
-    ],
-    receives: "U ontvangt een persoonlijke winstscan met:",
-    receivesBullets: [
-      "inzicht in faalkosten",
-      "analyse van projectrendement",
-      "concrete verbeterkansen per project"
-    ]
-  },
-  transport: {
-    hero: "Zie binnen 2 minuten waar uw transportbedrijf winst laat liggen — en hoeveel dat kost",
-    sub: "Ontdek welke ritten verlies maken, waar kosten oplopen en waar direct winst te behalen is.",
-    bullets: [
-      "Welke ritten onvoldoende rendement opleveren",
-      "Waar brandstof- en kostenstructuur inefficiënt is",
-      "Welke acties direct winst verbeteren"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw transportbedrijf",
-    upsell: "Wilt u exact zien waar uw transportbedrijf rendement verliest? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Transportbedrijven laten vaak €25.000 – €90.000 per jaar liggen door inefficiënt gebruik en kosten.",
-    trustTitle: "Specifiek ontwikkeld voor transportbedrijven",
-    trustBullets: [
-      "Inzicht in rendement per rit",
-      "Analyse van brandstof- en kostenstructuur",
-      "Direct toepasbare verbeteracties"
-    ],
-    receives: "U ontvangt een persoonlijke winstscan met:",
-    receivesBullets: [
-      "rendement per rit",
-      "inzicht in kostenstructuur en brandstofdruk",
-      "concrete acties om direct bij te sturen"
-    ]
-  },
-  ecommerce: {
-    hero: "Zie binnen 2 minuten waar uw webshop winst laat liggen — en hoeveel dat kost",
-    sub: "Ontdek waar marge verdwijnt door retouren, advertenties en kortingen.",
-    bullets: [
-      "Waar uw marge verdwijnt door retouren en kortingen",
-      "Welke producten of campagnes verlies opleveren",
-      "Waar advertentiekosten niet renderen"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw webshop",
-    upsell: "Wilt u exact weten waar uw webshop winst laat liggen? Ontvang een volledige doorlichting met concrete verbeteracties per productgroep, kanaal en kostenpost.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Webshops laten vaak €20.000–€100.000 per jaar liggen door inefficiënte advertenties, retouren en marges.",
-    trustTitle: "Gebouwd voor e-commerce bedrijven",
-    trustBullets: [
-      "Inzicht in marges per product en kanaal",
-      "Waar advertentierendement en retouren geld kosten",
-      "Volledig vertrouwelijke verwerking van uw data"
-    ],
-    receives: "Wat u ontvangt:",
-    receivesBullets: [
-      "waar marge per productgroep weglekt",
-      "wat advertenties echt kosten vs. opleveren (ROAS)",
-      "concrete acties die direct geld opleveren"
-    ]
-  },
-  algemeen: {
-    hero: "De meeste bedrijven laten jaarlijks tienduizenden euro's liggen",
-    sub: "Ontdek waar dat in uw bedrijf gebeurt — binnen 2 minuten inzicht",
-    bullets: [
-      "Waar uw marge onder druk staat",
-      "Waar kosten onnodig oplopen",
-      "Welke acties direct resultaat opleveren"
-    ],
-    reportTitle: "Dit zijn de belangrijkste winstkansen in uw bedrijf",
-    upsell: "Wilt u exact weten wat dit voor uw bedrijf betekent? Ontvang een volledige doorlichting met concrete verbeteracties.",
-    pricing: "Doorlopende begeleiding op uw cijfers — €249 per maand",
-    impact: "Veel bedrijven laten jaarlijks tienduizenden euro’s liggen zonder dit te zien.",
-    trustTitle: "Waarom ondernemers ons vertrouwen",
-    trustBullets: [
-      "Inzicht in marge, kosten en winstkansen",
-      "Concreet en snel toepasbare verbeteracties",
-      "Volledig vertrouwelijke verwerking van uw cijfers"
-    ],
-    receives: "Wat u ontvangt:",
-    receivesBullets: [
-      "inzicht in marge en kosten",
-      "de grootste financiële verbeterkansen",
-      "concrete acties die direct resultaat opleveren"
-    ]
+
+
+
+// ── SECTOR BOOTSTRAP (vervangt inline sectorconfig) ──────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// sector-bootstrap.js — frontend integratielaag / compatibility layer
+//
+// ROL VAN DIT BESTAND:
+//   - laadt /config/sectorProfiles.js (de enige bron van waarheid voor data
+//     en promptlogica) via een dynamische import()
+//   - herstelt alle globale helpers die de bestaande frontendcode verwacht
+//     (getProfile, sectorId, buildPrompt, SectorCopy, renderAnalyse, enz.)
+//   - koppelt UI-rendering aan de geladen config zonder de hele frontend
+//     te hoeven refactoren
+//
+// DIT BESTAND BEVAT GEEN:
+//   - sectordata of normen
+//   - prompt-opbouwlogica (dat doet buildSectorPrompt in sectorProfiles.js)
+//   - marketingcopy of CTA-teksten
+//
+// ROLVERDELING:
+//   sectorProfiles.js  = bron van waarheid voor data, lookups, promptbouw
+//   sector-bootstrap.js = UI glue: laadt de façade, herstelt globals, rendert DOM
+//
+// TE PLAATSEN: direct na het Bestanden-object, ter vervanging van de oude
+//              inline SECTOR_PROFILES + lokale helpers in index.html.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Stubs — actief zolang de config nog niet geladen is ──────────────────────
+// Voorkomen dat aanroepen vóór load een crash veroorzaken.
+let SECTOR_PROFILES    = {};
+let _sectorLoaded      = false;
+let _buildSectorPrompt = null;   // wordt gevuld zodra de module geladen is
+
+let sectorId   = (raw) => String(raw || '').toLowerCase().trim() || 'algemeen';
+let getProfile = (raw) => SECTOR_PROFILES[sectorId(raw)] || SECTOR_PROFILES.algemeen || {};
+
+// ── Dynamisch laden van de config-laag ───────────────────────────────────────
+// import() werkt in alle moderne browsers, ook zonder type="module" op <script>.
+(async () => {
+  // Pad is absoluut zodat het werkt ongeacht de locatie van index.html.
+  // Op Cloudflare Pages: /config/sectorProfiles.js wordt correct geserveerd.
+  // Lokaal testen: gebruik een lokale server (npx serve . of CF Pages preview).
+  const SECTOR_CONFIG_PATH = '/config/sectorProfiles.js';
+  try {
+    const mod = await import(SECTOR_CONFIG_PATH);
+
+    // Herschrijf stubs met echte implementaties uit de façade
+    SECTOR_PROFILES    = mod.SECTOR_PROFILES;
+    sectorId           = mod.sectorId;
+    getProfile         = mod.getSectorProfile;
+    _buildSectorPrompt = mod.buildSectorPrompt;
+
+    _sectorLoaded = true;
+
+    // Herrender UI-elementen die al bestaan en wachten op sectordata
+    const fs = document.getElementById('f-sector');
+    if (fs) {
+      const huidigeSector = fs.value || 'algemeen';
+      SectorCopy.apply(huidigeSector);
+      SectorCopy.applyModal(huidigeSector);
+      renderAnalyse(huidigeSector);
+    }
+    applySectorFromUrl();
+
+  } catch (e) {
+    // Mogelijke oorzaken:
+    //   1. Lokaal geopend als file:// i.p.v. via een server → gebruik npx serve .
+    //   2. /config/ map ontbreekt in de deployment
+    //   3. Eén van de geïmporteerde subbestanden bevat een syntaxfout
+    // De pagina blijft functioneren met lege stubs; UI-copy en CTA's verschijnen niet.
+    console.error('[sector-bootstrap] Config laden mislukt:', e.message);
+    console.error('[sector-bootstrap] Verwacht pad:', SECTOR_CONFIG_PATH);
+    console.error('[sector-bootstrap] Controleer: zijn alle /config/*.js bestanden gedeployed?');
   }
+})();
+
+// ── buildPrompt — delegeert volledig aan sectorProfiles.js ───────────────────
+// Bevat GEEN eigen prompt-opbouwlogica.
+// De façade (buildSectorPrompt) is de enige bron van waarheid voor promptbouw.
+// Vóór load: geeft promptData terug als veilige fallback.
+const buildPrompt = (promptData, sectorRaw, scanType) => {
+  if (!_buildSectorPrompt) return promptData || '';
+  return _buildSectorPrompt(promptData, sectorRaw, scanType);
 };
 
-
-const TAX_SCAN_CONTENT = {
-  installatie: { hero:"Zie binnen 2 minuten waar uw installatiebedrijf onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten, investeringen en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw installatiebedrijf", upsell:"Wilt u exact weten waar uw installatiebedrijf belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Installatiebedrijven betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom installatiebedrijven dit gebruiken", trustBullets:["Inzicht in aftrekposten en investeringsruimte","Scherper zicht op fiscale structuur en belastingdruk","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] },
-  bouw: { hero:"Zie binnen 2 minuten waar uw bouwbedrijf onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten, investeringen en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw bouwbedrijf", upsell:"Wilt u exact weten waar uw bouwbedrijf belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Bouwbedrijven betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom bouwbedrijven dit gebruiken", trustBullets:["Inzicht in fiscale kansen rond projecten en investeringen","Scherper zicht op belastingdruk en structuur","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] },
-  transport: { hero:"Zie binnen 2 minuten waar uw transportbedrijf onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten, investeringen en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw transportbedrijf", upsell:"Wilt u exact weten waar uw transportbedrijf belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Transportbedrijven betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom transportbedrijven dit gebruiken", trustBullets:["Inzicht in fiscale kansen rond materieel en investeringen","Scherper zicht op belastingdruk en structuur","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] },
-  ecommerce: { hero:"Zie binnen 2 minuten waar uw webshop onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten, investeringen en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw webshop", upsell:"Wilt u exact weten waar uw webshop belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Webshops betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom webshops dit gebruiken", trustBullets:["Inzicht in fiscale kansen rond voorraad, kosten en investeringen","Scherper zicht op belastingdruk en structuur","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] },
-  algemeen: { hero:"Zie binnen 2 minuten waar uw bedrijf onnodig belasting betaalt — en hoeveel dat kost", sub:"Upload uw cijfers en ontdek waar fiscale kansen blijven liggen door gemiste aftrekposten en een niet-optimale structuur.", bullets:["Welke aftrekposten u mogelijk mist","Waar uw fiscale structuur inefficiënt is","Welke optimalisaties direct voordeel opleveren"], reportTitle:"Dit zijn de belangrijkste fiscale kansen in uw bedrijf", upsell:"Wilt u exact weten waar uw bedrijf belasting kan besparen? Ontvang een volledige fiscale doorlichting met concrete optimalisaties.", pricing:"Fiscale begeleiding — €249 per maand", impact:"Ondernemers betalen vaak €5.000 – €30.000 per jaar te veel belasting zonder dit te weten.", trustTitle:"Waarom ondernemers dit gebruiken", trustBullets:["Inzicht in aftrekposten, structuur en belastingdruk","Concrete fiscale optimalisaties met directe impact","Volledig vertrouwelijke verwerking van uw cijfers"], receives:"U ontvangt een persoonlijke fiscale scan met:", receivesBullets:["gemiste aftrekposten en fiscale kansen","inzicht in structuur en belastingdruk","concrete optimalisaties die direct voordeel kunnen opleveren"] }
-};
-
-const TAX_ANALYSIS_CONTENT = {
-  installatie: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"installatiebedrijf", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." },
-  bouw: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"bouwbedrijf", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." },
-  transport: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"transportbedrijf", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." },
-  ecommerce: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"webshop", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." },
-  algemeen: { focus:["aftrekposten","investeringsregelingen","fiscale structuur","belastingdruk"], impact:"€5.000 – €30.000", bedrijfLabel:"bedrijf", softCta:"Met fiscale begeleiding ziet u eerder waar belastingdruk oploopt, welke aftrekposten u mist en waar u direct kunt optimaliseren." }
-};
-
-function currentScanType(){ return document.getElementById('f-scan-type')?.value || 'winst'; }
-function getScanUiContent(sector, scanType){
-  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : String(sector||'algemeen').toLowerCase();
-  return scanType === 'belasting' ? (TAX_SCAN_CONTENT[mapped] || TAX_SCAN_CONTENT.algemeen) : (SECTOR_CONTENT[mapped] || SECTOR_CONTENT.algemeen);
-}
-function getScanAnalysisContent(sector, scanType){
-  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : String(sector||'algemeen').toLowerCase();
-  return scanType === 'belasting' ? (TAX_ANALYSIS_CONTENT[mapped] || TAX_ANALYSIS_CONTENT.algemeen) : (SECTOR_ANALYSIS_CONTENT[mapped] || SECTOR_ANALYSIS_CONTENT.algemeen);
-}
-
-const SECTOR_MAP = {
-  'installatietechniek':'installatie',
-  'installatie':'installatie',
-  'installateur':'installatie',
-  'bouw & aannemerij':'bouw',
-  'bouw':'bouw',
-  'aannemer':'bouw',
-  'transport & logistiek':'transport',
-  'transport':'transport',
-  'logistiek':'transport',
-  'ecommerce':'ecommerce',
-  'e-commerce':'ecommerce',
-  'webshop':'ecommerce',
-  'webwinkel':'ecommerce',
-  'online shop':'ecommerce',
-  'e-commerce / webshop':'ecommerce'
-};
-
-const SECTOR_ANALYSIS_CONTENT = {
-  installatie: {
-    focus: [
-      "projectmarge",
-      "nacalculatie",
-      "inefficiënte uren",
-      "materiaalverlies"
-    ],
-    impact: "€20.000 – €80.000",
-    bedrijfLabel: "installatiebedrijf",
-    softCta: "Met doorlopende begeleiding ziet u eerder waar projectmarge wegvalt, waar uren uit de pas lopen en waar u direct moet bijsturen."
-  },
-  bouw: {
-    focus: [
-      "faalkosten",
-      "projectoverschrijdingen",
-      "planning",
-      "marge per project"
-    ],
-    impact: "€30.000 – €100.000",
-    bedrijfLabel: "bouwbedrijf",
-    softCta: "Met doorlopende begeleiding ziet u eerder waar faalkosten oplopen, waar projecten uit de bocht vliegen en waar u direct moet ingrijpen."
-  },
-  transport: {
-    focus: [
-      "rendement per rit",
-      "brandstofkosten",
-      "bezettingsgraad",
-      "wagenpark inefficiëntie"
-    ],
-    impact: "€25.000 – €90.000",
-    bedrijfLabel: "transportbedrijf",
-    softCta: "Met doorlopende begeleiding ziet u eerder waar ritrendement wegvalt, waar brandstofdruk oploopt en waar capaciteit onbenut blijft."
-  },
-  ecommerce: {
-    focus: [
-      "marge per productgroep",
-      "retouren",
-      "ROAS (advertenties)",
-      "fulfilmentkosten"
-    ],
-    impact: "€20.000 – €100.000",
-    bedrijfLabel: "webshop",
-    softCta: "Met doorlopende begeleiding ziet u eerder waar productmarge wegvalt, waar advertenties niet renderen en waar retouren uw winst aantasten."
-  },
-  algemeen: {
-    focus: [
-      "marge",
-      "kostenstructuur",
-      "rendement",
-      "inefficiëntie"
-    ],
-    impact: "€10.000 – €50.000",
-    bedrijfLabel: "bedrijf",
-    softCta: "Met doorlopende begeleiding ziet u eerder waar marge wegvalt, waar kosten oplopen en waar u direct moet ingrijpen."
-  }
-};
-
+// ── SectorCopy — rendert UI-elementen vanuit de content-laag ─────────────────
+// Leest hero/sub/bullets/trust/upsell/impact uit p.winst / p.belasting
+// (gevuld vanuit sector-content.js via de façade).
+// Leest CTA's uit p.cta (gevuld vanuit sector-ctas.js via de façade).
 const SectorCopy = {
-  map(raw){
-    const key = String(raw || '').toLowerCase().trim();
-    return SECTOR_MAP[key] || 'algemeen';
+  map(raw) { return sectorId(raw); },
+
+  get(raw) {
+    if (!_sectorLoaded) return {};
+    const p = getProfile(raw);
+    return currentScanType() === 'belasting' ? (p.belasting || {}) : (p.winst || {});
   },
-  get(raw){
-    return SECTOR_CONTENT[this.map(raw)] || SECTOR_CONTENT.algemeen;
+
+  getAnalysis(raw) {
+    if (!_sectorLoaded) return {};
+    const p = getProfile(raw);
+    return currentScanType() === 'belasting' ? (p.belastingAnalyse || {}) : (p.winstAnalyse || {});
   },
-  getAnalysis(raw){
-    return SECTOR_ANALYSIS_CONTENT[this.map(raw)] || SECTOR_ANALYSIS_CONTENT.algemeen;
+
+  apply(raw) {
+    if (!_sectorLoaded) return {};
+    const p = getProfile(raw);
+    const c = currentScanType() === 'belasting' ? (p.belasting || {}) : (p.winst || {});
+
+    setTxt('sector-hero',        c.hero             || '');
+    setTxt('sector-sub',         c.sub              || '');
+    setTxt('sector-trust-title', c.trustTitle       || '');
+    setTxt('sector-trust-1',     c.trustBullets?.[0] || '');
+    setTxt('sector-trust-2',     c.trustBullets?.[1] || '');
+    setTxt('sector-trust-3',     c.trustBullets?.[2] || '');
+
+    const bullets = document.getElementById('sector-bullets');
+    if (bullets) bullets.innerHTML = (c.bullets || []).map(t => `<li>${UI.esc(t)}</li>`).join('');
+
+    const wat = document.getElementById('form-wat');
+    if (wat) wat.textContent = c.receivesBullets?.[0] || '';
+
+    const extra = document.getElementById('form-resultaat-extra');
+    if (extra) extra.innerHTML = (c.receivesBullets || []).map(t =>
+      `<div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:3px;">` +
+      `<span style="color:var(--green);flex-shrink:0;font-weight:700;">✓</span>` +
+      `<span>${UI.esc(t)}</span></div>`
+    ).join('');
+
+    const impact = document.getElementById('sector-impact');
+    if (impact) impact.textContent = c.impact || '';
+
+    return c;
   },
-  apply(raw){
-    const content = getScanUiContent(raw, currentScanType());
-    setTxt('sector-hero', content.hero);
-    setTxt('sector-sub', content.sub);
-    setTxt('sector-trust-title', content.trustTitle);
-    setTxt('sector-trust-1', content.trustBullets?.[0] || '');
-    setTxt('sector-trust-2', content.trustBullets?.[1] || '');
-    setTxt('sector-trust-3', content.trustBullets?.[2] || '');
-    const bullets = $('sector-bullets');
-    if (bullets) bullets.innerHTML = (content.bullets || []).map(t => `<li>${UI.esc(t)}</li>`).join('');
-    const wat = $('form-wat');
-    if (wat) wat.textContent = content.receives || '';
-    const extra = $('form-resultaat-extra');
-    if (extra) extra.innerHTML = (content.receivesBullets || [])
-      .map(t => `<div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:3px;"><span style="color:var(--green);flex-shrink:0;font-weight:700;">✓</span><span>${UI.esc(t)}</span></div>`)
-      .join('');
-    const impact = $('sector-impact');
-    if (impact) impact.textContent = content.impact;
-    return content;
+
+  applyModal(raw) {
+    if (!_sectorLoaded) return {};
+    const p = getProfile(raw);
+    const c = currentScanType() === 'belasting' ? (p.belasting || {}) : (p.winst || {});
+
+    setTxt('conv-modal-tekst',    c.upsell        || '');
+    setTxt('conv-modal-bullet-1', c.bullets?.[0]  || '');
+    setTxt('conv-modal-bullet-2', c.bullets?.[1]  || '');
+    setTxt('conv-modal-bullet-3', c.bullets?.[2]  || '');
+
+    const impact = document.getElementById('conv-modal-impact-box');
+    if (impact) impact.textContent = c.impact || '';
+
+    return c;
   },
-  applyModal(raw){
-    const content = getScanUiContent(raw, currentScanType());
-    setTxt('conv-modal-tekst', content.upsell);
-    setTxt('conv-modal-bullet-1', content.bullets?.[0] || '');
-    setTxt('conv-modal-bullet-2', content.bullets?.[1] || '');
-    setTxt('conv-modal-bullet-3', content.bullets?.[2] || '');
-    const impact = $('conv-modal-impact-box');
-    if (impact) impact.textContent = content.impact;
-    const small = $('conv-modal-impact');
-    if (small) small.textContent = 'eenmalig • geen abonnement • direct toepasbaar';
-    return content;
-  }
 };
 
-// ─── SECTORNORMEN (bron: CBS MKB StatLine 2023, Techniek Nederland, ING/Rabobank sectorrapportages) ───
+// ── Sectornormen — convenientwrapper voor normendata ─────────────────────────
 const Sectornormen = {
-  data: {
-    'Installatietechniek':      { brutomarge:[42,52], netto:[3,7],   personeel:[55,70], debiteur:[35,50], solv:[20,35], current:[1.2,1.6], cashflowMarge:[4,8],  voorraad:[20,35], crediteurdagen:[30,45] },
-    'Bouw & Aannemerij':        { brutomarge:[18,28], netto:[2,5],   personeel:[40,55], debiteur:[40,60], solv:[15,30], current:[1.1,1.5], cashflowMarge:[3,6],  voorraad:[15,30], crediteurdagen:[35,55] },
-    'Transport & Logistiek':    { brutomarge:[20,32], netto:[2,5],   personeel:[50,65], debiteur:[30,45], solv:[15,28], current:[1.0,1.4], cashflowMarge:[3,6],  voorraad:[5,15],  crediteurdagen:[30,45] },
-    'Groothandel':              { brutomarge:[18,28], netto:[2,5],   personeel:[15,25], debiteur:[30,45], solv:[20,35], current:[1.3,1.8], cashflowMarge:[3,6],  voorraad:[30,60], crediteurdagen:[25,40] },
-    'Detailhandel':             { brutomarge:[32,48], netto:[2,5],   personeel:[18,28], debiteur:[5,15],  solv:[20,35], current:[1.1,1.5], cashflowMarge:[3,6],  voorraad:[45,75], crediteurdagen:[20,35] },
-    'Zakelijke dienstverlening':{ brutomarge:[55,75], netto:[8,15],  personeel:[55,70], debiteur:[25,40], solv:[25,45], current:[1.3,1.8], cashflowMarge:[8,14], voorraad:[0,5],   crediteurdagen:[20,35] },
-    'Horeca':                   { brutomarge:[60,75], netto:[2,6],   personeel:[30,45], debiteur:[5,15],  solv:[10,25], current:[0.8,1.2], cashflowMarge:[4,8],  voorraad:[10,20], crediteurdagen:[15,30] },
-    'Zorg':                     { brutomarge:[55,70], netto:[2,6],   personeel:[60,75], debiteur:[20,35], solv:[20,35], current:[1.1,1.5], cashflowMarge:[3,6],  voorraad:[5,15],  crediteurdagen:[20,35] },
-    'ICT':                      { brutomarge:[45,65], netto:[8,15],  personeel:[50,65], debiteur:[25,40], solv:[30,50], current:[1.4,2.0], cashflowMarge:[8,14], voorraad:[0,5],   crediteurdagen:[20,35] },
-    'Overig':                   { brutomarge:[30,45], netto:[4,9],   personeel:[45,60], debiteur:[30,45], solv:[20,35], current:[1.2,1.6], cashflowMarge:[4,8],  voorraad:[15,30], crediteurdagen:[25,40] },
-  },
-  get(sector) { return this.data[sector] || this.data['Overig']; },
-  tekst(sector) {
-    const n = this.get(sector);
-    return 'SECTORNORMEN ' + sector + ' (bron: CBS MKB StatLine 2023, Techniek Nederland, ING/Rabobank):\n'
-      + '- Brutomarge: ' + n.brutomarge[0] + '-' + n.brutomarge[1] + '%\n'
-      + '- Nettoresultaat %: ' + n.netto[0] + '-' + n.netto[1] + '%\n'
-      + '- Personeelskosten %: ' + n.personeel[0] + '-' + n.personeel[1] + '% van omzet\n'
-      + '- Debiteurendagen: ' + n.debiteur[0] + '-' + n.debiteur[1] + ' dagen\n'
-      + '- Crediteurendagen: ' + n.crediteurdagen[0] + '-' + n.crediteurdagen[1] + ' dagen\n'
-      + '- Solvabiliteit: ' + n.solv[0] + '-' + n.solv[1] + '%\n'
-      + '- Current ratio: ' + n.current[0] + '-' + n.current[1] + '\n'
-      + '- Cashflow marge %: ' + n.cashflowMarge[0] + '-' + n.cashflowMarge[1] + '%\n'
-      + '- Voorraadbinding: ' + n.voorraad[0] + '-' + n.voorraad[1] + ' dagen';
-  }
+  get(sector)  { return getProfile(sector).normen || {}; },
+  // tekst() is alleen nog nodig als externe code het direct aanroept;
+  // buildPrompt gebruikt getSectorNormenTekst intern via de façade.
+  tekst(sector){ return _sectorLoaded ? (getProfile(sector).normen ? _normenTekst(sector) : '') : ''; },
 };
+
+// Interne helper — alleen gebruikt door Sectornormen.tekst() voor eventuele
+// directe aanroepen vanuit de frontend. Promptbouw gebruikt dit NIET.
+function _normenTekst(raw) {
+  const p = getProfile(raw);
+  const n = p.normen;
+  if (!n) return '';
+  return `SECTORNORMEN ${p.label || ''} (bron: ${n.bron || 'CBS MKB 2023'}):\n`
+    + `- Brutomarge: ${n.brutomarge[0]}-${n.brutomarge[1]}%\n`
+    + `- Nettoresultaat %: ${n.netto[0]}-${n.netto[1]}%\n`
+    + `- Personeelskosten %: ${n.personeel[0]}-${n.personeel[1]}% van omzet\n`
+    + `- Debiteurendagen: ${n.debiteur[0]}-${n.debiteur[1]} dagen\n`
+    + `- Crediteurendagen: ${n.crediteurdagen[0]}-${n.crediteurdagen[1]} dagen\n`
+    + `- Solvabiliteit: ${n.solv[0]}-${n.solv[1]}%\n`
+    + `- Current ratio: ${n.current[0]}-${n.current[1]}\n`
+    + `- Cashflow marge %: ${n.cashflowMarge[0]}-${n.cashflowMarge[1]}%\n`
+    + `- Voorraadbinding: ${n.voorraad[0]}-${n.voorraad[1]} dagen`;
+}
+
+// ── currentScanType ───────────────────────────────────────────────────────────
+function currentScanType() {
+  return document.getElementById('f-scan-type')?.value || 'winst';
+}
+
+// ── getScanUiContent / getScanAnalysisContent — convenientwrappers ────────────
+function getScanUiContent(sector, scanType) {
+  const p = getProfile(sector);
+  return scanType === 'belasting' ? (p.belasting || {}) : (p.winst || {});
+}
+function getScanAnalysisContent(sector, scanType) {
+  const p = getProfile(sector);
+  return scanType === 'belasting' ? (p.belastingAnalyse || {}) : (p.winstAnalyse || {});
+}
+
+// ── generateSectorFallback — fallback analyse-tekst als API faalt ─────────────
+// Leest ALLEEN uit analytische lagen (winstAnalyse / belastingAnalyse).
+// Raakt sector-content en sector-ctas niet aan.
+function generateSectorFallback(sectorRaw) {
+  const p   = getProfile(sectorRaw);
+  const cfg = currentScanType() === 'belasting'
+    ? (p.belastingAnalyse || {})
+    : (p.winstAnalyse    || {});
+  return (
+    `In uw ${cfg.bedrijfLabel || 'bedrijf'} zien we signalen dat er verbetering mogelijk is.\n\n` +
+    `FOCUSPUNTEN:\n${(cfg.focus || []).map(f => '• ' + f).join('\n')}\n\n` +
+    `IMPACT:\nOp basis van vergelijkbare bedrijven gaat dit vaak om ${cfg.impact || 'tienduizenden euro\'s'} per jaar.\n\n` +
+    (cfg.softCta || '')
+  ).trim();
+}
+
+// ── renderAnalyse — toont CTA-blok na analyse ─────────────────────────────────
+// Haalt knopTekst en CTA-tekst uit p.cta (gevuld vanuit sector-ctas.js).
+// Valt terug op cfg.softCta (analytische laag) als CTA-tekst ontbreekt.
+function renderAnalyse(sectorRaw) {
+  const scanType = currentScanType();
+  const p        = getProfile(sectorRaw);
+  const scanCta  = p.cta?.[scanType] || p.cta?.winst || {};
+  const cfg      = scanType === 'belasting' ? (p.belastingAnalyse || {}) : (p.winstAnalyse || {});
+
+  const heeftAnalyse = !!(
+    document.getElementById('ai-tekst')?.textContent?.trim() ||
+    document.getElementById('rapport-analyse')?.textContent?.trim()
+  );
+
+  const ctaEl  = document.getElementById('rapport-soft-cta');
+  const ctaTxt = document.getElementById('rapport-soft-cta-text');
+  const ctaBtn = document.getElementById('rapport-soft-cta-btn');
+
+  if (ctaEl)  ctaEl.style.display  = heeftAnalyse ? 'block' : 'none';
+  if (ctaTxt) ctaTxt.textContent   = scanCta.tekst || cfg.softCta || '';
+  if (ctaBtn) ctaBtn.textContent   = scanCta.knopTekst ||
+    (scanType === 'belasting' ? 'Houd grip op mijn fiscale positie →' : 'Houd grip op mijn winst →');
+}
+
+// ── applySectorFromUrl — pre-selecteert sector op basis van URL ───────────────
+function applySectorFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  let raw = params.get('sector') || '';
+  if (!raw) {
+    const seg = window.location.pathname
+      .replace(/^\/+/, '').replace(/\/.*/, '').replace(/-/g, ' ');
+    if (seg && sectorId(seg) !== 'algemeen') raw = seg;
+  }
+  if (!raw) return;
+  const id = sectorId(raw);
+  if (id === 'algemeen' && raw !== 'algemeen' && raw !== 'overig') return;
+  const fs = document.getElementById('f-sector');
+  if (!fs) return;
+  const label = getProfile(id).label || '';
+  for (const opt of fs.options) {
+    if (sectorId(opt.value) === id || opt.value === label) {
+      fs.value = opt.value;
+      fs.dispatchEvent(new Event('change'));
+      break;
+    }
+  }
+}
 
 // ─── FIN — financiële parser & signaalgenerator ───────────────────────────────
 const Fin = {
@@ -2430,114 +2493,10 @@ const Fin = {
   },
 };
 
-function generateSectorAnalyse(sector, data = {}) {
-  const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : String(sector || 'algemeen').toLowerCase();
-  const scanType = currentScanType();
-  const content = getScanAnalysisContent(sector, scanType);
-  const bedrijfsLabel = content.bedrijfLabel || 'bedrijf';
-  const omzet = data.omzet ? `Uw omzet komt uit op ${data.omzet}.` : '';
-  const brutomarge = data.brutomarge ? `Uw brutomarge ligt op ${data.brutomarge}.` : '';
-  const nettoresultaat = data.nettoresultaat ? `Uw nettoresultaat komt uit op ${data.nettoresultaat}.` : '';
-  const personeelskosten = data.personeelskosten ? `Uw personeelskosten liggen op ${data.personeelskosten} van de omzet.` : '';
-  const debiteurendagen = data.debiteurdagen ? `Uw debiteurendagen komen uit op ${data.debiteurdagen}.` : '';
-  const solvabiliteit = data.solvabiliteit ? `Uw solvabiliteit ligt op ${data.solvabiliteit}.` : '';
-
-  if (scanType === 'belasting') {
-    return `
-In uw ${bedrijfsLabel} zien we een aantal duidelijke signalen dat er fiscaal voordeel blijft liggen.
-
-${omzet} ${brutomarge} ${nettoresultaat} ${solvabiliteit}`.trim() + `
-
-BELANGRIJKSTE INZICHTEN:
-• Niet alle ${content.focus[0]} worden optimaal benut
-• Uw ${content.focus[2]} is waarschijnlijk niet fiscaal efficiënt ingericht
-• Er wordt onvoldoende gestuurd op ${content.focus[3]}
-• Beschikbare ${content.focus[1]} lijken niet volledig benut
-
-WAAR LEKT GELD:
-Hier betaalt u structureel meer belasting dan nodig doordat ${content.focus[0]} en ${content.focus[1]} niet volledig worden benut.
-Dit drukt uw netto resultaat en beperkt de ruimte om winst vast te houden.
-Hier blijft geld liggen in ${content.focus[2]} en ${content.focus[3]}.
-
-IMPACT:
-Op basis van vergelijkbare bedrijven gaat dit vaak om ${content.impact} per jaar.
-
-VERBETERKANSEN:
-• Breng ${content.focus[0]} volledig in kaart en benut deze actief
-• Onderzoek waar ${content.focus[1]} direct toepasbaar zijn
-• Optimaliseer uw ${content.focus[2]} om fiscale druk te verlagen
-• Stuur actiever op ${content.focus[3]} en timing van kosten en investeringen
-
-Dit zijn signalen op hoofdlijnen. In een volledige analyse laten we exact zien waar u kunt optimaliseren en wat dit concreet oplevert.
-`.trim();
-  }
-
-  return `
-In uw ${bedrijfsLabel} zien we een aantal duidelijke signalen dat er winst blijft liggen.
-
-${omzet} ${brutomarge} ${nettoresultaat} ${personeelskosten} ${debiteurendagen} ${solvabiliteit}`.trim() + `
-
-BELANGRIJKSTE INZICHTEN:
-• ${content.focus[0]} staat onder druk, wat direct impact heeft op uw winstgevendheid
-• ${content.focus[1]} zorgt voor structureel verlies van rendement
-• ${content.focus[2]} leidt tot inefficiënt gebruik van middelen
-• ${content.focus[3]} beperkt uw schaalbaarheid en winstgroei
-
-WAAR LEKT DE WINST:
-Hier verliest u structureel marge doordat ${content.focus[0]} en ${content.focus[1]} niet scherp genoeg worden aangestuurd.
-Dit drukt uw rendement en zorgt ervoor dat winst niet volledig wordt gerealiseerd.
-Hier blijft geld liggen in ${content.focus[2]} en ${content.focus[3]}.
-
-IMPACT:
-Op basis van vergelijkbare bedrijven gaat dit vaak om ${content.impact} per jaar.
-
-VERBETERKANSEN:
-• Breng ${content.focus[0]} structureel in kaart en stuur actief bij
-• Optimaliseer ${content.focus[1]} om directe winstverbetering te realiseren
-• Verlaag verliezen in ${content.focus[2]} door gerichte analyse
-• Stuur op ${content.focus[3]} om rendement structureel te verhogen
-
-Dit zijn signalen op hoofdlijnen. In een volledige analyse laten we exact zien waar u moet bijsturen en wat dit concreet oplevert.
-`.trim();
-}
-
-
-function extractAnalyseData(rawText = '') {
-  const text = String(rawText || '');
-  const pick = (re) => {
-    const m = text.match(re);
-    return m ? m[1].trim() : '';
-  };
-  return {
-    omzet: pick(/Totaal netto-omzet:\s*([^\n]+)/i),
-    brutomarge: pick(/Brutomarge\s*%:\s*([^\n]+)/i),
-    nettoresultaat: pick(/Nettoresultaat\s*%:\s*([^\n]+)/i),
-    personeelskosten: pick(/Personeelskosten\s*%:\s*([^\n]+)/i),
-    debiteurdagen: pick(/Debiteurendagen\s*=\s*([^\n]+)/i),
-    solvabiliteit: pick(/Solvabiliteit\s*%:\s*([^\n]+)/i),
-  };
-}
-
-function renderAnalyse(sector) {
-  const sourceText = (document.getElementById('ai-tekst')?.textContent || '') || (document.getElementById('eenpager-content')?.textContent || '') || (document.getElementById('klant-eenpager-inhoud')?.textContent || '');
-  const analyseData = extractAnalyseData(sourceText);
-  const analyse = generateSectorAnalyse(sector, analyseData);
-  const rapport = document.getElementById('rapport-analyse');
-  if (rapport) rapport.textContent = analyse;
-
-  const cfg = getScanAnalysisContent(sector, currentScanType());
-  const cta = document.getElementById('rapport-soft-cta');
-  const ctaText = document.getElementById('rapport-soft-cta-text');
-  const ctaBtn = document.getElementById('rapport-soft-cta-btn');
-  if (cta) cta.style.display = 'block';
-  if (ctaText) ctaText.textContent = cfg.softCta || '';
-  if (ctaBtn) ctaBtn.textContent = currentScanType() === 'belasting' ? 'Houd grip op mijn fiscale positie →' : 'Houd grip op mijn winst →';
-}
-
 const Analyse={
   async start(){
     if(!_adminKlant||!_adminPeriode){UI.warn('Selecteer klant en periode');return;}
-    const sector=$('ai-sector')?.value||'Algemeen MKB';
+    const sector=$('ai-sector')?.value||'Overig';
     const status=$('ai-status'),output=$('ai-tekst'),acties=$('ai-acties'),knop=$('btn-analyseer');
     if(!status||!output||!acties){UI.error('Interne fout');return;}
     const alleUpl=await Store.getUploads();
@@ -2545,122 +2504,32 @@ const Analyse={
     if(!uploads.length){UI.warn('Geen uploads gevonden');return;}
     status.textContent='Analyse bezig...';output.style.display='none';acties.style.display='none';
     if(knop){knop.disabled=true;knop.textContent='Bezig...';}
-    const bundle = {
-      ui: SectorCopy.get(sector),
-      analysis: SectorCopy.getAnalysis(sector)
-    };
-    const vooranalyse = generateSectorAnalyse(sector, extractAnalyseData(uploads[0].pdfTekst||''));
-    const prompt=`Je bent een senior financieel analist + sector specialist + conversion copywriter.
-
-Je schrijft GEEN generieke analyse, maar een sectorspecifieke winstscan die voelt als maatwerk.
-
-SECTOR:
-${sector}
-
-Voorbeeld van gewenste richting en toon:
-${vooranalyse}
-
-BELANGRIJK:
-Gebruik de daadwerkelijke cijfers uit de input expliciet in de tekst.
-Als een cijfer niet betrouwbaar uit de input te halen is, schrijf dan letterlijk: "onvoldoende data".
-
-Noem waar mogelijk:
-- omzet
-- brutomarge
-- nettoresultaat
-- personeelskosten
-- debiteurendagen
-- solvabiliteit
-- current ratio
-
-Vergelijk de gevonden cijfers kort met wat gebruikelijk is in deze sector.
-Maak het persoonlijk en concreet.
-Schrijf alsof u direct terugkoppelt op de cijfers van dit bedrijf.
-
-Gebruik EXACT deze structuur en kopjes:
-
-SAMENVATTING
-[Korte opening in 3-5 zinnen]
-
-KERNCIJFERS
-Omzet: € ...
-Brutomarge %: ...%
-Nettoresultaat %: ...%
-Personeelskosten %: ...%
-Debiteurendagen: ... dagen
-Solvabiliteit %: ...%
-Current ratio: ...
-
-BELANGRIJKSTE INZICHTEN
-- ...
-- ...
-- ...
-
-WAAR LEKT DE WINST
-- ...
-- ...
-- ...
-
-IMPACT
-[Beschrijf concreet wat het bedrijf laat liggen in euro's of waar rendement achterblijft]
-
-VERBETERKANSEN
-- ...
-- ...
-- ...
-
-MONITORING_ADVIES
-[Aanbevolen frequentie, drie KPI's die maandelijks bewaakt moeten worden, één mijlpaal voor komende 3 maanden.]
-
-SOFT_AFSLUITING
-Dit zijn signalen op hoofdlijnen. De grootste winst zit meestal niet in één grote ingreep, maar in maandelijks bijsturen op de juiste cijfers.
-
-REGELS:
-- Gebruik exact de labels onder KERNCIJFERS zoals hierboven.
-- Zet elk kerncijfer op een nieuwe regel.
-- Gebruik percentages met % teken.
-- Gebruik debiteurendagen als: "XX dagen".
-- Gebruik eurobedragen als: "€ 123456".
-- Geen markdown tabellen.
-- Geen codeblokken.
-- Geen extra kopjes buiten bovenstaande structuur.
-- Geen algemene adviezen zonder relatie met de cijfers.
-
-JAARCIJFERS:
-${uploads[0].pdfTekst||''}`;
+    const scanType=currentScanType();
     try{
-     const data = await API.call({actie:'analyse', prompt});
+      const data=await API.call({actie:'analyse',promptData:uploads[0].pdfTekst||'',sector,scanType,max_tokens:1500});
       const tekst=data.content?.find(b=>b.type==='text')?.text||'Geen resultaat';
       await Store.setAnalyse(_adminKlant+'-'+_adminPeriode,tekst);
-      output.textContent=tekst;output.style.display='';acties.style.display='flex';status.textContent='✅ Analyse gereed — u kunt nu de 1-pager genereren';
+      output.textContent=tekst;output.style.display='';acties.style.display='flex';
+      status.textContent='✅ Analyse gereed — u kunt nu de 1-pager genereren';
       const pagerBtn=$('btn-genereer-pager');if(pagerBtn){pagerBtn.disabled=false;pagerBtn.style.opacity='';pagerBtn.style.cursor='';pagerBtn.title='';}
-      const rapport = document.getElementById('rapport-analyse'); if(rapport) rapport.textContent = tekst;
-      const cta = document.getElementById('rapport-soft-cta'); if(cta) cta.style.display='block';
-      const mapped = (typeof SectorCopy !== 'undefined' && SectorCopy.map) ? SectorCopy.map(sector) : 'algemeen';
-      const cfg = SECTOR_ANALYSIS_CONTENT[mapped] || SECTOR_ANALYSIS_CONTENT.algemeen;
-      const ctaText = document.getElementById('rapport-soft-cta-text'); if(ctaText) ctaText.textContent = cfg.softCta || '';
+      const rapport=document.getElementById('rapport-analyse');if(rapport)rapport.textContent=tekst;
+      const cta=document.getElementById('rapport-soft-cta');if(cta)cta.style.display='block';
+      const p=getProfile(sector),scanCta=p.cta?.[scanType]||p.cta?.winst;
+      const ctaText=document.getElementById('rapport-soft-cta-text');if(ctaText)ctaText.textContent=scanCta?.tekst||(scanType==='belasting'?p.belastingAnalyse.softCta:p.winstAnalyse.softCta)||'';
+      const ctaBtn2=document.getElementById('rapport-soft-cta-btn');if(ctaBtn2&&scanCta?.knopTekst)ctaBtn2.textContent=scanCta.knopTekst;
       if(knop){knop.disabled=false;knop.textContent='🚀 Analyseer gegevens';}
       const kl2=await Store.getKlanten();const klant=kl2.find(k=>k.naam===_adminKlant);
       const bsKnop=$('btn-basisscan');if(bsKnop)bsKnop.style.display=klant?.klantType==='doorlichting'?'':'none';
       ['btn-cashflow','btn-debiteuren','btn-offerte'].forEach(id=>{const b=$(id);if(b)b.style.display='inline-flex';});
     }catch(e){
-      status.textContent='Fout: '+e.message;
-      if(knop){knop.disabled=false;knop.textContent='🚀 Analyseer gegevens';}
+      status.textContent='Fout: '+e.message;if(knop){knop.disabled=false;knop.textContent='🚀 Analyseer gegevens';}
       const bestaand=await Store.getAnalyse(_adminKlant+'-'+_adminPeriode);
       if(bestaand){output.textContent=bestaand;output.style.display='';acties.style.display='flex';}
-      else {
-        const fallback = generateSectorAnalyse(sector);
-        output.textContent = fallback;
-        output.style.display='';
-        acties.style.display='flex';
-          const rapport = document.getElementById('rapport-analyse'); if(rapport) rapport.textContent = fallback;
-        const cta = document.getElementById('rapport-soft-cta'); if(cta) cta.style.display='block';
-      }
+      else{const fallback=generateSectorFallback(sector);output.textContent=fallback;output.style.display='';acties.style.display='flex';const rapport=document.getElementById('rapport-analyse');if(rapport)rapport.textContent=fallback;const cta=document.getElementById('rapport-soft-cta');if(cta)cta.style.display='block';}
     }
   },
 };
 
-// ─── STRESSTEST ───────────────────────────────────────────────────────────────
 const StressTest = {
 
   _actief: null, // 'cashflow' | 'debiteuren' | 'offerte'
@@ -3238,7 +3107,7 @@ const Diensten = {
      beschrijving:'Analyse van uw inkooppatroon: leveranciers, volumes, prijzen. Met een concrete heronderhandelingsstrategie en verwachte margeverbeter per jaar.',
      sectoren:['Installatietechniek','Groothandel','Bouw & Aannemerij']},
     {id:'verzeker',      naam:'Verzekerings Scan',           prijs:'€247',   eenheid:'excl. BTW', icon:'🛡', kleur:'#1F4E79', kleurBg:'#D6E4F0',
-     sub:'Vaak over- of onderverzekerd zonder het te weten',
+     sub:'Veel bedrijven zijn mogelijk over- of onderverzekerd',
      levering:'Binnen 3 werkdagen',
      beschrijving:'Analyse van uw verzekeringsportefeuille: bent u goed gedekt, betaalt u te veel, zitten er gaten in de dekking? Met een concrete aanbeveling per verzekeringscategorie.',
      sectoren:null},
@@ -3254,7 +3123,7 @@ const Diensten = {
     'Installatietechniek': {titel:'Voor installatiebedrijven is cashflow het grootste risico', tekst:'Projectfacturen lopen weken achter, materiaalkosten zijn hoog en opdrachtgevers betalen laat. De Cashflow Stresstest en Offerte & Marge Stresstest zijn het meest relevant.', top:['cashflow','offerte','debiteuren']},
     'Bouw & Aannemerij':   {titel:'Bouw draait op marges — en die zijn dunner dan u denkt',   tekst:'Projectrisico\'s, stelposten en inleen vreten aan uw marge. De Offerte & Marge Stresstest en Personeelskosten Stresstest geven het meeste inzicht.', top:['offerte','personeel','cashflow']},
     'Transport & Logistiek':{titel:'Transport heeft structureel te maken met cashflow en brandstof', tekst:'Lange betaaltermijnen bij grote opdrachtgevers en stijgende brandstofkosten zijn de twee grootste risico\'s. Begin met de Cashflow Stresstest.', top:['cashflow','debiteuren','fiscaal']},
-    'Groothandel':          {titel:'Groothandel laat geld liggen in inkoop en debiteuren',      tekst:'Inkoopvolumes zijn groot genoeg om te heronderhandelen. Debiteuren lopen snel op. De Inkoopanalyse en Debiteuren Stresstest leveren direct resultaat.', top:['inkoop','debiteuren','cashflow']},
+    'Groothandel':          {titel:'Mogelijk verbeterpotentieel in inkoop en debiteuren bij groothandel',      tekst:'Inkoopvolumes zijn groot genoeg om te heronderhandelen. Debiteuren lopen snel op. De Inkoopanalyse en Debiteuren Stresstest leveren direct resultaat.', top:['inkoop','debiteuren','cashflow']},
     'Zakelijke dienstverlening':{titel:'Dienstverleners missen vaak subsidie en fiscale voordelen', tekst:'WBSO, innovatiebox en werkkostenregeling bieden veel mogelijkheden. De Subsidie Scan en Fiscale optimalisatie analyse betalen zich snel terug.', top:['subsidie','fiscaal','personeel']},
   },
 
@@ -3354,7 +3223,7 @@ const Diensten = {
         periode: dienst+' aanvraag',
         name: bedrijf,
         time: UI.datumNL(),
-        message: 'AANVRAAG: '+bedrijf+' wil afnemen: '+dienst+' ('+id+')\nLevering binnen 5 werkdagen na betaling.'
+        message: 'AANVRAAG: '+bedrijf+' wil afnemen: '+dienst+' ('+id+')\nLevering doorgaans binnen 5 werkdagen na betaling.'
       });
     } catch(e){ console.warn('Email fout:',e); }
     // Toon bevestigingsvenster
@@ -3674,8 +3543,9 @@ const Monitoring = {
   },
 };
 
+// ── URL sector routing — /?sector=horeca of /horeca pre-selecteert de sector ─
 (function init(){
-  try{emailjs.init(Config.pubkey());}catch{}
+  // REMOVED: emailjs.init() — EmailJS draait niet meer in de browser
   Bestanden.koppelListeners();
   // Jaarselectie EERST vullen, dan pas toon() aanroepen
   const jaarSel=$('f-jaar');if(jaarSel){const nu=new Date().getFullYear();jaarSel.innerHTML=[nu-1,nu-2,nu-3].map(j=>`<option value="${j}">${j}</option>`).join('');}
@@ -3697,18 +3567,17 @@ const Monitoring = {
   // Monitoring bestand listener
   const monVw=$('mon-vw');
   if(monVw) monVw.addEventListener('change',()=>setTxt('mon-vw-naam',monVw.files?.[0]?'✔ '+monVw.files[0].name:''));
-  Config.herstelUI();
-  try{const fs=$('f-sector'); if(fs){ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); renderAnalyse(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
+  // REMOVED: Config.herstelUI() — EmailJS client-configuratie bestaat niet meer
+  applySectorFromUrl();
+  // sector-bootstrap.js laadt de config asynchroon en triggert zelf de eerste render.
+  // Hier alleen de change-listener registreren voor sectorkeuzewijzigingen.
+  try{const fs=$('f-sector'); if(fs){ fs.addEventListener('change', ()=>{ SectorCopy.apply(fs.value||'algemeen'); SectorCopy.applyModal(fs.value||'algemeen'); renderAnalyse(fs.value||'algemeen'); }); }}catch(e){console.warn(e);}
   // Deduplicatie wordt server-side afgehandeld via UNIQUE constraint
   // Testklant wordt aangemaakt via SQL setup
-  const lc=$('login-code');if(lc)lc.addEventListener('keydown',e=>{if(e.key==='Enter')Auth.login();});
+  // CHANGED: magic link enter-toets
+  const lc=$('login-email');if(lc)lc.addEventListener('keydown',e=>{if(e.key==='Enter')Auth.vraagMagicLink();});
+  const lacAdmin=$('login-admin-code');if(lacAdmin)lacAdmin.addEventListener('keydown',e=>{if(e.key==='Enter')Auth.loginAdmin();});
   // Terugkeer van Stripe betaling
-  const _betaaldTerugkeer = new URLSearchParams(window.location.search).get('betaald')==='1';
-  if(_betaaldTerugkeer){
-    const banner=$('betaald-banner');if(banner)banner.style.display='block';
-    const gratis=$('login-gratis-zin');if(gratis)gratis.style.display='none';
-    history.replaceState(null,'',window.location.pathname);
-  }
   // Laad sessie - toon laadmelding
   const loginBox=document.querySelector('.login-box');
   if(loginBox){
@@ -3716,29 +3585,32 @@ const Monitoring = {
     laad.id='init-laad';laad.style.cssText='color:#9dc3e6;font-size:13px;margin-top:8px;';
     laad.textContent='Verbinden...';loginBox.appendChild(laad);
   }
+  // CHANGED: betaald=1 URL-param vervangen door payment=success/cancelled
+  const _paymentResultaat=new URLSearchParams(window.location.search).get('payment');
+  // CHANGED: magic link token afhandelen bij paginaload
+  const _magicToken=new URLSearchParams(window.location.search).get('magicToken');
+  if(_magicToken){
+    Auth.verifyMagicToken(_magicToken);
+  } else {
   Auth.herstelSessie().finally(()=>{
+    // Verwerk betaalterugkomst na sessie herstel
+    if(_paymentResultaat==='success'||_paymentResultaat==='cancelled'){
+      Conversie.verwerkTerugkomst(_paymentResultaat);
+    }
     const l=document.getElementById('init-laad');if(l)l.remove();
     // Geen sessie = basispagina blanco houden; inlogcode bepaalt admin of klant
     if(!sessie){
       hide('login-overlay');
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-      // Terugkeer van Stripe: toon loginscherm met betalingsbevestiging
-      if(_betaaldTerugkeer){
-        showFlex('login-overlay');
-        const lc2=$('login-code');if(lc2)lc2.focus();
-      }
     }
   });
-  // Geen JWT = niets tonen totdat iemand inlogt
-  if(!sessionStorage.getItem('gvt_jwt')){
-    hide('login-overlay');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  }
+  // CHANGED: geen gvt_jwt check meer -- cookie-auth; herstelSessie() bepaalt toegang
+  } // sluit else-block magicToken
 })();
+
 
 function openKlantOmgeving(){
   showFlex('login-overlay');
-  const lc=$('login-code');if(lc)lc.focus();
 }
 
 function checkLoginState(){
