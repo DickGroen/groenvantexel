@@ -1,740 +1,418 @@
-// ── Sector config import ──────────────────────────────────────────────────────
-// sectorProfiles.js staat in /config/sectorProfiles.js (naast /functions/analyse.js).
-import { buildSectorPrompt } from '../config/sectorProfiles.js';
+// ═══════════════════════════════════════════════════════════════════════════════
+// /config/sector-analysis.js
+//
+// VERANTWOORDELIJKHEID: analytische instructies per sector
+//   promptFocus       → wat de AI moet analyseren bij een winstscan
+//   belastingFocus    → wat de AI moet analyseren bij een belastingscan
+//   winstAnalyse      → focus-labels + impactbereik + bedrijfLabel (backend)
+//   belastingAnalyse  → focus-labels + impactbereik + bedrijfLabel (backend)
+//
+// GEBRUIKT DOOR:
+//   backend → buildSectorPrompt() → injectie in AI-prompt
+//   frontend → winstAnalyse/belastingAnalyse voor rapportkopjes
+//
+// NIET VOOR: hero-teksten, trust bullets, CTA's, upsell — die zitten in sector-content.js
+//
+// AANPASSEN:
+//   Wijzig hier analyse-instructies zonder risico op regressies in UI-copy.
+//   impactbereik en bedrijfLabel zijn analytische metadata, geen marketingtekst.
+// ═══════════════════════════════════════════════════════════════════════════════
 
-// ── JWT helpers (Web Crypto API — beschikbaar in CF Workers) ──────────────────
-const jwtSecret = async (env) => {
-  const secret = env && env.JWT_SECRET;
-  // FIX: geen hardcoded fallback — ontbrekende secret is een configuratiefout
-  if (!secret) throw new Error('JWT_SECRET environment variable is niet ingesteld');
-  return crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign', 'verify']
-  );
-};
+// ── Basisprompts ──────────────────────────────────────────────────────────────
+// Gedeeld tussen alle sectoren. Backend voegt sectorcontext + jaarcijfers toe.
+// Aanpassen = wijziging in alle analyses tegelijk — zorgvuldig reviewen.
 
-const jwtSign = async (payload, env) => {
-  const key = await jwtSecret(env);
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '');
-  const body = btoa(JSON.stringify(payload)).replace(/=/g, '');
-  const data = header + '.' + body;
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-  return data + '.' + sigB64;
-};
+const BASE_PROMPT_WINST = `Je bent een senior financieel analist en sector specialist voor het Nederlandse MKB.
+Je schrijft GEEN generieke analyse, maar een sectorspecifieke winstscan die voelt als maatwerk.
 
-const jwtVerify = async (token, env) => {
-  if (!token) return null;
-  const parts = token.split('.');
-  if (parts.length !== 3) return null;
-  try {
-    const key = await jwtSecret(env);
-    const data = parts[0] + '.' + parts[1];
-    const sig = Uint8Array.from(
-      atob(parts[2].replace(/-/g, '+').replace(/_/g, '/')),
-      (c) => c.charCodeAt(0)
-    );
-    const ok = await crypto.subtle.verify('HMAC', key, sig, new TextEncoder().encode(data));
-    if (!ok) return null;
-    const payload = JSON.parse(atob(parts[1]));
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
-    return payload;
-  } catch {
-    return null;
-  }
-};
+REGELS:
+- Gebruik de daadwerkelijke cijfers uit de input expliciet in de tekst.
+- Als een cijfer niet betrouwbaar uit de input te halen is, schrijf dan letterlijk: "onvoldoende data".
+- Geen markdown tabellen, geen codeblokken, geen extra kopjes buiten de verplichte structuur.
+- Geen algemene adviezen zonder directe relatie met de gevonden cijfers.
+- Schrijf alsof u direct terugkoppelt op de cijfers van dit specifieke bedrijf.
 
-// ── Stripe webhook handtekening verificatie ───────────────────────────────────
-const verifyStripeSignature = async (payload, sigHeader, secret) => {
-  const parts = sigHeader.split(',').reduce((acc, part) => {
-    const [k, v] = part.split('=');
-    acc[k] = v;
-    return acc;
-  }, {});
+Gebruik EXACT deze structuur en kopjes:
 
-  const timestamp = parts['t'];
-  const signature = parts['v1'];
-  if (!timestamp || !signature) return false;
+SAMENVATTING
+[Korte opening in 3-5 zinnen]
 
-  // Bescherm tegen replay attacks: max 5 minuten oud
-  const diff = Math.abs(Date.now() / 1000 - parseInt(timestamp));
-  if (diff > 300) return false;
+KERNCIJFERS
+Omzet: € ...
+Brutomarge %: ...%
+Nettoresultaat %: ...%
+Personeelskosten %: ...%
+Debiteurendagen: ... dagen
+Solvabiliteit %: ...%
+Current ratio: ...
 
-  const signedPayload = `${timestamp}.${payload}`;
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedPayload));
-  const computed = Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+BELANGRIJKSTE INZICHTEN
+- ...
+- ...
+- ...
 
-  return computed === signature;
-};
+WAAR LEKT DE WINST
+- ...
+- ...
+- ...
 
-// ── Rollen per actie ──────────────────────────────────────────────────────────
-const ADMIN_ACTIES = new Set([
-  'getKlanten',
-  'setKlant',
-  'delKlant',
-  'updateKlantType',
-  'setRapport',
-  'setBasisscan',
-  'setStresstest',
-  'delRapport',
-  'delBasisscan',
-  'delStresstest',
-  'delUpload',
-  'setAnalyse',
-  'setMaandoverzicht',
-  'delMaandoverzicht',
-]);
+IMPACT
+[Beschrijf concreet wat het bedrijf laat liggen in euro's of waar rendement achterblijft]
 
-const KLANT_ACTIES = new Set([
-  'getUploads',
-  'getRapporten',
-  'getBasisscans',
-  'getStresstesten',
-  'getMaandoverzichten',
-  'getAnalyse',
-  'upsertUpload',
-  'stuurEmail',
-]);
+VERBETERKANSEN
+- ...
+- ...
+- ...
 
-const PUBLIEK_ACTIES = new Set(['checkLogin', 'analyse', 'validateToken']);
+MONITORING_ADVIES
+[Aanbevolen frequentie, drie KPI's die maandelijks bewaakt moeten worden, één mijlpaal voor komende 3 maanden.]
 
-// ── Supabase helper ───────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://yhctamsjmbkkqhndaiov.supabase.co';
+SOFT_AFSLUITING
+Dit zijn signalen op hoofdlijnen. De grootste winst zit meestal niet in één grote ingreep, maar in maandelijks bijsturen op de juiste cijfers.`;
 
-const sb = async (env, path, method = 'GET', body = null) => {
-  const SUPABASE_KEY = env && env.SUPABASE_KEY;
-  // FIX: geen hardcoded fallback — ontbrekende sleutel is een configuratiefout
-  if (!SUPABASE_KEY) throw new Error('SUPABASE_KEY environment variable is niet ingesteld');
+const BASE_PROMPT_BELASTING = `Je bent een senior fiscaal adviseur en sector specialist voor het Nederlandse MKB.
+Je schrijft GEEN generieke fiscale analyse, maar een sectorspecifieke belastingscan die voelt als maatwerk.
 
-  const opts = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      Prefer: method === 'POST' ? 'return=representation' : '',
+REGELS:
+- Gebruik de daadwerkelijke cijfers uit de input expliciet in de tekst.
+- Als een cijfer niet betrouwbaar te halen is, schrijf dan letterlijk: "onvoldoende data".
+- Geen markdown tabellen, geen codeblokken.
+- Geen algemene adviezen zonder relatie met de gevonden cijfers.
+
+Gebruik EXACT deze structuur:
+
+SAMENVATTING
+[Korte opening in 3-5 zinnen over fiscale positie]
+
+FISCALE KERNCIJFERS
+Omzet: € ...
+Belastbaar resultaat: ...
+Effectieve belastingdruk %: ...%
+IB/VPB afdracht: € ...
+
+GEMISTE AFTREKPOSTEN
+- ...
+- ...
+- ...
+
+FISCALE KANSEN
+- ...
+- ...
+- ...
+
+STRUCTUURANALYSE
+[Beoordeel of de huidige rechtsvorm en structuur optimaal is]
+
+CONCRETE OPTIMALISATIES
+1. [actie] — verwacht voordeel: € [bedrag]
+2. [actie] — verwacht voordeel: € [bedrag]
+3. [actie] — verwacht voordeel: € [bedrag]
+
+SOFT_AFSLUITING
+Dit zijn fiscale signalen op hoofdlijnen. De grootste besparing zit in structureel bewaken van aftrekposten en tijdig anticiperen op regelgeving.`;
+
+// ── Sectorspecifieke analyse-instructies ──────────────────────────────────────
+
+const SECTOR_ANALYSIS = {
+
+  installatie: {
+    promptFocus: [
+      'Analyseer projectmarge en signaleer nacalculatieverschillen',
+      'Signaleer inefficiënte uren: voorrijden, wachttijden, herstelwerk, garantiewerk',
+      'Check materiaalverlies en niet-gefactureerd meerwerk',
+      'Vergelijk uurtarief met marktconform voor installateurs (€65-€95 excl. BTW, 2023)',
+      'Beoordeel verhouding materiaalkosten vs arbeidskosten',
+    ],
+    belastingFocus: [
+      'KIA/MIA/VAMIL op bedrijfsmiddelen en gereedschap',
+      'EIA bij energiebesparende installaties (warmtepompen, zonnepanelen)',
+      'Zelfstandigenaftrek bij eenmanszaken — uren-criterium bewaken',
+      'Auto-van-de-zaak regelingen voor servicebus en bestelauto',
+      'WBSO bij innovatieve installatiemethoden of eigen ontwikkeling',
+    ],
+    winstAnalyse: {
+      focus: ['projectmarge', 'nacalculatie', 'inefficiënte uren', 'materiaalverlies'],
+      impact: '€20.000 – €80.000',
+      bedrijfLabel: 'installatiebedrijf',
     },
-  };
-
-  if (body) opts.body = JSON.stringify(body);
-
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, opts);
-  if (!r.ok) {
-    const err = await r.text();
-    throw new Error(`Supabase fout (${r.status}): ${err}`);
-  }
-
-  const txt = await r.text();
-  return txt ? JSON.parse(txt) : [];
-};
-
-// ── CORS helper ───────────────────────────────────────────────────────────────
-// FIX: ALLOWED_ORIGIN is verplicht — geen wildcard fallback
-const getCors = (env) => {
-  const origin = env && env.ALLOWED_ORIGIN;
-  if (!origin) throw new Error('ALLOWED_ORIGIN environment variable is niet ingesteld');
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json',
-  };
-};
-
-// ── Stripe Webhook handler ────────────────────────────────────────────────────
-export async function onRequestPost_stripeWebhook({ request, env }) {
-  const cors = { 'Content-Type': 'application/json' };
-  const webhookSecret = env && env.STRIPE_WEBHOOK_SECRET;
-
-  if (!webhookSecret) {
-    console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET niet ingesteld');
-    return new Response(JSON.stringify({ error: 'Webhook secret ontbreekt' }), { status: 500, headers: cors });
-  }
-
-  const rawBody = await request.text();
-  const sigHeader = request.headers.get('stripe-signature') || '';
-
-  const geldig = await verifyStripeSignature(rawBody, sigHeader, webhookSecret);
-  if (!geldig) {
-    console.error('[stripe-webhook] Ongeldige handtekening');
-    return new Response(JSON.stringify({ error: 'Ongeldige handtekening' }), { status: 400, headers: cors });
-  }
-
-  let event;
-  try {
-    event = JSON.parse(rawBody);
-  } catch {
-    return new Response(JSON.stringify({ error: 'Ongeldig JSON' }), { status: 400, headers: cors });
-  }
-
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const email = session.customer_details?.email || session.customer_email || '';
-
-    if (email) {
-      try {
-        const klanten = await sb(env, `klanten?email=eq.${encodeURIComponent(email)}`);
-
-        if (klanten.length > 0) {
-          const klant = klanten[0];
-          await sb(env, `klanten?code=eq.${encodeURIComponent(klant.code)}`, 'PATCH', {
-            klanttype: 'doorlichting',
-          });
-          console.log(`[stripe-webhook] ${klant.naam} (${email}) omgezet naar doorlichting`);
-        } else {
-          console.warn(`[stripe-webhook] Geen klant gevonden voor e-mail: ${email}`);
-        }
-      } catch (e) {
-        console.error('[stripe-webhook] Supabase fout:', e.message);
-        // Toch 200 teruggeven zodat Stripe niet blijft retrying
-      }
-    }
-  }
-
-  return new Response(JSON.stringify({ ontvangen: true }), { headers: cors });
-}
-
-// ── Hoofd POST handler ────────────────────────────────────────────────────────
-export async function onRequestPost({ request, env }) {
-  // Route naar stripe-webhook handler als het pad /api/stripe-webhook is
-  const url = new URL(request.url);
-  if (url.pathname === '/api/stripe-webhook') {
-    return onRequestPost_stripeWebhook({ request, env });
-  }
-
-  let cors;
-  try {
-    cors = getCors(env);
-  } catch (e) {
-    console.error('[analyse.js] CORS configuratiefout:', e.message);
-    return new Response(JSON.stringify({ error: { message: e.message } }), { status: 500 });
-  }
-
-  try {
-    const body = await request.json();
-    const { actie } = body;
-
-    // ── Auth: JWT verificatie + rolcontrole per actie ─────────────────────────
-    let jwtPayload = null;
-    if (!PUBLIEK_ACTIES.has(actie)) {
-      const authHeader = request.headers.get('Authorization') || '';
-      const jwtToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-      jwtPayload = await jwtVerify(jwtToken, env);
-
-      if (!jwtPayload) {
-        return new Response(
-          JSON.stringify({ error: { message: 'Niet ingelogd of sessie verlopen' } }),
-          { status: 401, headers: cors }
-        );
-      }
-
-      if (ADMIN_ACTIES.has(actie) && jwtPayload.type !== 'admin') {
-        return new Response(
-          JSON.stringify({ error: { message: 'Geen toegang — admin vereist' } }),
-          { status: 403, headers: cors }
-        );
-      }
-
-      // Klantcode uit jwtPayload wordt per route gebruikt als filter — zie de individuele actie-blokken.
-    }
-
-    // ── AI ANALYSE ────────────────────────────────────────────────────────────
-    if (actie === 'analyse' || !actie) {
-      const { prompt, promptData, sector, scanType = 'winst', max_tokens = 1500 } = body;
-      const apiKey = env.ANTHROPIC_API_KEY;
-
-      if (!apiKey) {
-        return new Response(JSON.stringify({ error: { message: 'API key ontbreekt' } }), {
-          headers: cors,
-        });
-      }
-
-      const volledigePrompt = promptData
-        ? buildSectorPrompt(String(promptData), sector || 'Overig', scanType)
-        : (prompt || '');
-
-      if (!volledigePrompt) {
-        return new Response(
-          JSON.stringify({ error: { message: 'Geen prompt of promptData meegegeven' } }),
-          { headers: cors }
-        );
-      }
-
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens,
-          messages: [{ role: 'user', content: volledigePrompt }],
-        }),
-      });
-
-      const data = await resp.json();
-      return new Response(JSON.stringify(data), { headers: cors });
-    }
-
-    // ── SESSIE VALIDATIE ──────────────────────────────────────────────────────
-    if (actie === 'validateToken') {
-      const authHeader = request.headers.get('Authorization') || '';
-      const jwtToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-      const payload = await jwtVerify(jwtToken, env);
-
-      if (!payload) {
-        return new Response(JSON.stringify({ valid: false }), { status: 401, headers: cors });
-      }
-
-      const nu = Math.floor(Date.now() / 1000);
-      let token = jwtToken;
-
-      if (payload.exp - nu < 7200) {
-        const nieuweExp = nu + 8 * 3600;
-        token = await jwtSign({ ...payload, exp: nieuweExp }, env);
-      }
-
-      return new Response(
-        JSON.stringify({
-          valid: true,
-          type: payload.type,
-          naam: payload.naam || null,
-          token,
-        }),
-        { headers: cors }
-      );
-    }
-
-    // ── LOGIN CHECK ───────────────────────────────────────────────────────────
-    if (actie === 'checkLogin') {
-      const { code } = body;
-      const adminCode = env && env.ADMIN_CODE;
-
-      if (!adminCode) {
-        return new Response(
-          JSON.stringify({
-            error: { message: 'ADMIN_CODE niet geconfigureerd als environment variable' },
-          }),
-          { headers: cors }
-        );
-      }
-
-      if (code === adminCode) {
-        const exp = Math.floor(Date.now() / 1000) + 8 * 3600;
-        const token = await jwtSign({ type: 'admin', exp }, env);
-        return new Response(JSON.stringify({ type: 'admin', token }), { headers: cors });
-      }
-
-      const klanten = await sb(env, 'klanten');
-      const klant = Array.isArray(klanten) ? klanten.find((k) => k.code === code) : null;
-
-      if (klant) {
-        const exp = Math.floor(Date.now() / 1000) + 8 * 3600;
-        const token = await jwtSign(
-          { type: 'klant', code: klant.code, naam: klant.naam, exp },
-          env
-        );
-
-        return new Response(
-          JSON.stringify({
-            type: 'klant',
-            token,
-            klant: {
-              naam: klant.naam,
-              email: klant.email || '',
-              sector: klant.sector || '',
-              klanttype: klant.klanttype || 'lead',
-              code: klant.code,
-            },
-          }),
-          { headers: cors }
-        );
-      }
-
-      return new Response(JSON.stringify({ type: 'onbekend' }), { headers: cors });
-    }
-
-    // ── KLANTEN (admin only) ──────────────────────────────────────────────────
-    if (actie === 'getKlanten') {
-      const data = await sb(env, 'klanten?order=aangemaakt.asc');
-      return new Response(JSON.stringify(data), { headers: cors });
-    }
-
-    if (actie === 'setKlant') {
-      const { naam, code, klanttype, email, sector } = body;
-      await sb(env, 'klanten', 'POST', {
-        naam,
-        code,
-        klanttype: klanttype || 'lead',
-        email: email || '',
-        sector: sector || '',
-      });
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    if (actie === 'updateKlantType') {
-      const { code, klanttype } = body;
-      await sb(env, `klanten?code=eq.${encodeURIComponent(code)}`, 'PATCH', { klanttype });
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    if (actie === 'delKlant') {
-      const { code } = body;
-      await sb(env, `klanten?code=eq.${encodeURIComponent(code)}`, 'DELETE');
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── UPLOADS ───────────────────────────────────────────────────────────────
-    if (actie === 'getUploads') {
-      // FIX: klant ziet alleen eigen uploads; admin ziet alles
-      const filter = jwtPayload?.type === 'klant'
-        ? `bedrijf=eq.${encodeURIComponent(jwtPayload.code)}&`
-        : '';
-      const data = await sb(env, `uploads?${filter}order=aangemaakt.desc`);
-      return new Response(JSON.stringify(data), { headers: cors });
-    }
-
-    if (actie === 'upsertUpload') {
-      const { bedrijf, periode, datum, sector, pdftekst } = body;
-
-      // FIX: klant mag alleen eigen bedrijf uploaden
-      if (jwtPayload?.type === 'klant' && bedrijf !== jwtPayload.code) {
-        return new Response(
-          JSON.stringify({ error: { message: 'Geen toegang tot dit bedrijf' } }),
-          { status: 403, headers: cors }
-        );
-      }
-
-      const bestaand = await sb(
-        env,
-        `uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`
-      );
-
-      if (bestaand.length > 0) {
-        await sb(
-          env,
-          `uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`,
-          'PATCH',
-          {
-            datum,
-            sector: sector || '',
-            pdftekst: (pdftekst || '').substring(0, 80000),
-          }
-        );
-      } else {
-        await sb(env, 'uploads', 'POST', {
-          bedrijf,
-          periode,
-          datum,
-          sector: sector || '',
-          pdftekst: (pdftekst || '').substring(0, 80000),
-        });
-      }
-
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    if (actie === 'delUpload') {
-      const { bedrijf, periode } = body;
-      await sb(
-        env,
-        `uploads?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`,
-        'DELETE'
-      );
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── ANALYSES ──────────────────────────────────────────────────────────────
-    if (actie === 'getAnalyse') {
-      const { sleutel } = body;
-
-      // FIX: klant mag alleen analyse opvragen die bij zijn eigen code hoort
-      // TODO: vervang sleutel-prefix check door expliciet `bedrijf`-veld in de analyses-tabel,
-      //       of gebruik database-level RLS in Supabase — prefix-matching is fragiel bij hernoemen.
-      if (jwtPayload?.type === 'klant' && !sleutel.startsWith(jwtPayload.code + '-')) {
-        return new Response(
-          JSON.stringify({ error: { message: 'Geen toegang tot deze analyse' } }),
-          { status: 403, headers: cors }
-        );
-      }
-
-      const data = await sb(env, `analyses?sleutel=eq.${encodeURIComponent(sleutel)}`);
-      return new Response(JSON.stringify({ tekst: data[0]?.tekst || '' }), { headers: cors });
-    }
-
-    if (actie === 'setAnalyse') {
-      const { sleutel, tekst } = body;
-      const bestaand = await sb(env, `analyses?sleutel=eq.${encodeURIComponent(sleutel)}`);
-
-      if (bestaand.length > 0) {
-        await sb(env, `analyses?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
-          tekst,
-          bijgewerkt: new Date().toISOString(),
-        });
-      } else {
-        await sb(env, 'analyses', 'POST', { sleutel, tekst });
-      }
-
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── E-MAIL VIA SERVER ─────────────────────────────────────────────────────
-    if (actie === 'stuurEmail') {
-      const { data: emailData } = body;
-      const serviceId = (env && env.EMAILJS_SERVICE_ID) || '';
-      const templateId = (env && env.EMAILJS_TEMPLATE_ID) || '';
-      const pubKey = (env && env.EMAILJS_PUBLIC_KEY) || '';
-
-      if (!serviceId || !templateId || !pubKey) {
-        return new Response(
-          JSON.stringify({ error: { message: 'EmailJS niet geconfigureerd op server' } }),
-          { headers: cors }
-        );
-      }
-
-      const resp = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_id: serviceId,
-          template_id: templateId,
-          user_id: pubKey,
-          template_params: emailData,
-        }),
-      });
-
-      if (!resp.ok) throw new Error('EmailJS fout: ' + resp.status);
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── RAPPORTEN ─────────────────────────────────────────────────────────────
-    if (actie === 'getRapporten') {
-      // FIX: klant ziet alleen eigen rapporten op basis van code-prefix in sleutel
-      // TODO: vervang sleutel-prefix filter door expliciet `bedrijf`-veld in rapporten-tabel,
-      //       of gebruik database-level RLS in Supabase — prefix-matching is fragiel bij hernoemen.
-      const filter = jwtPayload?.type === 'klant'
-        ? `sleutel=like.${encodeURIComponent(jwtPayload.code + '-')}*&`
-        : '';
-      const data = await sb(env, `rapporten?${filter}`);
-      return new Response(JSON.stringify(data), { headers: cors });
-    }
-
-    if (actie === 'setRapport') {
-      const { sleutel, html, gepubliceerd, datum, pdf_url } = body;
-      if (!sleutel) {
-        return new Response(
-          JSON.stringify({ error: { message: 'setRapport: sleutel ontbreekt' } }),
-          { headers: cors }
-        );
-      }
-
-      const bestaand = await sb(env, `rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`);
-
-      if (bestaand.length > 0) {
-        await sb(env, `rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
-          html: (html || '').substring(0, 200000),
-          gepubliceerd: gepubliceerd === true || gepubliceerd === 'true',
-          datum,
-          ...(pdf_url ? { pdf_url } : {}),
-        });
-      } else {
-        await sb(env, 'rapporten', 'POST', {
-          sleutel,
-          html: (html || '').substring(0, 200000),
-          gepubliceerd: gepubliceerd === true || gepubliceerd === 'true',
-          datum,
-          ...(pdf_url ? { pdf_url } : {}),
-        });
-      }
-
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    if (actie === 'delRapport') {
-      const { sleutel } = body;
-      await sb(env, `rapporten?sleutel=eq.${encodeURIComponent(sleutel)}`, 'DELETE');
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── BASISSCANS ────────────────────────────────────────────────────────────
-    if (actie === 'getBasisscans') {
-      // FIX: klant ziet alleen eigen basisscans
-      // TODO: vervang sleutel-prefix filter door expliciet `bedrijf`-veld in basisscans-tabel,
-      //       of gebruik database-level RLS in Supabase — prefix-matching is fragiel bij hernoemen.
-      const filter = jwtPayload?.type === 'klant'
-        ? `sleutel=like.${encodeURIComponent(jwtPayload.code + '-')}*&`
-        : '';
-      const data = await sb(env, `basisscans?${filter}`);
-      return new Response(JSON.stringify(data), { headers: cors });
-    }
-
-    if (actie === 'setBasisscan') {
-      const { sleutel, html, gepubliceerd, datum, pdf_url } = body;
-      const bestaand = await sb(env, `basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`);
-
-      if (bestaand.length > 0) {
-        await sb(env, `basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'PATCH', {
-          html,
-          gepubliceerd,
-          datum,
-          ...(pdf_url ? { pdf_url } : {}),
-        });
-      } else {
-        await sb(env, 'basisscans', 'POST', {
-          sleutel,
-          html,
-          gepubliceerd,
-          datum,
-          ...(pdf_url ? { pdf_url } : {}),
-        });
-      }
-
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    if (actie === 'delBasisscan') {
-      const { sleutel } = body;
-      await sb(env, `basisscans?sleutel=eq.${encodeURIComponent(sleutel)}`, 'DELETE');
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── STRESSTESTEN ──────────────────────────────────────────────────────────
-    if (actie === 'getStresstesten') {
-      const stresstypes = ['cashflow', 'debiteuren', 'offerte'];
-      // FIX: klant ziet alleen eigen stresstesten
-      // TODO: vervang sleutel-prefix filter door expliciet `bedrijf`-veld in basisscans-tabel,
-      //       of gebruik database-level RLS in Supabase — prefix-matching is fragiel bij hernoemen.
-      const filter = jwtPayload?.type === 'klant'
-        ? `sleutel=like.${encodeURIComponent(jwtPayload.code + '-')}*&`
-        : '';
-      const all = await sb(env, `basisscans?${filter}`);
-      const filtered = Array.isArray(all)
-        ? all.filter((r) => stresstypes.some((t) => r.sleutel && r.sleutel.endsWith('-' + t)))
-        : [];
-      return new Response(JSON.stringify(filtered), { headers: cors });
-    }
-
-    if (actie === 'setStresstest') {
-      const { sleutel, html, gepubliceerd, datum } = body;
-      const bestaand = await sb(env, 'basisscans?sleutel=eq.' + encodeURIComponent(sleutel));
-      const record = {
-        sleutel,
-        html,
-        gepubliceerd: gepubliceerd || false,
-        datum: datum || new Date().toISOString(),
-      };
-
-      if (bestaand.length > 0) {
-        await sb(env, 'basisscans?sleutel=eq.' + encodeURIComponent(sleutel), 'PATCH', record);
-      } else {
-        await sb(env, 'basisscans', 'POST', record);
-      }
-
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    if (actie === 'delStresstest') {
-      const { sleutel } = body;
-      await sb(env, 'basisscans?sleutel=eq.' + encodeURIComponent(sleutel), 'DELETE');
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    // ── MAANDOVERZICHTEN ──────────────────────────────────────────────────────
-    if (actie === 'getMaandoverzichten') {
-      const { bedrijf } = body;
-
-      // FIX: klant mag alleen eigen maandoverzichten opvragen
-      const effectiefBedrijf = jwtPayload?.type === 'klant' ? jwtPayload.code : bedrijf;
-      const filter = effectiefBedrijf ? `bedrijf=eq.${encodeURIComponent(effectiefBedrijf)}&` : '';
-      const data = await sb(env, `maandoverzichten?${filter}order=periode.desc`);
-      return new Response(JSON.stringify(data), { headers: cors });
-    }
-
-    if (actie === 'setMaandoverzicht') {
-      const { bedrijf, periode, html, gepubliceerd, datum, omzet, brutomarge, debiteurendagen, solvabiliteit, nettoresultaat } = body;
-
-      // Defensieve check: als deze actie ooit voor klanten wordt opengesteld,
-      // mag een klant nooit een ander bedrijf overschrijven.
-      if (jwtPayload?.type === 'klant' && bedrijf !== jwtPayload.code) {
-        return new Response(
-          JSON.stringify({ error: { message: 'Geen toegang tot dit bedrijf' } }),
-          { status: 403, headers: cors }
-        );
-      }
-
-      const bestaand = await sb(
-        env,
-        `maandoverzichten?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`
-      );
-
-      const record = {
-        bedrijf, periode, html,
-        gepubliceerd: gepubliceerd || false,
-        datum: datum || '',
-        omzet: omzet || null,
-        brutomarge: brutomarge || null,
-        debiteurendagen: debiteurendagen || null,
-        solvabiliteit: solvabiliteit || null,
-        nettoresultaat: nettoresultaat || null,
-        bijgewerkt: new Date().toISOString(),
-      };
-
-      if (bestaand.length > 0) {
-        await sb(env, `maandoverzichten?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`, 'PATCH', record);
-      } else {
-        await sb(env, 'maandoverzichten', 'POST', record);
-      }
-
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    if (actie === 'delMaandoverzicht') {
-      const { bedrijf, periode } = body;
-      await sb(env, `maandoverzichten?bedrijf=eq.${encodeURIComponent(bedrijf)}&periode=eq.${encodeURIComponent(periode)}`, 'DELETE');
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
-    }
-
-    return new Response(
-      JSON.stringify({ error: { message: 'Onbekende actie: ' + actie } }),
-      { headers: cors }
-    );
-  } catch (e) {
-    console.error('[analyse.js] fout:', e.message);
-    return new Response(JSON.stringify({ error: { message: e.message } }), {
-      status: 500,
-      headers: cors,
-    });
-  }
-}
-
-export async function onRequestOptions({ env }) {
-  // FIX: ALLOWED_ORIGIN verplicht — geen wildcard fallback
-  const origin = env && env.ALLOWED_ORIGIN;
-  if (!origin) {
-    return new Response(null, { status: 500 });
-  }
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    belastingAnalyse: {
+      focus: ['aftrekposten', 'investeringsregelingen', 'fiscale structuur', 'belastingdruk'],
+      impact: '€5.000 – €30.000',
+      bedrijfLabel: 'installatiebedrijf',
     },
-  });
-}
+  },
+
+  bouw: {
+    promptFocus: [
+      'Analyseer faalkosten (doorgaans 3-10% van omzet bij aannemers)',
+      'Check projectoverschrijdingen: meer-/minderwerk, budgetafwijkingen',
+      'Beoordeel planning en bezettingsgraad personeel en materieel',
+      'Signaleer te lage opslag voor indirecte kosten in offertes',
+      'Check WKA-risico (inlening personeel) en verzekerings-/garantieverplichtingen',
+    ],
+    belastingFocus: [
+      'KIA op machines, steigers en zwaar materieel',
+      'G-rekening en WKA-risico bij inlening personeel',
+      'BTW-constructies bij renovatie (6% vs 21%)',
+      'Eigenwoningforfait bij combinatie wonen/werken',
+      'Pensioenopbouw DGA in bouwholding',
+    ],
+    winstAnalyse: {
+      focus: ['faalkosten', 'projectoverschrijdingen', 'planning', 'marge per project'],
+      impact: '€30.000 – €100.000',
+      bedrijfLabel: 'bouwbedrijf',
+    },
+    belastingAnalyse: {
+      focus: ['aftrekposten', 'investeringsregelingen', 'fiscale structuur', 'belastingdruk'],
+      impact: '€5.000 – €30.000',
+      bedrijfLabel: 'bouwbedrijf',
+    },
+  },
+
+  transport: {
+    promptFocus: [
+      'Analyseer rendement per rit en bezettingsgraad voertuigen',
+      'Check brandstofkosten als % van omzet (normaal 15-25%)',
+      'Signaleer lege kilometers en inefficiënte routeplanning',
+      'Beoordeel wagenpark: afschrijving vs productiviteit per voertuig',
+      'Check chauffeurstekort impact op operationele kosten',
+    ],
+    belastingFocus: [
+      'Brandstofaccijns teruggave bij zakelijk gebruik',
+      'KIA/MIA op nieuwe voertuigen (extra voordeel bij EV)',
+      'Eurovignet en buitenlandse heffingen aftrekbaarheid',
+      'Auto van de zaak bijtelling tabel per voertuigcategorie',
+      'Chauffeurs dagvergoedingen en onkostenregelingen',
+    ],
+    winstAnalyse: {
+      focus: ['rendement per rit', 'brandstofkosten', 'bezettingsgraad', 'wagenpark inefficiëntie'],
+      impact: '€25.000 – €90.000',
+      bedrijfLabel: 'transportbedrijf',
+    },
+    belastingAnalyse: {
+      focus: ['accijns teruggave', 'KIA voertuigen', 'eurovignet', 'dagvergoedingen'],
+      impact: '€5.000 – €30.000',
+      bedrijfLabel: 'transportbedrijf',
+    },
+  },
+
+  groothandel: {
+    promptFocus: [
+      'Analyseer marge per productgroep — signaleer verliesgevende assortimentslijnen',
+      'Check voorraadbinding: te hoge voorraad = vastgezet werkkapitaal',
+      'Beoordeel debiteurenrisico: klantconcentratie en betalingstermijnen',
+      'Signaleer klanten met negatieve margebijdrage (volumekortingen die te ver gaan)',
+      'Check inkoopkracht: worden volumekortingen bij leveranciers benut?',
+    ],
+    belastingFocus: [
+      'Voorraadwaardering (FIFO/gemiddelde kostprijs) en fiscale impact',
+      'BTW-carrousel risico\'s bij import/export buiten EU',
+      'KIA op magazijninrichting, heftrucks en logistieke systemen',
+      'Transfer pricing bij internationale handelsstromen',
+      'Debiteuren-voorziening fiscaal aftrekbaar stellen',
+    ],
+    winstAnalyse: {
+      focus: ['marge per productgroep', 'voorraadbinding', 'debiteurenrisico', 'klantrentabiliteit'],
+      impact: '€20.000 – €90.000',
+      bedrijfLabel: 'groothandelsbedrijf',
+    },
+    belastingAnalyse: {
+      focus: ['voorraadwaardering', 'import/export BTW', 'KIA magazijn', 'debiteurenrisico fiscaal'],
+      impact: '€5.000 – €30.000',
+      bedrijfLabel: 'groothandelsbedrijf',
+    },
+  },
+
+  detailhandel: {
+    promptFocus: [
+      'Analyseer omzet per m² en bezettingsgraad winkel',
+      'Check voorraadveroudering en afwaarderingen',
+      'Beoordeel verhouding vaste kosten (huur, personeel) vs omzet',
+      'Signaleer seizoenspatronen die cashflow onder druk zetten',
+      'Check retourpercentage en marge-impact',
+    ],
+    belastingFocus: [
+      'KOR (Kleineondernemersregeling) check — drempel €20.000 omzet',
+      'BTW op margeregeling tweedehands goederen',
+      'Aftrekbaarheid huurkosten en verbouwingskosten',
+      'Kassaregels en omzetregistratieplicht',
+      'Voorraadafwaardering fiscaal verwerken',
+    ],
+    winstAnalyse: {
+      focus: ['omzet per m²', 'voorraadveroudering', 'vaste lasten vs omzet', 'seizoenscashflow'],
+      impact: '€15.000 – €60.000',
+      bedrijfLabel: 'winkel',
+    },
+    belastingAnalyse: {
+      focus: ['KOR-regeling', 'btw margeregeling', 'huurkosten aftrek', 'kassaregels'],
+      impact: '€5.000 – €25.000',
+      bedrijfLabel: 'winkel',
+    },
+  },
+
+  dienstverlening: {
+    promptFocus: [
+      'Analyseer declarabiliteitspercentage (streefwaarde: >75% voor adviseurs)',
+      'Check omzet per fte en vergelijk met marktconform uurtarief voor de subsector',
+      'Signaleer klanten die onevenredig veel niet-declarabele tijd vragen',
+      'Beoordeel pitch/aanbestedingskosten als % van gewonnen opdrachten',
+      'Check groei: wordt capaciteitsgroei door nieuwe klanten gedekt?',
+    ],
+    belastingFocus: [
+      'Zelfstandigenaftrek en startersaftrek — uren-criterium bewaken',
+      'Pensioenopbouw en lijfrente voor DGA en IB-ondernemer',
+      'Thuiswerkkostenvergoeding en arbo-voorzieningen aftrekbaar',
+      'Auto van de zaak vs privé-gebruik en bijtellingsrisico',
+      'Inhuur vs dienstverband risico (fictief dienstverband)',
+    ],
+    winstAnalyse: {
+      focus: ['declarabiliteit', 'uurtarief', 'klantrentabiliteit', 'niet-gefactureerde uren'],
+      impact: '€20.000 – €100.000',
+      bedrijfLabel: 'dienstverlener',
+    },
+    belastingAnalyse: {
+      focus: ['zelfstandigenaftrek', 'pensioenopbouw DGA', 'declarabiliteit fiscaal', 'auto van de zaak'],
+      impact: '€5.000 – €40.000',
+      bedrijfLabel: 'dienstverlener',
+    },
+  },
+
+  horeca: {
+    promptFocus: [
+      'Analyseer personeelskosten als % van omzet (kritische drempel: >45%)',
+      'Check food-cost ratio: inkoop vs omzet (doorgaans 25-35% voor restaurants)',
+      'Signaleer daluren: zijn die onrendabel ingeroosterd?',
+      'Beoordeel marge per productcategorie (drank vs eten, take-away vs ter plaatse)',
+      'Check seizoensinvloed op cashflow en werkkapitaalbehoefte',
+    ],
+    belastingFocus: [
+      'BTW-splitsing laag tarief (9% eten) vs hoog tarief (21% drinken)',
+      'KIA op keukenapparatuur, inventaris en verbouwingen',
+      'Personeelsmaaltijden bijtelling correct verwerken',
+      'Kasregistratie verplichting en omzetverantwoording',
+      'TOGS/TVL-ontvangsten correct als belaste/onbelaste baten',
+    ],
+    winstAnalyse: {
+      focus: ['personeelsdruk', 'food-cost', 'bezettingsgraad', 'marge per productgroep'],
+      impact: '€15.000 – €70.000',
+      bedrijfLabel: 'horecabedrijf',
+    },
+    belastingAnalyse: {
+      focus: ['BTW splitsing eten/drinken', 'inventaris KIA', 'personeelsmaaltijden bijtelling', 'kasregistratie'],
+      impact: '€5.000 – €25.000',
+      bedrijfLabel: 'horecabedrijf',
+    },
+  },
+
+  zorg: {
+    promptFocus: [
+      'Analyseer productieve uren vs indirecte uren (admin, rapportage, reistijd)',
+      'Check personeelskosten als % van omzet en vergelijk met NZa-tarief-opbrengsten',
+      'Signaleer onderbezetting (te weinig cliënten) of overbezetting (uitval/ziekte-risico)',
+      'Beoordeel tarief-mix: DBC/WLZ/Wmo/PGB — welke bekostiging is meest gunstig',
+      'Check ziekteverzuim % en vervangingskosten',
+    ],
+    belastingFocus: [
+      'BTW-vrijstelling zorgprestaties — voldoet u aan de BIG/Wlz-voorwaarden?',
+      'ANBI-status check voor stichtingen en verenigingen in de zorg',
+      'PGB-inkomsten en belastbaarheid (werknemer vs zelfstandige)',
+      'WIA/WGA premieplicht en eigenrisicodragerschap',
+      'Investeringsaftrek medische apparatuur en praktijkinrichting',
+    ],
+    winstAnalyse: {
+      focus: ['productieve uren', 'personeelsinzet', 'bezettingsgraad', 'tarief-mix'],
+      impact: '€15.000 – €60.000',
+      bedrijfLabel: 'zorgorganisatie',
+    },
+    belastingAnalyse: {
+      focus: ['BTW-vrijstelling zorgprestaties', 'ANBI-status', 'WIA/WGA premies', 'investeringsaftrek medisch'],
+      impact: '€5.000 – €30.000',
+      bedrijfLabel: 'zorgorganisatie',
+    },
+  },
+
+  ict: {
+    promptFocus: [
+      'Analyseer recurring revenue (MRR/ARR) vs eenmalige projectopbrengsten',
+      'Check customer acquisition cost (CAC) en lifetime value (LTV) indien beschikbaar',
+      'Signaleer niet-declarabele ontwikkeltijd en intern project-overhead',
+      'Beoordeel licentie- en infrastructuurkosten als % van omzet',
+      'Check churn-risico: zijn contracten langlopend of maandelijks opzegbaar?',
+    ],
+    belastingFocus: [
+      'WBSO (Wet Bevordering Speur- en Ontwikkelingswerk) — grootste fiscale kans voor ICT',
+      'Innovatiebox: 9% VPB over winst uit innovatieve activiteiten',
+      'Stock options en aandelenopties medewerkers correct verwerken',
+      'KIA op servers, hardware en kantoorinrichting',
+      'Thuiswerkkostenvergoeding en arbo-aftrek bij remote teams',
+    ],
+    winstAnalyse: {
+      focus: ['declarabiliteit', 'terugkerende omzet', 'klantverloop', 'licentiekosten'],
+      impact: '€20.000 – €100.000',
+      bedrijfLabel: 'ICT-bedrijf',
+    },
+    belastingAnalyse: {
+      focus: ['WBSO subsidie', 'innovatiebox 9% VPB', 'stock options', 'KIA hardware'],
+      impact: '€10.000 – €50.000',
+      bedrijfLabel: 'ICT-bedrijf',
+    },
+  },
+
+  ecommerce: {
+    promptFocus: [
+      'Analyseer marge per productgroep en signaleer verliesgevende categorieën',
+      'Check ROAS (Return on Ad Spend) van advertentiekanalen indien vermeld',
+      'Beoordeel retourpercentage en marge-impact per geretourneerd item',
+      'Check fulfilmentkosten per order (opslag, pick & pack, verzending)',
+      'Signaleer seizoenspieken en cashflow-impact bij grote inkooporders',
+    ],
+    belastingFocus: [
+      'OSS-regeling (One Stop Shop) voor BTW bij EU-verkopen boven €10.000',
+      'Margeregeling tweedehands goederen correct toepassen',
+      'BTW-behandeling dropshipping (u bent de leverancier, niet de fabrikant)',
+      'KIA op magazijninrichting, automatisering en software',
+      'Aftrekbaarheid van marketingkosten, advertentiebudget en platform-fees',
+    ],
+    winstAnalyse: {
+      focus: ['marge per productgroep', 'retouren', 'ROAS (advertenties)', 'fulfilmentkosten'],
+      impact: '€20.000 – €100.000',
+      bedrijfLabel: 'webshop',
+    },
+    belastingAnalyse: {
+      focus: ['OSS-regeling EU btw', 'margeregeling tweedehands', 'btw-behandeling dropshipping', 'KIA magazijn/automatisering'],
+      impact: '€5.000 – €30.000',
+      bedrijfLabel: 'webshop',
+    },
+  },
+
+  algemeen: {
+    promptFocus: [
+      'Analyseer margestructuur en kostenopbouw',
+      'Signaleer afwijkingen van gangbare MKB-normen',
+      'Identificeer de drie grootste winstlekken',
+      'Beoordeel liquiditeit en werkkapitaalbeheer',
+    ],
+    belastingFocus: [
+      'KIA check — investeringsaftrek benut?',
+      'Zelfstandigenaftrek en startersaftrek correct toegepast?',
+      'BTW-aangifte correcties en suppletie-risico\'s',
+      'Pensioenopbouw DGA en privé/zakelijk scheiding',
+    ],
+    winstAnalyse: {
+      focus: ['marge', 'kostenstructuur', 'rendement', 'inefficiëntie'],
+      impact: '€10.000 – €50.000',
+      bedrijfLabel: 'bedrijf',
+    },
+    belastingAnalyse: {
+      focus: ['aftrekposten', 'investeringsregelingen', 'fiscale structuur', 'belastingdruk'],
+      impact: '€5.000 – €30.000',
+      bedrijfLabel: 'bedrijf',
+    },
+  },
+};
+
+export {
+  SECTOR_ANALYSIS,
+  BASE_PROMPT_WINST,
+  BASE_PROMPT_BELASTING,
+};
