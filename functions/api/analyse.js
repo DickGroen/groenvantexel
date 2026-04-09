@@ -111,7 +111,7 @@ const KLANT_ACTIES = new Set([
   'stuurEmail',
 ]);
 
-const PUBLIEK_ACTIES = new Set(['checkLogin', 'analyse', 'validateToken', 'uitloggen', 'aanvraagMagicLink', 'verifyMagicLink']);
+const PUBLIEK_ACTIES = new Set(['checkLogin', 'analyse', 'validateToken', 'uitloggen', 'aanvraagMagicLink', 'verifyMagicLink', 'aanmeldLead']);
 
 // ── Supabase helper ───────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://yhctamsjmbkkqhndaiov.supabase.co';
@@ -756,6 +756,80 @@ export async function onRequestPost({ request, env }) {
     }
 
     // ── MAGIC LINK ────────────────────────────────────────────────────────────
+    if (actie === 'aanmeldLead') {
+      const { naam, bedrijf, sector, email } = body;
+      if (!naam || !bedrijf || !sector || !email) {
+        return new Response(JSON.stringify({ error: { message: 'Vul alle verplichte velden in.' } }), { headers: cors });
+      }
+
+      // Controleer of email al bestaat
+      const bestaand = await sb(env, `klanten?email=eq.${encodeURIComponent(email.toLowerCase())}`);
+      if (Array.isArray(bestaand) && bestaand.length > 0) {
+        // Email bestaat al — stuur toch een loginlink
+        const exp = Math.floor(Date.now() / 1000) + 15 * 60;
+        const token = await jwtSign({ type: 'magiclink', code: bestaand[0].code, email: bestaand[0].email, exp }, env);
+        const loginUrl = `${env.ALLOWED_ORIGIN}?magicToken=${encodeURIComponent(token)}`;
+        const resendKey = env && env.RESEND_API_KEY;
+        if (resendKey) {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
+            body: JSON.stringify({
+              from: 'Groen van Texel <onboarding@resend.dev>',
+              to: [email.toLowerCase()],
+              subject: 'Uw loginlink voor Groen van Texel',
+              html: `<p>Beste ${naam},</p><p>U heeft al een account bij Groen van Texel. Klik op de link om in te loggen:</p><p><a href="${loginUrl}">${loginUrl}</a></p><p>Deze link is 15 minuten geldig.</p><p>Met vriendelijke groet,<br>Groen van Texel</p>`,
+            }),
+          }).catch(e => console.error('[aanmeldLead] Resend fout:', e.message));
+        }
+        return new Response(JSON.stringify({ ok: true }), { headers: cors });
+      }
+
+      // Nieuwe klant aanmaken
+      const code = email.split('@')[0].replace(/[^a-z0-9]/gi, '').toLowerCase() + Math.random().toString(36).slice(2, 6);
+      await sb(env, 'klanten', 'POST', {
+        naam: bedrijf,
+        code,
+        klanttype: 'lead',
+        email: email.toLowerCase(),
+        sector,
+      });
+
+      // Stuur welkomstmail + loginlink naar klant
+      const exp = Math.floor(Date.now() / 1000) + 60 * 60; // 1 uur geldig
+      const token = await jwtSign({ type: 'magiclink', code, email: email.toLowerCase(), exp }, env);
+      const loginUrl = `${env.ALLOWED_ORIGIN}?magicToken=${encodeURIComponent(token)}`;
+
+      const resendKey = env && env.RESEND_API_KEY;
+      if (resendKey) {
+        // Mail aan klant
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
+          body: JSON.stringify({
+            from: 'Groen van Texel <onboarding@resend.dev>',
+            to: [email.toLowerCase()],
+            subject: 'Uw gratis financiële scan is aangevraagd',
+            html: `<p>Beste ${naam},</p><p>Bedankt voor uw aanvraag! Wij nemen binnenkort contact met u op om uw jaarcijfers op te vragen.</p><p>U kunt alvast inloggen via de onderstaande link:</p><p><a href="${loginUrl}">${loginUrl}</a></p><p>Deze link is 1 uur geldig.</p><p>Met vriendelijke groet,<br>Groen van Texel<br>06 4215 2499</p>`,
+          }),
+        }).catch(e => console.error('[aanmeldLead] Klant mail fout:', e.message));
+
+        // Notificatie aan admin (dickgroen2@gmail.com)
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
+          body: JSON.stringify({
+            from: 'Groen van Texel <onboarding@resend.dev>',
+            to: ['dickgroen2@gmail.com'],
+            subject: `Nieuwe lead: ${bedrijf}`,
+            html: `<p><strong>Nieuwe lead aangemeld via de landingspagina:</strong></p><ul><li>Naam: ${naam}</li><li>Bedrijf: ${bedrijf}</li><li>Sector: ${sector}</li><li>Email: ${email}</li></ul><p>De klant staat nu in het systeem als lead.</p>`,
+          }),
+        }).catch(e => console.error('[aanmeldLead] Admin mail fout:', e.message));
+      }
+
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
     if (actie === 'aanvraagMagicLink') {
       const { email } = body;
       if (!email) {
