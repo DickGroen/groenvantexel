@@ -785,30 +785,29 @@ export async function onRequestPost({ request, env }) {
       console.log('[magic link] Klant gevonden:', klant.email, '| EmailJS config:', !!serviceId, !!templateId, !!pubKey);
       console.log('[magic link] Login URL:', loginUrl);
 
-      if (serviceId && templateId && pubKey) {
+      const resendKey = env && env.RESEND_API_KEY;
+      if (resendKey) {
         try {
-          const ejResp = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          const resendResp = await fetch('https://api.resend.com/emails', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${resendKey}`,
+            },
             body: JSON.stringify({
-              service_id: serviceId,
-              template_id: templateId,
-              user_id: pubKey,
-              accessToken: env.EMAILJS_PRIVATE_KEY || '',
-              template_params: {
-                to_email: klant.email,
-                to_name: klant.naam,
-                login_url: loginUrl,
-              },
+              from: 'Groen van Texel <onboarding@resend.dev>',
+              to: [klant.email],
+              subject: 'Uw loginlink voor Groen van Texel',
+              html: `<p>Beste ${klant.naam},</p><p>Klik op de onderstaande link om in te loggen bij Groen van Texel:</p><p><a href="${loginUrl}">${loginUrl}</a></p><p>Deze link is 15 minuten geldig.</p><p>Met vriendelijke groet,<br>Groen van Texel</p>`,
             }),
           });
-          const ejText = await ejResp.text();
-          console.log('[magic link] EmailJS response:', ejResp.status, ejText);
+          const resendText = await resendResp.text();
+          console.log('[magic link] Resend response:', resendResp.status, resendText);
         } catch(e) {
-          console.error('[magic link] EmailJS fout:', e.message);
+          console.error('[magic link] Resend fout:', e.message);
         }
       } else {
-        console.log('[magic link] EmailJS niet geconfigureerd — link hierboven gebruiken');
+        console.log('[magic link] Resend niet geconfigureerd — link hierboven gebruiken');
       }
 
       // Tijdelijk: stuur loginUrl terug in response voor debugging
