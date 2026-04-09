@@ -781,27 +781,36 @@ export async function onRequestPost({ request, env }) {
 
       const loginUrl = `${env.ALLOWED_ORIGIN}?magicToken=${encodeURIComponent(token)}`;
 
+      console.log('[magic link] Klant gevonden:', klant.email, '| EmailJS config:', !!serviceId, !!templateId, !!pubKey);
+      console.log('[magic link] Login URL:', loginUrl);
+
       if (serviceId && templateId && pubKey) {
-        await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            service_id: serviceId,
-            template_id: templateId,
-            user_id: pubKey,
-            template_params: {
-              to_email: klant.email,
-              to_name: klant.naam,
-              login_url: loginUrl,
-            },
-          }),
-        }).catch(e => console.error('[magic link] EmailJS fout:', e.message));
+        try {
+          const ejResp = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              service_id: serviceId,
+              template_id: templateId,
+              user_id: pubKey,
+              template_params: {
+                to_email: klant.email,
+                to_name: klant.naam,
+                login_url: loginUrl,
+              },
+            }),
+          });
+          const ejText = await ejResp.text();
+          console.log('[magic link] EmailJS response:', ejResp.status, ejText);
+        } catch(e) {
+          console.error('[magic link] EmailJS fout:', e.message);
+        }
       } else {
-        // EmailJS niet geconfigureerd — log de link voor development
-        console.log('[magic link] Login URL:', loginUrl);
+        console.log('[magic link] EmailJS niet geconfigureerd — link hierboven gebruiken');
       }
 
-      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+      // Tijdelijk: stuur loginUrl terug in response voor debugging
+      return new Response(JSON.stringify({ ok: true, debug_url: loginUrl }), { headers: cors });
     }
 
     if (actie === 'verifyMagicLink') {
