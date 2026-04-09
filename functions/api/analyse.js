@@ -756,6 +756,35 @@ export async function onRequestPost({ request, env }) {
     }
 
     // ── MAGIC LINK ────────────────────────────────────────────────────────────
+    if (actie === 'stuurPublicatieEmail') {
+      const { email, naam } = body;
+      if (!email) return new Response(JSON.stringify({ ok: true }), { headers: cors });
+
+      // Genereer loginlink
+      const klanten = await sb(env, `klanten?email=eq.${encodeURIComponent(email.toLowerCase())}`);
+      const klant = Array.isArray(klanten) ? klanten[0] : null;
+      if (!klant) return new Response(JSON.stringify({ ok: true }), { headers: cors });
+
+      const exp = Math.floor(Date.now() / 1000) + 7 * 24 * 3600; // 7 dagen geldig
+      const token = await jwtSign({ type: 'magiclink', code: klant.code, email: klant.email, exp }, env);
+      const loginUrl = `${env.ALLOWED_ORIGIN}?magicToken=${encodeURIComponent(token)}`;
+
+      const resendKey = env && env.RESEND_API_KEY;
+      if (resendKey) {
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
+          body: JSON.stringify({
+            from: 'Groen van Texel <onboarding@resend.dev>',
+            to: [email.toLowerCase()],
+            subject: 'Uw financiële analyse staat klaar',
+            html: `<p>Beste ${naam || klant.naam},</p><p>Uw financiële analyse is gepubliceerd en staat klaar om te bekijken.</p><p>Klik op de onderstaande link om in te loggen en uw rapport te bekijken:</p><p><a href="${loginUrl}" style="background:#1A7A42;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">Bekijk mijn analyse →</a></p><p>Deze link is 7 dagen geldig.</p><p>Met vriendelijke groet,<br>Groen van Texel<br>06 4215 2499</p>`,
+          }),
+        }).catch(e => console.error('[publicatie email] Resend fout:', e.message));
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: cors });
+    }
+
     if (actie === 'aanmeldLead') {
       const { naam, bedrijf, sector, email } = body;
       if (!naam || !bedrijf || !sector || !email) {
