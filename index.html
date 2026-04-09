@@ -1484,6 +1484,14 @@ const Rapport={
       });
     } catch(e){ console.warn('Dossier publicatie update mislukt:', e); }
     setTxt('btn-pub','Gepubliceerd');UI.toast('1-pager gepubliceerd — klant ziet hem nu in zijn portaal');
+    // Stuur notificatie email naar klant
+    try {
+      const kl=await Store.getKlanten();
+      const klant=kl.find(k=>k.naam===_adminKlant);
+      if(klant?.email){
+        await API.call({actie:'stuurPublicatieEmail', email:klant.email, naam:klant.naam||_adminKlant});
+      }
+    } catch(e){ console.warn('Publicatie email mislukt:', e); }
   },
   async reset1Pager(){
     if(!_adminKlant||!_adminPeriode)return;
