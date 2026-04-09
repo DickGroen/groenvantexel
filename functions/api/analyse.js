@@ -559,6 +559,7 @@ export async function onRequestPost({ request, env }) {
           service_id: serviceId,
           template_id: templateId,
           user_id: pubKey,
+          accessToken: env.EMAILJS_PRIVATE_KEY || '',
           template_params: emailData,
         }),
       });
@@ -793,6 +794,7 @@ export async function onRequestPost({ request, env }) {
               service_id: serviceId,
               template_id: templateId,
               user_id: pubKey,
+              accessToken: env.EMAILJS_PRIVATE_KEY || '',
               template_params: {
                 to_email: klant.email,
                 to_name: klant.naam,
