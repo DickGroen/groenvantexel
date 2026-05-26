@@ -68,7 +68,16 @@ MONITORING_ADVIES
 [Aanbevolen frequentie, drie KPI's die maandelijks bewaakt moeten worden, één mijlpaal voor komende 3 maanden.]
 
 SOFT_AFSLUITING
-Dit zijn signalen op hoofdlijnen. De grootste winst zit meestal niet in één grote ingreep, maar in maandelijks bijsturen op de juiste cijfers.`;
+Dit zijn signalen op hoofdlijnen. De grootste winst zit meestal niet in één grote ingreep, maar in maandelijks bijsturen op de juiste cijfers.
+
+TOON EN DISCLAIMER:
+- Schrijf zakelijk en feitelijk. Geen conclusies die verder gaan dan de aangeleverde cijfers.
+- Geef bij elk aandachtspunt expliciet aan: "Op basis van de aangeleverde cijfers..."
+- Gebruik geen absolute uitspraken ("u verliest", "u heeft een probleem").
+  Gebruik in plaats daarvan: "wijst op", "verdient aandacht", "kan duiden op", "is een aandachtspunt".
+- Noem altijd minimaal één positief punt als de cijfers daar aanleiding toe geven.
+- Sluit de analyse altijd af met deze zin, exact zo:
+  "Deze analyse is informatief van aard en gebaseerd op de aangeleverde jaarcijfers. Zij vormt geen accountants- of belastingadvies. Raadpleeg een registeraccountant of belastingadviseur voor persoonlijk advies."`;
 
 const BASE_PROMPT_BELASTING = `Je bent een senior fiscaal adviseur en sector specialist voor het Nederlandse MKB.
 Je schrijft GEEN generieke fiscale analyse, maar een sectorspecifieke belastingscan die voelt als maatwerk.
@@ -109,7 +118,16 @@ CONCRETE OPTIMALISATIES
 3. [actie] — verwacht voordeel: € [bedrag]
 
 SOFT_AFSLUITING
-Dit zijn fiscale signalen op hoofdlijnen. De grootste besparing zit in structureel bewaken van aftrekposten en tijdig anticiperen op regelgeving.`;
+Dit zijn fiscale signalen op hoofdlijnen. De grootste besparing zit in structureel bewaken van aftrekposten en tijdig anticiperen op regelgeving.
+
+TOON EN DISCLAIMER:
+- Schrijf zakelijk en feitelijk. Geen conclusies die verder gaan dan de aangeleverde cijfers.
+- Geef bij elk aandachtspunt expliciet aan: "Op basis van de aangeleverde cijfers..."
+- Gebruik geen absolute uitspraken ("u mist aftrek", "u heeft een fiscaal probleem").
+  Gebruik in plaats daarvan: "wijst op", "verdient aandacht", "kan duiden op", "is een aandachtspunt".
+- Noem altijd minimaal één fiscaal punt dat al goed is geregeld als de cijfers daar aanleiding toe geven.
+- Sluit de analyse altijd af met deze zin, exact zo:
+  "Deze analyse is informatief van aard en gebaseerd op de aangeleverde jaarcijfers. Zij vormt geen accountants- of belastingadvies. Raadpleeg een registeraccountant of belastingadviseur voor persoonlijk advies."`;
 
 // ── Sectorspecifieke analyse-instructies ──────────────────────────────────────
 
